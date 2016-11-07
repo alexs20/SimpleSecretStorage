@@ -82,7 +82,7 @@ public class LogEx {
             }
             sb.append(arg);
         }
-        Log.e(TAG, sb.toString());
+        Log.i(TAG, sb.toString());
     }
 
     /**
@@ -100,7 +100,7 @@ public class LogEx {
                 }
                 sb.append(arg);
             }
-            Log.d(TAG, sb.toString());
+            Log.v(TAG, sb.toString());
         }
     }
 

@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -23,11 +22,11 @@ import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 /**
- *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntriesFragment extends Fragment {
@@ -48,7 +47,7 @@ public class EntriesFragment extends Fragment {
         }
         try {
             mStorageProvider = (IStorageProvider) context;
-            mAdapter = new CustomAdapter(context,  mStorageProvider.getSQLiteStorage());
+            mAdapter = new CustomAdapter(context, mStorageProvider.getSQLiteStorage());
         } catch (ClassCastException e) {
             throw new ClassCastException(
                     String.format(getString(R.string.internal_exception_must_implement), context.toString(),
@@ -69,9 +68,8 @@ public class EntriesFragment extends Fragment {
             }
         });
 
-        ListView entriesList = (ListView)view.findViewById(R.id.entriesList);
+        ListView entriesList = (ListView) view.findViewById(R.id.entriesList);
         entriesList.setAdapter(mAdapter);
-        entriesList.setOnScrollListener(mAdapter);
         LogEx.i("onCreateView");
         return view;
     }
@@ -112,28 +110,49 @@ public class EntriesFragment extends Fragment {
         void onEntrySelected(UUID entryId);
     }
 
-    public class CustomAdapter extends BaseAdapter implements AbsListView.OnScrollListener {
-        private ArrayList<SecretEntry> mLoadedEntries;
-        private int mCount = 0;
-        private int mShift = 0;
+    public class CustomAdapter extends BaseAdapter {
+        private List<SecretEntry> mLoadedEntries;
         private Context mContext;
         private SQLiteStorage mStorage;
         private Handler mLoader;
+        private Handler mUpdater;
 
         public CustomAdapter(Context context, SQLiteStorage storage) {
             this.mContext = context;
             this.mStorage = storage;
-            this.mLoadedEntries = new ArrayList<>();
+            this.mLoadedEntries = Collections.synchronizedList(new ArrayList<SecretEntry>());
 
             HandlerThread thread = new HandlerThread(CustomAdapter.class.getName());
             thread.start();
             this.mLoader = new Handler(thread.getLooper());
+            mUpdater = new Handler();
 
-            onScroll(null, 0, 50, 50);
+            mLoader.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int offset = 0;
+                        List<SecretEntry> entries = mStorage.find(null, true, offset, 10);
+                        while (entries.size() > 0) {
+                            mLoadedEntries.addAll(entries);
+                            mUpdater.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyDataSetChanged();
+                                }
+                            });
+                            offset += 10;
+                            entries = mStorage.find(null, true, offset, 10);
+                        }
+                    } catch (StorageException e) {
+                        LogEx.e(e.getMessage(), e);
+                    }
+                }
+            });
         }
 
         public int getCount() {
-            return mCount;
+            return mLoadedEntries.size();
         }
 
         public Object getItem(int arg0) {
@@ -145,37 +164,18 @@ public class EntriesFragment extends Fragment {
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
-            View row = inflater.inflate(R.layout.fragment_entries_item, parent, false);
-            TextView title = (TextView) row.findViewById(R.id.txtTitle);
-            ImageView image = (ImageView) row.findViewById(R.id.imgIcon);
-                SecretEntry entry = mLoadedEntries.get(position);
-                title.setText(entry.get(0).getValue());
+            if (convertView == null) {
+                LayoutInflater inflater = LayoutInflater.from(mContext);
+                convertView = inflater.inflate(R.layout.fragment_entries_item, parent, false);
+            }
+            TextView title = (TextView) convertView.findViewById(R.id.txtTitle);
+            ImageView image = (ImageView) convertView.findViewById(R.id.imgIcon);
+            SecretEntry entry = mLoadedEntries.get(position);
+            title.setText(entry.get(0).getValue());
 
             image.setImageResource(R.mipmap.img_add);
 
-            return (row);
-        }
-
-        @Override
-        public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-        }
-
-        @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-            boolean isLoadMore = firstVisibleItem + visibleItemCount >= mCount;
-
-            if(isLoadMore) {
-                try {
-                    List<SecretEntry> entries = mStorage.find(null, true, mCount, visibleItemCount);
-                    mLoadedEntries.addAll(entries);
-                    mCount += visibleItemCount;
-                    notifyDataSetChanged();
-                } catch (StorageException e) {
-                    LogEx.e(e.getMessage(), e);
-                }
-            }
+            return convertView;
         }
     }
 }

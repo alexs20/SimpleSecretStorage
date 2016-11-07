@@ -79,15 +79,16 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
 //        return mService;
 //    }
 //
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mStorage.close();
 //        if (mService != null) {
 //            //close live connections to the service
 //            getApplicationContext().unbindService(mConnection);
 //            mService = null;
 //        }
-//    }
+    }
 //
 //    @Override
 //    public void onLogoutFlowSelected() {
