@@ -1,13 +1,13 @@
-package com.wolandsoft.sss.storage.db;
+package com.wolandsoft.sss.storage;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.storage.IStorage;
+import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.storage.StorageFactory;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,46 +29,27 @@ import static junit.framework.Assert.fail;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-@RunWith(Parameterized.class)
-//@RunWith(AndroidJUnit4.class)
+@RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SQLiteStorageEntryTest {
 
-    private String storageID;
-    private IStorage storage;
+    private SQLiteStorage storage;
     private SecretEntry entry;
 
-    public SQLiteStorageEntryTest(String storageID, SecretEntry entry) {
-        this.storageID = storageID;
-        this.entry = entry;
-    }
-
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-
-        SecretEntry entry = new SecretEntry();
+    @Before
+    public void setupDB() throws Exception {
+        entry = new SecretEntry();
         entry.add(new SecretEntryAttribute("Name", "Test1", false));
         entry.add(new SecretEntryAttribute("URL", "http://test.example.com", false));
         entry.add(new SecretEntryAttribute("Password", "12345", true));
 
-        return Arrays.asList(new Object[][]{
-                {"SQLiteStorage", entry},
-        });
-    }
-
-    @Before
-    public void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
-        storage = StorageFactory.getInstance(context).getStorage(storageID);
-        storage.startup(null);
-        assertTrue(storage.isActive());
+        storage = new SQLiteStorage(context);
     }
 
     @After
     public void cleanDB() throws Exception {
-        storage.shutdown();
-        Context context = InstrumentationRegistry.getTargetContext();
-        context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
+        storage.close();
     }
 
     @Test

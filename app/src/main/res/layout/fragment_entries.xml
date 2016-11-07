@@ -17,7 +17,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
-        android:src="@mipmap/img_plus"
+        android:src="@mipmap/img_add"
         app:fabSize="normal" />
 
 </RelativeLayout>

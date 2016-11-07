@@ -17,9 +17,9 @@ import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
-import com.wolandsoft.sss.storage.IStorage;
+import com.wolandsoft.sss.storage.IStorageProvider;
+import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.storage.StorageFactory;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ import java.util.UUID;
 public class EntriesFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+    private IStorageProvider mStorageProvider;
     private CustomAdapter mAdapter;
 
     @Override
@@ -43,15 +44,15 @@ public class EntriesFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(
                     String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-                            OnFragmentInteractionListener.class.getSimpleName()));
+                            OnFragmentInteractionListener.class.getName()));
         }
-LogEx.i("onAttach");
         try {
-            IStorage storage = StorageFactory.getInstance(context).getStorage("SQLiteStorage");
-            storage.startup(null);
-            mAdapter = new CustomAdapter(context,  storage);
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
+            mStorageProvider = (IStorageProvider) context;
+            mAdapter = new CustomAdapter(context,  mStorageProvider.getSQLiteStorage());
+        } catch (ClassCastException e) {
+            throw new ClassCastException(
+                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
+                            IStorageProvider.class.getName()));
         }
     }
 
@@ -116,10 +117,10 @@ LogEx.i("onAttach");
         private int mCount = 0;
         private int mShift = 0;
         private Context mContext;
-        private IStorage mStorage;
+        private SQLiteStorage mStorage;
         private Handler mLoader;
 
-        public CustomAdapter(Context context, IStorage storage) {
+        public CustomAdapter(Context context, SQLiteStorage storage) {
             this.mContext = context;
             this.mStorage = storage;
             this.mLoadedEntries = new ArrayList<>();
@@ -151,7 +152,7 @@ LogEx.i("onAttach");
                 SecretEntry entry = mLoadedEntries.get(position);
                 title.setText(entry.get(0).getValue());
 
-            image.setImageResource(R.mipmap.img_plus);
+            image.setImageResource(R.mipmap.img_add);
 
             return (row);
         }

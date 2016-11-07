@@ -8,9 +8,8 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.storage.IStorage;
-import com.wolandsoft.sss.storage.StorageFactory;
-import com.wolandsoft.sss.storage.db.DatabaseHelper;
+import com.wolandsoft.sss.storage.DatabaseHelper;
+import com.wolandsoft.sss.storage.SQLiteStorage;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,10 +20,6 @@ import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
@@ -43,7 +38,7 @@ public class PlainJsonTest {
 
     private String storageID;
     private String externalID;
-    private IStorage storage;
+    private SQLiteStorage storage;
     private IExternal external;
 
     public PlainJsonTest(String storageID, String externalID) {
@@ -63,9 +58,7 @@ public class PlainJsonTest {
     public void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        storage = StorageFactory.getInstance(context).getStorage(storageID);
-        storage.startup(null);
-        assertTrue(storage.isActive());
+        storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
@@ -78,15 +71,15 @@ public class PlainJsonTest {
 
     @After
     public void cleanDB() throws Exception {
-        storage.shutdown();
-        Context context = InstrumentationRegistry.getTargetContext();
-        context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
+        storage.close();
+        ;
     }
 
     @Test
     public void test_doExport() throws ExternalException {
         external.doExport(storage);
     }
+
     @Test
     public void test_doImport() throws ExternalException {
         external.doImport(storage, true);

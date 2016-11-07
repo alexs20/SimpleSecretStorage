@@ -1,4 +1,4 @@
-package com.wolandsoft.sss.storage.db;
+package com.wolandsoft.sss.storage;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/

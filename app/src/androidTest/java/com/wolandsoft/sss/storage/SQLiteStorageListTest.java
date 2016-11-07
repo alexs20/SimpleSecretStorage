@@ -1,13 +1,13 @@
-package com.wolandsoft.sss.storage.db;
+package com.wolandsoft.sss.storage;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.storage.IStorage;
+import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.storage.StorageFactory;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,8 +27,7 @@ import static junit.framework.Assert.assertTrue;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-@RunWith(Parameterized.class)
-//@RunWith(AndroidJUnit4.class)
+@RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SQLiteStorageListTest {
     private static final String KEY_NAME = "Name";
@@ -38,28 +37,13 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
     private static final int ENTRIES_COUNT = 100;
-    private String storageID;
-    private IStorage storage;
-
-    public SQLiteStorageListTest(String storageID) {
-        this.storageID = storageID;
-    }
-
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-
-        return Arrays.asList(new Object[][]{
-                {"SQLiteStorage"},
-        });
-    }
+    private SQLiteStorage storage;
 
     @Before
     public void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        storage = StorageFactory.getInstance(context).getStorage(storageID);
-        storage.startup(null);
-        assertTrue(storage.isActive());
+        storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
@@ -71,9 +55,7 @@ public class SQLiteStorageListTest {
 
     @After
     public void cleanDB() throws Exception {
-        storage.shutdown();
-        //Context context = InstrumentationRegistry.getTargetContext();
-        //context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
+        storage.close();
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.wolandsoft.sss.storage.db;
+package com.wolandsoft.sss.storage;
 
 public final class SecretEntryTable extends ATableDefinition {
     public final static String TBL_NAME = "secret_entry";

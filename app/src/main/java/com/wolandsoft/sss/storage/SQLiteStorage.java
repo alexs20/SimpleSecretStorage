@@ -1,86 +1,57 @@
-package com.wolandsoft.sss.storage.db;
+package com.wolandsoft.sss.storage;
 
-import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.storage.AStorage;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
-import org.apache.commons.codec.binary.Hex;
-
-import java.security.MessageDigest;
+import java.io.Closeable;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Created by Alexander on 10/15/2016.
  */
 
-public class SQLiteStorage extends AStorage {
+public class SQLiteStorage extends ContextWrapper implements Closeable {
     private DatabaseHelper dbHelper;
     private KeyStoreManager keyStore;
-    private boolean isActive = false;
 
-    public SQLiteStorage(Context base) {
+    public SQLiteStorage(Context base) throws StorageException {
         super(base);
-    }
-
-    @Override
-    public void startup(String password) throws StorageException {
         dbHelper = new DatabaseHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
         try {
-            Cursor cursor = db.query(MasterPasswordTable.TBL_NAME, null, null, null, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                if (password == null) {
-                    shutdown();
-                    throw new StorageException(getString(R.string.exception_invalid_password));
-                }
-                String storedHash = cursor.getString(cursor.getColumnIndex(MasterPasswordTable.FLD_PASSWORD));
-                String inputHash = hash(password);
-                if (!inputHash.equals(storedHash)) {
-                    shutdown();
-                    throw new StorageException(getString(R.string.exception_invalid_password));
-                }
-            } else {
-                if (password != null) {
-                    shutdown();
-                    throw new StorageException(getString(R.string.exception_password_not_set));
-                }
-            }
             keyStore = new KeyStoreManager(this);
-        } catch (Exception e) {
-            shutdown();
+        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
+                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
+                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
             throw new StorageException(e.getMessage(), e);
-        } finally {
-            db.close();
         }
-        isActive = true;
     }
 
     @Override
-    public void shutdown() {
+    public void close() {
         if (dbHelper != null) {
             dbHelper.close();
             dbHelper = null;
         }
-        isActive = false;
     }
 
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
-    @Override
     public List<SecretEntry> find(String criteria, boolean isASC, int offset, int limit) throws StorageException {
         //sqlite> explain select e.*, a.* from secret_entry as e
         //...> inner join secret_entry_attribute as a on (
@@ -108,8 +79,8 @@ public class SQLiteStorage extends AStorage {
                     .append(" AND ")
                     .append("A.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0)");
             if (criteria != null) {
-                String[] keywords = criteria != null ? criteria.split("\\s") : null;
-                if (keywords != null && keywords.length > 0) {
+                String[] keywords = criteria.split("\\s");
+                if (keywords.length > 0) {
                     sb.append(" INNER JOIN ").append(SecretEntryAttributeTable.TBL_NAME)
                             .append(" AS F ON (")
                             .append(SecretEntryTable.FLD_UUID_MSB).append("=F.").append(SecretEntryAttributeTable.FLD_ENTRY_UUID_MSB)
@@ -146,18 +117,13 @@ public class SQLiteStorage extends AStorage {
         return result;
     }
 
-    @Override
     public SecretEntry get(UUID id) throws StorageException {
         try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
             return readEntry(id, db);
         }
     }
 
-    @Override
     public SecretEntry put(SecretEntry entry) throws StorageException {
-        if (!isActive()) {
-            throw new StorageException(getString(R.string.exception_storage_not_ready));
-        }
         SecretEntry oldEntry = null;
         long uuid_msb = entry.getID().getMostSignificantBits();
         long uuid_lsb = entry.getID().getLeastSignificantBits();
@@ -208,42 +174,6 @@ public class SQLiteStorage extends AStorage {
             throw new StorageException(e.getMessage(), e);
         }
         return oldEntry;
-    }
-
-    @Override
-    public void setPassword(String password) throws StorageException {
-        if (!isActive()) {
-            throw new StorageException(getString(R.string.exception_storage_not_ready));
-        }
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.beginTransaction();
-        try {
-            db.delete(MasterPasswordTable.TBL_NAME, null, null);
-            if (password != null) {
-                String inputHash = hash(password);
-                ContentValues values = new ContentValues();
-                values.put(MasterPasswordTable.FLD_PASSWORD, inputHash);
-                db.insert(MasterPasswordTable.TBL_NAME, null, values);
-            }
-            db.setTransactionSuccessful();
-        } catch (NoSuchAlgorithmException e) {
-            throw new StorageException(e.getMessage(), e);
-        } finally {
-            db.endTransaction();
-            db.close();
-        }
-    }
-
-    @Override
-    public String getID() {
-        return this.getClass().getSimpleName();
-    }
-
-    private String hash(String value) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.update(value.getBytes());
-        char[] hex = Hex.encodeHex(digest.digest());
-        return String.valueOf(hex);
     }
 
     private SecretEntry readEntry(UUID uuid, SQLiteDatabase db) throws StorageException {

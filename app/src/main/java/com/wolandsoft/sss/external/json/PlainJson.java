@@ -13,7 +13,7 @@ import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.AExternal;
 import com.wolandsoft.sss.external.ExternalException;
-import com.wolandsoft.sss.storage.IStorage;
+import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 
 import java.io.BufferedReader;
@@ -77,7 +77,7 @@ public class PlainJson extends AExternal {
     }
 
     @Override
-    public void doExport(IStorage fromStorage) throws ExternalException {
+    public void doExport(SQLiteStorage fromStorage) throws ExternalException {
         File dir = Environment.getExternalStoragePublicDirectory(PUBLIC_DIRECTORY);
         if (!dir.exists()) {
             dir.mkdir();
@@ -124,7 +124,7 @@ public class PlainJson extends AExternal {
     }
 
     @Override
-    public void doImport(IStorage toStorage, boolean isOverwrite) throws ExternalException {
+    public void doImport(SQLiteStorage toStorage, boolean isOverwrite) throws ExternalException {
         File dir = Environment.getExternalStoragePublicDirectory(PUBLIC_DIRECTORY);
         if (!dir.exists()) {
             String fullPath = dir.getAbsolutePath();
