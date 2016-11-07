@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">Simple Secret Storage</string>
+    <string name="action_settings">Settings</string>
+    <string name="auth_service_label">Authentication Service</string>
+
+    <string name="enum_NAME">Name</string>
+    <string name="enum_URL">URL</string>
+    <string name="enum_PASSWORD">Password</string>
+
+    <string name="exception_invalid_password">Invalid password</string>
+    <string name="exception_password_not_set">Password not set</string>
+    <string name="exception_storage_not_ready">Storage not ready</string>
+    <string name="exception_no_storage_permission">No storage permission granted</string>
+    <string name="exception_no_file_found">File not found %1$s</string>
+    <string name="exception_no_dir_found">Directory not found %1$s</string>
+
+    <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
+
+
+
+    <string name="email_hint">email address</string>
+    <string name="user_id_label">User ID</string>
+    <string name="display_name_label">Display name</string>
+    <string name="password_label">Password</string>
+    <string name="password_repeat_label">Password (confirm)</string>
+
+    <string name="error_dialog_title">Error</string>
+
+    <string name="login_title">Login</string>
+    <string name="login_summary">Please login using your email address as a User ID otherwise create a new account.</string>
+
+    <string name="empty_user_id_error">User ID should not be empty.</string>
+    <string name="invalid_user_id_error">User ID should be a valid email address.</string>
+    <string name="taken_user_id_error">User ID already registered.</string>
+    <string name="empty_display_name_error">Display name should not be empty.</string>
+    <string name="empty_password_error">Password should not be empty.</string>
+    <string name="repeated_password_mismatch_error">The password and its confirm are not the same.</string>
+    <string name="unknown_user_id_or_password">Unknown User ID or Password.</string>
+
+    <string name="service_connection_problem_error">Can not connect to authentication service.</string>
+    <string name="internal_error">Internal error.</string>
+
+    <string name="signup_title">Signup</string>
+    <string name="signup_summary">Please signup using your email address as a User ID.</string>
+
+    <string name="home_summary">Hello %1$s,&lt;br&gt; Thank you for using Technical Sample Application. This application was developed for I2X Technologies by Alexander Shulgin. Hope you have enjoyed it.</string>
+
+
+</resources>

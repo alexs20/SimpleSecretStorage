@@ -1,0 +1,5 @@
+<resources>
+
+    <color name="colorGradientBottom">?android:attr/windowBackground</color>
+
+</resources>
