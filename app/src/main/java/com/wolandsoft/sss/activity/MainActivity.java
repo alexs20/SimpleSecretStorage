@@ -28,18 +28,18 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        //KeySharedPreferences pref = new KeySharedPreferences(getSharedPreferences(AppConstants.APP_TAG, Context.MODE_PRIVATE), this);
-        //String storageId = pref.getString(R.string.key_storage_id, R.string.value_storage_id_default);
-
         try {
             mStorage = new SQLiteStorage(this);
         } catch (StorageException e) {
             finish();
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        //KeySharedPreferences pref = new KeySharedPreferences(getSharedPreferences(AppConstants.APP_TAG, Context.MODE_PRIVATE), this);
+        //String storageId = pref.getString(R.string.key_storage_id, R.string.value_storage_id_default);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = new EntriesFragment();
@@ -81,13 +81,9 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
 //
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         mStorage.close();
-//        if (mService != null) {
-//            //close live connections to the service
-//            getApplicationContext().unbindService(mConnection);
-//            mService = null;
-//        }
+        mStorage = null;
+        super.onDestroy();
     }
 //
 //    @Override

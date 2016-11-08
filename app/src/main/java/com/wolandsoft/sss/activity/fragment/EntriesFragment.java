@@ -1,6 +1,7 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -70,7 +71,6 @@ public class EntriesFragment extends Fragment {
 
         ListView entriesList = (ListView) view.findViewById(R.id.entriesList);
         entriesList.setAdapter(mAdapter);
-        LogEx.i("onCreateView");
         return view;
     }
 
@@ -87,19 +87,21 @@ public class EntriesFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        LogEx.i("onDetach");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        LogEx.i("onResume");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LogEx.i("onPause");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     public interface OnFragmentInteractionListener {
@@ -121,7 +123,30 @@ public class EntriesFragment extends Fragment {
             this.mContext = context;
             this.mStorage = storage;
             this.mLoadedEntries = Collections.synchronizedList(new ArrayList<SecretEntry>());
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        int offset = 0;
+                        List<SecretEntry> entries = mStorage.find(null, true, offset, 10);
+                        while (entries.size() > 0) {
+                            mLoadedEntries.addAll(entries);
+                            publishProgress();
+                            offset += 10;
+                            entries = mStorage.find(null, true, offset, 10);
+                        }
+                    } catch (StorageException e) {
+                        LogEx.e(e.getMessage(), e);
+                    }
+                    return null;
+                }
 
+                @Override
+                protected void onProgressUpdate(Void... values) {
+                    notifyDataSetChanged();
+                }
+            }.execute();
+/*
             HandlerThread thread = new HandlerThread(CustomAdapter.class.getName());
             thread.start();
             this.mLoader = new Handler(thread.getLooper());
@@ -149,6 +174,7 @@ public class EntriesFragment extends Fragment {
                     }
                 }
             });
+            */
         }
 
         public int getCount() {
