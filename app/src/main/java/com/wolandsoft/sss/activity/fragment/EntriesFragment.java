@@ -7,13 +7,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
@@ -71,6 +74,20 @@ public class EntriesFragment extends Fragment {
 
         ListView entriesList = (ListView) view.findViewById(R.id.entriesList);
         entriesList.setAdapter(mAdapter);
+        entriesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            public void onItemClick(AdapterView<?> parent, View selectedView,
+                                    int position, long id) {
+                SecretEntry entry = (SecretEntry) mAdapter.getItem(position);
+                if(entry != null) {
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    Fragment fragment = EntryFragment.newInstance(entry);
+                    transaction.replace(R.id.content_fragment, fragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+            }
+        });
         return view;
     }
 
@@ -122,19 +139,12 @@ public class EntriesFragment extends Fragment {
         public CustomAdapter(Context context, SQLiteStorage storage) {
             this.mContext = context;
             this.mStorage = storage;
-            this.mLoadedEntries = Collections.synchronizedList(new ArrayList<SecretEntry>());
-            new AsyncTask<Void, Void, Void>() {
+            this.mLoadedEntries = new ArrayList<SecretEntry>();
+            new AsyncTask<Void, Void, List<SecretEntry>>() {
                 @Override
-                protected Void doInBackground(Void... params) {
+                protected List<SecretEntry> doInBackground(Void... params) {
                     try {
-                        int offset = 0;
-                        List<SecretEntry> entries = mStorage.find(null, true, offset, 10);
-                        while (entries.size() > 0) {
-                            mLoadedEntries.addAll(entries);
-                            publishProgress();
-                            offset += 10;
-                            entries = mStorage.find(null, true, offset, 10);
-                        }
+                        return mStorage.find(null, true, 0, Integer.MAX_VALUE);
                     } catch (StorageException e) {
                         LogEx.e(e.getMessage(), e);
                     }
@@ -142,47 +152,19 @@ public class EntriesFragment extends Fragment {
                 }
 
                 @Override
-                protected void onProgressUpdate(Void... values) {
+                protected void onPostExecute(List<SecretEntry> secretEntries) {
+                    mLoadedEntries = secretEntries;
                     notifyDataSetChanged();
                 }
             }.execute();
-/*
-            HandlerThread thread = new HandlerThread(CustomAdapter.class.getName());
-            thread.start();
-            this.mLoader = new Handler(thread.getLooper());
-            mUpdater = new Handler();
-
-            mLoader.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        int offset = 0;
-                        List<SecretEntry> entries = mStorage.find(null, true, offset, 10);
-                        while (entries.size() > 0) {
-                            mLoadedEntries.addAll(entries);
-                            mUpdater.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    notifyDataSetChanged();
-                                }
-                            });
-                            offset += 10;
-                            entries = mStorage.find(null, true, offset, 10);
-                        }
-                    } catch (StorageException e) {
-                        LogEx.e(e.getMessage(), e);
-                    }
-                }
-            });
-            */
         }
 
         public int getCount() {
             return mLoadedEntries.size();
         }
 
-        public Object getItem(int arg0) {
-            return null;
+        public Object getItem(int index) {
+            return mLoadedEntries.get(index);
         }
 
         public long getItemId(int position) {

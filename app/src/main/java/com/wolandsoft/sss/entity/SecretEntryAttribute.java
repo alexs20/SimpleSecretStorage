@@ -1,10 +1,12 @@
 package com.wolandsoft.sss.entity;
 
+import java.io.Serializable;
+
 /**
  * Created by Alexander on 10/15/2016.
  */
 
-public class SecretEntryAttribute {
+public class SecretEntryAttribute  implements Serializable {
 
     private String key;
     private String value;

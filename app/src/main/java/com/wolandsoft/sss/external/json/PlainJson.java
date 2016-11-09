@@ -90,9 +90,8 @@ public class PlainJson extends AExternal {
              OutputStreamWriter out = new OutputStreamWriter(fOut, "UTF-8")) {
 
             List<Object> jsonEntries = new LinkedList<>();
-            int offset = 0;
-            List<SecretEntry> entries = fromStorage.find(null, true, offset, 10);
-            while (entries.size() > 0) {
+            List<SecretEntry> entries = fromStorage.find(null, true, 0, Integer.MAX_VALUE);
+
                 for (SecretEntry entry : entries) {
                     Map<String, Object> jsonEntry = new LinkedHashMap<>();
                     jsonEntry.put(KEY_UUID, entry.getID());
@@ -111,9 +110,6 @@ public class PlainJson extends AExternal {
                     jsonEntry.put(DATA, jsonAttrs);
                     jsonEntries.add(jsonEntry);
                 }
-                offset += 10;
-                entries = fromStorage.find(null, true, offset, 10);
-            }
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             String outStr = gson.toJson(jsonEntries);

@@ -1,5 +1,6 @@
 package com.wolandsoft.sss.entity;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.UUID;
 
@@ -7,7 +8,7 @@ import java.util.UUID;
  * Created by Alexander on 10/14/2016.
  */
 
-public class SecretEntry extends LinkedList<SecretEntryAttribute> {
+public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Serializable{
     private UUID id;
     private long created;
     private long updated;
