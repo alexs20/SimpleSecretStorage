@@ -77,19 +77,19 @@ public class EntryFragment extends Fragment {
         Bundle args = getArguments();
         SecretEntry entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
         TableLayout tabLayout = (TableLayout) view.findViewById(R.id.tableLayout);
-        for(SecretEntryAttribute attr : entry) {
-            TableRow row = new TableRow(getContext());
-            TextView lbl = (TextView) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_textview, null);
-            row.addView(lbl);
-            lbl.setText(attr.getKey());
-            EditText edt = (EditText) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_edittext, null);
-            row.addView(edt);
-            edt.setText(attr.getValue());
-            CheckBox chk = (CheckBox) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_checkbox, null);
-            row.addView(chk);
-            chk.setChecked(attr.isProtected());
-            tabLayout.addView(row);
-        }
+//        for(SecretEntryAttribute attr : entry) {
+//            TableRow row = new TableRow(getContext());
+//            TextView lbl = (TextView) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_textview, null);
+//            row.addView(lbl);
+//            lbl.setText(attr.getKey());
+//            EditText edt = (EditText) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_edittext, null);
+//            row.addView(edt);
+//            edt.setText(attr.getValue());
+//            CheckBox chk = (CheckBox) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_checkbox, null);
+//            row.addView(chk);
+//            chk.setChecked(attr.isProtected());
+//            tabLayout.addView(row);
+//        }
         return view;
     }
 
