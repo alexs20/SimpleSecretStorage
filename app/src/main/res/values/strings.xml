@@ -16,6 +16,14 @@
 
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
 
+    <string name="label_created">Created</string>
+    <string name="label_updated">Updated</string>
+
+    <string name="label_remove">Remove</string>
+
+    <string name="vertical_ellipsis">&#8942;</string>
+
+
 
 
     <string name="email_hint">email address</string>

@@ -8,7 +8,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -16,6 +18,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -30,14 +33,17 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntryFragment extends Fragment {
+    private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_ENTRY = "entry";
     private OnFragmentInteractionListener mListener;
 
@@ -65,6 +71,17 @@ public class EntryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_entry, container, false);
+
+        Bundle args = getArguments();
+        SecretEntry entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+
+        TextView txtCreated = (TextView) view.findViewById(R.id.txtCreated);
+        txtCreated.setText(format.format(entry.getCreated()));
+
+        TextView txtUpdated = (TextView) view.findViewById(R.id.txtUpdated);
+        txtUpdated.setText(format.format(entry.getUpdated()));
+
+
         //connect to add button
         FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
         btnDelete.setOnClickListener(new View.OnClickListener() {
@@ -74,22 +91,34 @@ public class EntryFragment extends Fragment {
             }
         });
 
-        Bundle args = getArguments();
-        SecretEntry entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
-        TableLayout tabLayout = (TableLayout) view.findViewById(R.id.tableLayout);
-//        for(SecretEntryAttribute attr : entry) {
-//            TableRow row = new TableRow(getContext());
-//            TextView lbl = (TextView) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_textview, null);
-//            row.addView(lbl);
-//            lbl.setText(attr.getKey());
-//            EditText edt = (EditText) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_edittext, null);
-//            row.addView(edt);
-//            edt.setText(attr.getValue());
-//            CheckBox chk = (CheckBox) LayoutInflater.from(getContext()).inflate(R.layout.fragment_entry_include_checkbox, null);
-//            row.addView(chk);
-//            chk.setChecked(attr.isProtected());
-//            tabLayout.addView(row);
-//        }
+        LinearLayout llCountainer = (LinearLayout) view.findViewById(R.id.llContainer);
+
+        for(SecretEntryAttribute attr : entry) {
+            View card = inflater.inflate(R.layout.fragment_entry_include_card, container, false);
+
+            TextView vKey = (TextView) card.findViewById(R.id.txtKey);
+            vKey.setText(attr.getKey());
+
+            TextView vValue = (TextView) card.findViewById(R.id.txtValue);
+            vValue.setText(attr.getValue());
+
+            if(!attr.isProtected()){
+                ImageView imgProtected = (ImageView) card.findViewById(R.id.imgProtected);
+                imgProtected.setVisibility(View.GONE);
+            }
+
+            TextView vMenu = (TextView) card.findViewById(R.id.txtMenu);
+            vMenu.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openPopup(v);
+                }
+            });
+
+
+
+            llCountainer.addView(card);
+        }
         return view;
     }
 
@@ -122,6 +151,31 @@ public class EntryFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+    }
+
+    private void openPopup(View view){
+        // Create a PopupMenu, giving it the clicked view for an anchor
+        PopupMenu popup = new PopupMenu(getActivity(), view);
+
+        // Inflate our menu resource into the PopupMenu's Menu
+        popup.getMenuInflater().inflate(R.menu.fragment_entry_include_card_popup, popup.getMenu());
+
+        // Set a listener so we are notified if a menu item is clicked
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.menu_remove:
+                        // Remove the item from the adapter
+                        //adapter.remove(item);
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        // Finally show the PopupMenu
+        popup.show();
     }
 
     public interface OnFragmentInteractionListener {
