@@ -78,7 +78,7 @@ public class EntriesFragment extends Fragment {
                 SecretEntry entry = (SecretEntry) mAdapter.getItem(position);
                 if(entry != null) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-                    Fragment fragment = EntryFragment.newInstance(entry);
+                    Fragment fragment = EntryFragment2.newInstance(entry);
                     transaction.replace(R.id.content_fragment, fragment);
                     transaction.addToBackStack(null);
                     transaction.commit();
