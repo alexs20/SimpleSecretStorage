@@ -20,9 +20,15 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+interface OnSecretEntryClickListener {
+    void onSecretEntryClick(SecretEntry entry);
+}
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
@@ -87,7 +93,7 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     @Override
     public void onDetach() {
         super.onDetach();
-        if(mStorage != null) {
+        if (mStorage != null) {
             mStorage.close();
             mStorage = null;
         }
@@ -129,14 +135,14 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     public static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
         private static final int BG_LOAD_STEP = 10;
         private int mCount;
-        private List<SecretEntry> mLoadedEntries;
+        private Map<Integer, SecretEntry> mEntries;
         private OnSecretEntryClickListener mOnClickListener;
         private SQLiteStorage mStorage;
 
         public SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
             mOnClickListener = onClickListener;
             this.mStorage = storage;
-            mLoadedEntries = new ArrayList<>();
+            mEntries = Collections.synchronizedMap(new HashMap<Integer, SecretEntry>());
             try {
                 mCount = mStorage.count(null);
             } catch (StorageException e) {
@@ -146,13 +152,16 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
                 @Override
                 protected Void doInBackground(Void... params) {
                     try {
-                        List ret = mStorage.find(null, true, mLoadedEntries.size(), BG_LOAD_STEP);
-                        while (!ret.isEmpty()) {
-                            synchronized (mLoadedEntries) {
-                                mLoadedEntries.addAll(ret);
-                                mLoadedEntries.notify();
+                        int pos = 0;
+                        while (pos < mCount) {
+                            if (!mEntries.containsKey(pos)) {
+                                List<SecretEntry> entryList = mStorage.find(null, true, pos, 1);
+                                if (entryList.isEmpty()) {
+                                    break;
+                                }
+                                mEntries.put(pos, entryList.get(0));
                             }
-                            ret = mStorage.find(null, true, mLoadedEntries.size(), BG_LOAD_STEP);
+                            pos++;
                         }
                     } catch (StorageException e) {
                         LogEx.e(e.getMessage(), e);
@@ -190,16 +199,19 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
 
 
         public SecretEntry getItem(int position) {
-            synchronized (mLoadedEntries) {
-                while (mLoadedEntries.size() <= position) {
-                    try {
-                        mLoadedEntries.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+            if (!mEntries.containsKey(position)) {
+                try {
+                    List<SecretEntry> entryList = mStorage.find(null, true, position, 1);
+                    mEntries.put(position, entryList.get(0));
+                    if (entryList.isEmpty()) {
+                        return null;
                     }
+                } catch (StorageException e) {
+                    LogEx.e(e.getMessage(), e);
+                    return null;
                 }
             }
-            return mLoadedEntries.get(position);
+            return mEntries.get(position);
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -215,8 +227,4 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
             }
         }
     }
-}
-
-interface OnSecretEntryClickListener {
-    void onSecretEntryClick(SecretEntry entry);
 }
