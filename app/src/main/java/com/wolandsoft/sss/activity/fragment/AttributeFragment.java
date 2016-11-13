@@ -62,7 +62,7 @@ public class AttributeFragment extends Fragment {
 
         if (savedInstanceState == null) {
             Bundle args = getArguments();
-            if (!args.isEmpty()) {
+            if (args != null && !args.isEmpty()) {
                 SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
                 mSePos = args.getInt(ARG_SE_POS);
                 mAttrPos = args.getInt(ARG_ATTR_POS);
