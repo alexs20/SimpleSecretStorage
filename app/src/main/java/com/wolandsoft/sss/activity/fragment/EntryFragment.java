@@ -107,13 +107,13 @@ public class EntryFragment extends Fragment {
                 imgProtected.setVisibility(View.GONE);
             }
 
-            TextView vMenu = (TextView) card.findViewById(R.id.txtMenu);
-            vMenu.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    openPopup(v);
-                }
-            });
+            //TextView vMenu = (TextView) card.findViewById(R.id.txtMenu);
+            //vMenu.setOnClickListener(new View.OnClickListener() {
+            //    @Override
+            //    public void onClick(View v) {
+            //        openPopup(v);
+            //    }
+            //});
 
 
 

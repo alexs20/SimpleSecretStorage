@@ -9,7 +9,9 @@ import android.widget.Toast;
 
 import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.AttributeFragment;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
+import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.IStorageProvider;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
@@ -22,7 +24,8 @@ import java.util.UUID;
  *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class MainActivity extends AppCompatActivity implements EntriesFragment.OnFragmentInteractionListener,IStorageProvider {
+public class MainActivity extends AppCompatActivity implements EntriesFragment.OnFragmentInteractionListener,IStorageProvider
+        ,AttributeFragment.OnFragmentInteractionListener{
 
     private SQLiteStorage mStorage;
 
@@ -41,10 +44,14 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
         //KeySharedPreferences pref = new KeySharedPreferences(getSharedPreferences(AppConstants.APP_TAG, Context.MODE_PRIVATE), this);
         //String storageId = pref.getString(R.string.key_storage_id, R.string.value_storage_id_default);
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new EntriesFragment();
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.commit();
+        if(savedInstanceState == null) {
+            SecretEntryAttribute attr = new SecretEntryAttribute("key", "value", true);
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            Fragment fragment = new EntriesFragment();
+            transaction.replace(R.id.content_fragment, fragment);
+            transaction.commit();
+        }
     }
 
 //    @Override
@@ -106,5 +113,10 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
     @Override
     public SQLiteStorage getSQLiteStorage() {
         return mStorage;
+    }
+
+    @Override
+    public void onSecretEntryAttributeApply(int sePos, int attrPos, SecretEntryAttribute attr) {
+
     }
 }

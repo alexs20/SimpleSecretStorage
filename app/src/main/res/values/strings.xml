@@ -18,6 +18,9 @@
 
     <string name="label_created">Created</string>
     <string name="label_updated">Updated</string>
+    <string name="label_attribute_key">Field name</string>
+    <string name="label_attribute_value">Field value</string>
+    <string name="label_attribute_protected">Encrypted</string>
 
     <string name="label_remove">Remove</string>
 
