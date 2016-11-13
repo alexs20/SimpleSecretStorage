@@ -107,7 +107,7 @@ public class EntryFragment2 extends Fragment  {
 
         return view;
     }
-    
+
 
     private void onAddClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
