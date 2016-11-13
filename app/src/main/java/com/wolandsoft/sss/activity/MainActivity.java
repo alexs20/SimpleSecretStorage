@@ -11,6 +11,7 @@ import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.AttributeFragment;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
+import com.wolandsoft.sss.activity.fragment.EntriesFragment2;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.IStorageProvider;
 import com.wolandsoft.sss.storage.SQLiteStorage;
@@ -24,7 +25,7 @@ import java.util.UUID;
  *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class MainActivity extends AppCompatActivity implements EntriesFragment.OnFragmentInteractionListener,IStorageProvider
+public class MainActivity extends AppCompatActivity implements EntriesFragment2.OnFragmentInteractionListener,IStorageProvider
         ,AttributeFragment.OnFragmentInteractionListener{
 
     private SQLiteStorage mStorage;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment.O
             SecretEntryAttribute attr = new SecretEntryAttribute("key", "value", true);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            Fragment fragment = new EntriesFragment();
+            Fragment fragment = new EntriesFragment2();
             transaction.replace(R.id.content_fragment, fragment);
             transaction.commit();
         }

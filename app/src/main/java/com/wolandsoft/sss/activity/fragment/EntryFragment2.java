@@ -87,21 +87,21 @@ public class EntryFragment2 extends Fragment  {
         touchHelper.attachToRecyclerView(mRecyclerView);
 
         //connect to add button
-        FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
-        btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onDeleteClicked();
-            }
-        });
-
-        FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
-        btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onAddClicked();
-            }
-        });
+//        FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
+//        btnDelete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onDeleteClicked();
+//            }
+//        });
+//
+//        FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
+//        btnDelete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onAddClicked();
+//            }
+//        });
 
         return view;
     }

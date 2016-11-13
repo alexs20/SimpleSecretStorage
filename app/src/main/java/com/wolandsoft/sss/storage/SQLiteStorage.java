@@ -52,6 +52,43 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         }
     }
 
+    public int count(String criteria) throws StorageException {
+        try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
+            List<String> args = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append("SELECT COUNT(1) FROM ").append(SecretEntryTable.TBL_NAME);
+            if (criteria != null) {
+                String[] keywords = criteria.split("\\s");
+                if (keywords.length > 0) {
+                    sb.append(" INNER JOIN ").append(SecretEntryAttributeTable.TBL_NAME)
+                            .append(" AS F ON (")
+                            .append(SecretEntryTable.FLD_UUID_MSB).append("=F.").append(SecretEntryAttributeTable.FLD_ENTRY_UUID_MSB)
+                            .append(" AND ")
+                            .append(SecretEntryTable.FLD_UUID_LSB).append("=F.").append(SecretEntryAttributeTable.FLD_ENTRY_UUID_LSB)
+                            .append(" AND ")
+                            .append("F.").append(SecretEntryAttributeTable.FLD_PROTECTED).append("=0)");
+                    boolean isWhere = true;
+                    for (String keyword : keywords) {
+                        if (isWhere) {
+                            isWhere = false;
+                            sb.append(" WHERE F.");
+                        } else {
+                            sb.append(" OR F.");
+                        }
+                        sb.append(SecretEntryAttributeTable.FLD_VALUE).append(" LIKE ?");
+                        args.add("%" + keyword + "%");
+                    }
+                }
+            }
+            try (Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]))) {
+                if (cursor.moveToNext()) {
+                    return cursor.getInt(0);
+                }
+            }
+        }
+        return 0;
+    }
+
     public List<SecretEntry> find(String criteria, boolean isASC, int offset, int limit) throws StorageException {
         //sqlite> explain select e.*, a.* from secret_entry as e
         //...> inner join secret_entry_attribute as a on (
