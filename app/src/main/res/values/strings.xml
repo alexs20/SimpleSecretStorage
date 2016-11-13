@@ -21,6 +21,7 @@
     <string name="label_attribute_key">Field name</string>
     <string name="label_attribute_value">Field value</string>
     <string name="label_attribute_protected">Encrypted</string>
+    <string name="label_search">Search</string>
 
     <string name="label_remove">Remove</string>
 

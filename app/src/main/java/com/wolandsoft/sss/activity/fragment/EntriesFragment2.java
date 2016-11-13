@@ -1,14 +1,23 @@
 package com.wolandsoft.sss.activity.fragment;
 
+import android.app.SearchManager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -33,7 +42,8 @@ interface OnSecretEntryClickListener {
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntriesFragment2 extends Fragment implements OnSecretEntryClickListener {
+public class EntriesFragment2 extends Fragment implements OnSecretEntryClickListener,
+        SearchView.OnQueryTextListener{
 
     private OnFragmentInteractionListener mListener;
     private SQLiteStorage mStorage;
@@ -82,6 +92,12 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
         return view;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     /**
      * Add button event
      */
@@ -98,6 +114,16 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
             mStorage = null;
         }
         mListener = null;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.activity_options_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
     }
 
     @Override
@@ -122,6 +148,17 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        LogEx.d(newText);
+        return false;
     }
 
     public interface OnFragmentInteractionListener {

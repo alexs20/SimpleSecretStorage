@@ -2,6 +2,7 @@ package com.wolandsoft.sss.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
@@ -18,7 +19,7 @@ import java.util.UUID;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class MainActivity extends AppCompatActivity implements EntriesFragment2.OnFragmentInteractionListener
-        , AttributeFragment.OnFragmentInteractionListener {
+        , AttributeFragment.OnFragmentInteractionListener, FragmentManager.OnBackStackChangedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +32,11 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
             transaction.replace(R.id.content_fragment, fragment);
             transaction.commit();
         }
+
+        //Listen for changes in the back stack
+        getSupportFragmentManager().addOnBackStackChangedListener(this);
+        //Handle when activity is recreated like on orientation Change
+        shouldDisplayHomeUp();
         //KeySharedPreferences pref = new KeySharedPreferences(getSharedPreferences(AppConstants.APP_TAG, Context.MODE_PRIVATE), this);
         //String storageId = pref.getString(R.string.key_storage_id, R.string.value_storage_id_default);
     }
@@ -41,6 +47,23 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
     }
 
     @Override
+    public void onBackStackChanged() {
+        shouldDisplayHomeUp();
+    }
+
+    public void shouldDisplayHomeUp(){
+        //Enable Up button only  if there are entries in the back stack
+        boolean canback = getSupportFragmentManager().getBackStackEntryCount()>0;
+        getSupportActionBar().setDisplayHomeAsUpEnabled(canback);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        //This method is called when the up button is pressed. Just the pop back stack.
+        getSupportFragmentManager().popBackStack();
+        return true;
+    }
+    @Override
     public void onEntrySelected(UUID entryId) {
 
     }
@@ -49,4 +72,6 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
     public void onSecretEntryAttributeApply(int sePos, int attrPos, SecretEntryAttribute attr) {
 
     }
+
+
 }
