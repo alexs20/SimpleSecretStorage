@@ -45,14 +45,17 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         if (dbHelper != null) {
             dbHelper.close();
             dbHelper = null;
         }
     }
 
-    public int count(String criteria) throws StorageException {
+    public synchronized int count(String criteria) throws StorageException {
+        if (dbHelper == null) {
+            return 0;
+        }
         try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
             List<String> args = new ArrayList<>();
             StringBuilder sb = new StringBuilder();
@@ -89,7 +92,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         return 0;
     }
 
-    public List<SecretEntry> find(String criteria, boolean isASC, int offset, int limit) throws StorageException {
+    public synchronized List<SecretEntry> find(String criteria, boolean isASC, int offset, int limit) throws StorageException {
         //sqlite> explain select e.*, a.* from secret_entry as e
         //...> inner join secret_entry_attribute as a on (
         //...> e.uuid_msb=a.entry_uuid_msb and e.uuid_lsb=a.entry_uuid_lsb and a.key='Name')
@@ -98,8 +101,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         //...> where f.value like '%example%7.%'
         //...> order by a.value
         //...> ;
-
         List<SecretEntry> result = new ArrayList<>();
+        if (dbHelper == null) {
+            return result;
+        }
         try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
             List<String> args = new ArrayList<>();
             StringBuilder sb = new StringBuilder();

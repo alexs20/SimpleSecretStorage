@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
-import com.wolandsoft.sss.storage.IStorageProvider;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
@@ -31,10 +30,9 @@ import java.util.UUID;
 public class EntriesFragment2 extends Fragment implements OnSecretEntryClickListener {
 
     private OnFragmentInteractionListener mListener;
-    private IStorageProvider mStorageProvider;
+    private SQLiteStorage mStorage;
     private RecyclerView mRecyclerView;
     private SecretEntriesAdapter mRecyclerViewAdapter;
-
 
     @Override
     public void onAttach(Context context) {
@@ -47,12 +45,10 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
                             OnFragmentInteractionListener.class.getName()));
         }
         try {
-            mStorageProvider = (IStorageProvider) context;
-            mRecyclerViewAdapter = new SecretEntriesAdapter(this, mStorageProvider.getSQLiteStorage());
-        } catch (ClassCastException e) {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-                            IStorageProvider.class.getName()));
+            mStorage = new SQLiteStorage(context);
+            mRecyclerViewAdapter = new SecretEntriesAdapter(this, mStorage);
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
         }
     }
 
@@ -80,7 +76,6 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
         return view;
     }
 
-
     /**
      * Add button event
      */
@@ -92,6 +87,10 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     @Override
     public void onDetach() {
         super.onDetach();
+        if(mStorage != null) {
+            mStorage.close();
+            mStorage = null;
+        }
         mListener = null;
     }
 
