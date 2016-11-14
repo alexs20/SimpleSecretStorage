@@ -14,7 +14,7 @@ import android.view.View;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.AttributeFragment;
-import com.wolandsoft.sss.activity.fragment.EntriesFragment2;
+import com.wolandsoft.sss.activity.fragment.EntriesFragment;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 
 import java.util.UUID;
@@ -24,8 +24,8 @@ import java.util.UUID;
  *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class MainActivity extends AppCompatActivity implements EntriesFragment2.OnFragmentInteractionListener
-        , AttributeFragment.OnFragmentInteractionListener, FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends AppCompatActivity
+        implements AttributeFragment.OnFragmentInteractionListener, FragmentManager.OnBackStackChangedListener {
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
 
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            Fragment fragment = new EntriesFragment2();
+            Fragment fragment = new EntriesFragment();
             transaction.replace(R.id.content_fragment, fragment);
             transaction.commit();
         }
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
         };
 
         // Set the drawer toggle as the DrawerListener
-        mDrawer.setDrawerListener(mDrawerToggle);
+        mDrawer.addDrawerListener(mDrawerToggle);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -144,10 +144,6 @@ public class MainActivity extends AppCompatActivity implements EntriesFragment2.
         //This method is called when the up button is pressed. Just the pop back stack.
         getSupportFragmentManager().popBackStack();
         return true;
-    }
-    @Override
-    public void onEntrySelected(UUID entryId) {
-
     }
 
     @Override

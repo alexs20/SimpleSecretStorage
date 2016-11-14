@@ -2,29 +2,22 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.LogEx;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -34,15 +27,15 @@ import java.util.UUID;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntryFragment2 extends Fragment  {
+public class EntryFragment extends Fragment  {
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_ENTRY = "entry";
     private OnFragmentInteractionListener mListener;
     private RecyclerView mRecyclerView;
     private SecretEntryAdapter mRecyclerViewAdapter;
 
-    public static EntryFragment2 newInstance(SecretEntry entry) {
-        EntryFragment2 fragment = new EntryFragment2();
+    public static EntryFragment newInstance(SecretEntry entry) {
+        EntryFragment fragment = new EntryFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_ENTRY, entry);
         fragment.setArguments(args);
@@ -64,7 +57,7 @@ public class EntryFragment2 extends Fragment  {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_entry2, container, false);
+        View view = inflater.inflate(R.layout.fragment_entry, container, false);
 
         Bundle args = getArguments();
         SecretEntry entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
@@ -119,7 +112,7 @@ public class EntryFragment2 extends Fragment  {
 
     private void onDeleteClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new EntryFragment2();
+        Fragment fragment = new EntryFragment();
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(null);
         transaction.commit();

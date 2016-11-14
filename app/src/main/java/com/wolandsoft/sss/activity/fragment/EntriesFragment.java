@@ -8,6 +8,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -32,17 +33,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-interface OnSecretEntryClickListener {
-    void onSecretEntryClick(SecretEntry entry);
-}
+
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntriesFragment2 extends Fragment implements OnSecretEntryClickListener,
-        SearchView.OnQueryTextListener{
+public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener{
 
-    private OnFragmentInteractionListener mListener;
     private SQLiteStorage mStorage;
     private RecyclerView mRecyclerView;
     private SecretEntriesAdapter mRecyclerViewAdapter;
@@ -51,32 +48,27 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-                            OnFragmentInteractionListener.class.getName()));
-        }
-        try {
             mStorage = new SQLiteStorage(context);
-            mRecyclerViewAdapter = new SecretEntriesAdapter(this, mStorage);
+            SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener(){
+                @Override
+                public void onSecretEntryClick(SecretEntry entry) {
+                    EntriesFragment.this.onSecretEntryClick(entry);
+                }
+            };
+            mRecyclerViewAdapter = new SecretEntriesAdapter(icl, mStorage);
         } catch (StorageException e) {
             LogEx.e(e.getMessage(), e);
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_entries2, container, false);
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_entries, container, false);
+        //init recycler view
         mRecyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
         mRecyclerView.setHasFixedSize(true);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
-
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -85,6 +77,8 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
                 onAddClicked();
             }
         });
+        //restore title
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.app_name);
 
         return view;
     }
@@ -92,16 +86,25 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //enabling search icon
         setHasOptionsMenu(true);
     }
 
-    /**
-     * Add button event
-     */
     private void onAddClicked() {
-
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment = EntryFragment.newInstance(null);
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
+    public void onSecretEntryClick(SecretEntry entry) {
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment = EntryFragment.newInstance(entry);
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 
     @Override
     public void onDetach() {
@@ -110,41 +113,15 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
             mStorage.close();
             mStorage = null;
         }
-        mListener = null;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
-
+        //attaching search view
         MenuItem searchItem = menu.findItem(R.id.search);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnQueryTextListener(this);
-
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onSecretEntryClick(SecretEntry entry) {
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = EntryFragment2.newInstance(entry);
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 
     @Override
@@ -156,14 +133,6 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
     public boolean onQueryTextChange(String newText) {
         LogEx.d(newText);
         return false;
-    }
-
-    public interface OnFragmentInteractionListener {
-
-        /**
-         * Triggered when user select an entry.
-         */
-        void onEntrySelected(UUID entryId);
     }
 
     public static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
@@ -216,7 +185,7 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
         public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, final int position) {
             SecretEntry entry = getItem(position);
             holder.mTxtTitle.setText(entry.get(0).getValue());
-            holder.mImgIcon.setImageResource(R.mipmap.img_add);
+            holder.mImgIcon.setImageResource(R.mipmap.img24dp_lock);
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -259,6 +228,10 @@ public class EntriesFragment2 extends Fragment implements OnSecretEntryClickList
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
             }
+        }
+
+        interface OnSecretEntryClickListener {
+            void onSecretEntryClick(SecretEntry entry);
         }
     }
 }
