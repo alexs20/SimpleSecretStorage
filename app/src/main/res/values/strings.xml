@@ -22,6 +22,7 @@
     <string name="label_attribute_value">Field value</string>
     <string name="label_attribute_protected">Encrypted</string>
     <string name="label_search">Search</string>
+    <string name="label_loading_ellipsis">Loading...</string>
 
     <string name="label_remove">Remove</string>
 

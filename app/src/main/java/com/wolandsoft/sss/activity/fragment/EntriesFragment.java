@@ -31,14 +31,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener{
+public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener {
 
     private SQLiteStorage mStorage;
     private RecyclerView mRecyclerView;
@@ -49,7 +47,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         super.onAttach(context);
         try {
             mStorage = new SQLiteStorage(context);
-            SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener(){
+            SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
                 @Override
                 public void onSecretEntryClick(SecretEntry entry) {
                     EntriesFragment.this.onSecretEntryClick(entry);
@@ -78,7 +76,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         });
         //restore title
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.app_name);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.app_name);
 
         return view;
     }
@@ -136,7 +134,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     public static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
-        private static final int BG_LOAD_STEP = 10;
         private int mCount;
         private Map<Integer, SecretEntry> mEntries;
         private OnSecretEntryClickListener mOnClickListener;
@@ -144,34 +141,13 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         public SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
             mOnClickListener = onClickListener;
-            this.mStorage = storage;
+            mStorage = storage;
             mEntries = Collections.synchronizedMap(new HashMap<Integer, SecretEntry>());
             try {
                 mCount = mStorage.count(null);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    try {
-                        int pos = 0;
-                        while (pos < mCount) {
-                            if (!mEntries.containsKey(pos)) {
-                                List<SecretEntry> entryList = mStorage.find(null, true, pos, 1);
-                                if (entryList.isEmpty()) {
-                                    break;
-                                }
-                                mEntries.put(pos, entryList.get(0));
-                            }
-                            pos++;
-                        }
-                    } catch (StorageException e) {
-                        LogEx.e(e.getMessage(), e);
-                    }
-                    return null;
-                }
-            }.execute();
         }
 
         @Override
@@ -184,15 +160,20 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         @Override
         public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, final int position) {
             SecretEntry entry = getItem(position);
-            holder.mTxtTitle.setText(entry.get(0).getValue());
-            holder.mImgIcon.setImageResource(R.mipmap.img24dp_lock);
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    SecretEntry entry = getItem(position);
-                    mOnClickListener.onSecretEntryClick(entry);
-                }
-            });
+            if (entry != null) {
+                holder.mTxtTitle.setText(entry.get(0).getValue());
+                holder.mImgIcon.setImageResource(R.mipmap.img24dp_lock_g);
+                holder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        SecretEntry entry = getItem(position);
+                        mOnClickListener.onSecretEntryClick(entry);
+                    }
+                });
+            } else {
+                holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
+                holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);
+            }
         }
 
         @Override
@@ -200,21 +181,39 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             return mCount;
         }
 
-
+        @Nullable
         public SecretEntry getItem(int position) {
+            //on-demand loading items if not available
             if (!mEntries.containsKey(position)) {
-                try {
-                    List<SecretEntry> entryList = mStorage.find(null, true, position, 1);
-                    mEntries.put(position, entryList.get(0));
-                    if (entryList.isEmpty()) {
-                        return null;
+                AsyncTask<Integer, Void, Integer> bgTask = new AsyncTask<Integer, Void, Integer>() {
+                    @Override
+                    protected Integer doInBackground(Integer... params) {
+                        try {
+                            int pos = params[0];
+                            List<SecretEntry> entryList = mStorage.find(null, true, pos, 1);
+                            if (!entryList.isEmpty()) {
+                                mEntries.put(pos, entryList.get(0));
+                                return pos;
+                            }
+                        } catch (StorageException e) {
+                            LogEx.e(e.getMessage(), e);
+                        }
+                        return -1;
                     }
-                } catch (StorageException e) {
-                    LogEx.e(e.getMessage(), e);
-                    return null;
-                }
+
+                    @Override
+                    protected void onPostExecute(Integer pos) {
+                        if(pos != -1){
+                            SecretEntriesAdapter.this.notifyItemChanged(pos);
+                        }
+                    }
+                }.execute(position);
             }
             return mEntries.get(position);
+        }
+
+        interface OnSecretEntryClickListener {
+            void onSecretEntryClick(SecretEntry entry);
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -228,10 +227,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
             }
-        }
-
-        interface OnSecretEntryClickListener {
-            void onSecretEntryClick(SecretEntry entry);
         }
     }
 }
