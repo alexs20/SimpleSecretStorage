@@ -59,7 +59,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
             List<String> args = new ArrayList<>();
             StringBuilder sb = new StringBuilder();
-            sb.append("SELECT COUNT(1) FROM ").append(SecretEntryTable.TBL_NAME);
+            sb.append("SELECT COUNT(1) FROM (SELECT ").append(SecretEntryTable.FLD_UUID_MSB).append(",")
+                    .append(SecretEntryTable.FLD_UUID_LSB).append(" FROM ")
+                    .append(SecretEntryTable.TBL_NAME);
             if (criteria != null) {
                 String[] keywords = criteria.split("\\s");
                 if (keywords.length > 0) {
@@ -81,8 +83,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                         sb.append(SecretEntryAttributeTable.FLD_VALUE).append(" LIKE ?");
                         args.add("%" + keyword + "%");
                     }
+                    sb.append(" GROUP BY ").append(SecretEntryTable.FLD_UUID_MSB).append(",").append(SecretEntryTable.FLD_UUID_LSB);
                 }
             }
+            sb.append(")");
             try (Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]))) {
                 if (cursor.moveToNext()) {
                     return cursor.getInt(0);
@@ -143,8 +147,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                     }
                 }
             }
-            sb.append(" ORDER BY A.").append(SecretEntryAttributeTable.FLD_VALUE).append(isASC ? " ASC" : " DESC")
-                    .append(" LIMIT ").append(offset).append(",").append(limit);
+            sb.append(" GROUP BY ").append(SecretEntryTable.FLD_UUID_MSB).append(",").append(SecretEntryTable.FLD_UUID_LSB);
+            sb.append(" ORDER BY A.").append(SecretEntryAttributeTable.FLD_VALUE).append(isASC ? " ASC" : " DESC");
+            sb.append(" LIMIT ").append(offset).append(",").append(limit);
             try (Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]))) {
                 while (cursor.moveToNext()) {
                     UUID uuid = new UUID(cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_UUID_MSB)),

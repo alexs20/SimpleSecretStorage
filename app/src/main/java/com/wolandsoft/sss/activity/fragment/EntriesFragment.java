@@ -3,6 +3,7 @@ package com.wolandsoft.sss.activity.fragment;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -129,25 +130,54 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public boolean onQueryTextChange(String newText) {
+        //searching
+        mRecyclerViewAdapter.updateSearchCriteria(newText);
         LogEx.d(newText);
         return false;
     }
 
     static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
+        private static final long DELAY_SEARCH_UPDATE = 1000;
         private int mCount;
         private SparseArray<SecretEntry> mEntries;
         private OnSecretEntryClickListener mOnClickListener;
         private SQLiteStorage mStorage;
+        private String mSearchCriteria = "";
+        private Handler mHandler;
+        private Runnable mSearchUpdate;
 
         SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
             mOnClickListener = onClickListener;
             mStorage = storage;
             mEntries = new SparseArray<>();
+            mHandler = new Handler();
             try {
-                mCount = mStorage.count(null);
+                mCount = mStorage.count(mSearchCriteria);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }
+        }
+
+        void updateSearchCriteria(final String criteria) {
+            mHandler.removeCallbacks(mSearchUpdate);
+            mSearchUpdate = new Runnable() {
+                @Override
+                public void run() {
+                    if (!criteria.equals(mSearchCriteria)) {
+                        mSearchCriteria = criteria;
+                        mCount = 0;
+                        mEntries.clear();
+                        notifyDataSetChanged();
+                        try {
+                            mCount = mStorage.count(mSearchCriteria);
+                            notifyDataSetChanged();
+                        } catch (StorageException e) {
+                            LogEx.e(e.getMessage(), e);
+                        }
+                    }
+                }
+            };
+            mHandler.postDelayed(mSearchUpdate, DELAY_SEARCH_UPDATE);
         }
 
         @Override
@@ -189,7 +219,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     protected Integer doInBackground(Integer... params) {
                         try {
                             int pos = params[0];
-                            List<SecretEntry> entryList = mStorage.find(null, true, pos, 1);
+                            List<SecretEntry> entryList = mStorage.find(mSearchCriteria, true, pos, 1);
                             if (!entryList.isEmpty()) {
                                 mEntries.put(pos, entryList.get(0));
                                 return pos;
