@@ -8,10 +8,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,10 +29,7 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -39,7 +38,6 @@ import java.util.Map;
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener {
 
     private SQLiteStorage mStorage;
-    private RecyclerView mRecyclerView;
     private SecretEntriesAdapter mRecyclerViewAdapter;
 
     @Override
@@ -63,10 +61,10 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_entries, container, false);
         //init recycler view
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRecyclerView.setAdapter(mRecyclerViewAdapter);
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(mRecyclerViewAdapter);
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -76,7 +74,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         });
         //restore title
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.app_name);
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setTitle(R.string.app_name);
 
         return view;
     }
@@ -133,16 +133,16 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         return false;
     }
 
-    public static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
+    static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
         private int mCount;
-        private Map<Integer, SecretEntry> mEntries;
+        private SparseArray<SecretEntry> mEntries;
         private OnSecretEntryClickListener mOnClickListener;
         private SQLiteStorage mStorage;
 
-        public SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
+        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
             mOnClickListener = onClickListener;
             mStorage = storage;
-            mEntries = Collections.synchronizedMap(new HashMap<Integer, SecretEntry>());
+            mEntries = new SparseArray<>();
             try {
                 mCount = mStorage.count(null);
             } catch (StorageException e) {
@@ -153,20 +153,18 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         @Override
         public SecretEntriesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View card = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_entries_include_card, parent, false);
-            ViewHolder holder = new ViewHolder(card);
-            return holder;
+            return new ViewHolder(card);
         }
 
         @Override
-        public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, final int position) {
-            SecretEntry entry = getItem(position);
+        public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, int position) {
+            final SecretEntry entry = getItem(position);
             if (entry != null) {
                 holder.mTxtTitle.setText(entry.get(0).getValue());
                 holder.mImgIcon.setImageResource(R.mipmap.img24dp_lock_g);
                 holder.mView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        SecretEntry entry = getItem(position);
                         mOnClickListener.onSecretEntryClick(entry);
                     }
                 });
@@ -182,10 +180,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         @Nullable
-        public SecretEntry getItem(int position) {
+        SecretEntry getItem(int position) {
+            SecretEntry entry = mEntries.get(position);
             //on-demand loading items if not available
-            if (!mEntries.containsKey(position)) {
-                AsyncTask<Integer, Void, Integer> bgTask = new AsyncTask<Integer, Void, Integer>() {
+            if (entry == null) {
+                new AsyncTask<Integer, Void, Integer>() {
                     @Override
                     protected Integer doInBackground(Integer... params) {
                         try {
@@ -203,7 +202,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
                     @Override
                     protected void onPostExecute(Integer pos) {
-                        if(pos != -1){
+                        if (pos != -1) {
                             SecretEntriesAdapter.this.notifyItemChanged(pos);
                         }
                     }
@@ -217,11 +216,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            public View mView;
-            public TextView mTxtTitle;
-            public ImageView mImgIcon;
+            View mView;
+            TextView mTxtTitle;
+            ImageView mImgIcon;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 super(view);
                 mView = view;
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
