@@ -8,6 +8,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
@@ -71,24 +73,28 @@ public class EntryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_entry, container, false);
 
         SecretEntry entry;
-        Bundle args = getArguments();
-        if (args != null) {
-            entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
-        } else {
-            entry = new SecretEntry();
-            for (PredefinedAttribute attr : PredefinedAttribute.values()) {
-                entry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
+        if(savedInstanceState == null) {
+            Bundle args = getArguments();
+            if (args != null) {
+                entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+            } else {
+                entry = new SecretEntry();
+                for (PredefinedAttribute attr : PredefinedAttribute.values()) {
+                    entry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
+                }
             }
+        } else {
+            entry = (SecretEntry) savedInstanceState.getSerializable(ARG_ENTRY);
         }
 
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvAttrList);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        mRVAdapter = new SecretEntryAdapter(entry, new OnSecretEntryAttributeActionListener(){
+        mRVAdapter = new SecretEntryAdapter(entry, new OnSecretEntryAttributeActionListener() {
             @Override
             public void onSecretEntryAttributeDelete(int position) {
-                if(mRVAdapter.getItemCount() == 1) {
+                if (mRVAdapter.getItemCount() == 1) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_can_not_delete_last_attribute, false, null);
@@ -108,6 +114,11 @@ public class EntryFragment extends Fragment {
                     transaction.addToBackStack(null);
                     fragment.show(transaction, "DIALOG");
                 }
+            }
+
+            @Override
+            public void onSecretEntryAttributeReorder(int fromPosition, int toPosition) {
+                mListener.onEntryUpdated(mRVAdapter.getSecretEntry());
             }
         });
         recyclerView.setAdapter(mRVAdapter);
@@ -135,7 +146,18 @@ public class EntryFragment extends Fragment {
                 }
             });
         }
+
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setTitle(R.string.title_secret_fields);
+
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(ARG_ENTRY, mRVAdapter.getSecretEntry());
     }
 
     private void onAddClicked() {
@@ -199,11 +221,14 @@ public class EntryFragment extends Fragment {
 
     interface OnSecretEntryAttributeActionListener {
         void onSecretEntryAttributeDelete(int position);
+
+        void onSecretEntryAttributeReorder(int fromPosition, int toPosition);
     }
 
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder> implements ItemTouchHelperAdapter {
         private SecretEntry mEntry;
         private OnSecretEntryAttributeActionListener mListener;
+
         SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener) {
             mEntry = entry;
             mListener = listener;
@@ -221,6 +246,7 @@ public class EntryFragment extends Fragment {
                 }
             }
             notifyItemMoved(fromPosition, toPosition);
+            mListener.onSecretEntryAttributeReorder(fromPosition, toPosition);
             return true;
         }
 
@@ -257,11 +283,11 @@ public class EntryFragment extends Fragment {
             return mEntry.size();
         }
 
-        SecretEntry getSecretEntry(){
+        SecretEntry getSecretEntry() {
             return mEntry;
         }
 
-        private void openPopup(View v, int position) {
+        private void openPopup(View v, final int position) {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
             popup.getMenuInflater().inflate(R.menu.fragment_entry_include_card_popup, popup.getMenu());
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -269,8 +295,7 @@ public class EntryFragment extends Fragment {
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
                         case R.id.menu_remove:
-                            // Remove the item from the adapter
-                            //adapter.remove(item);
+                            mListener.onSecretEntryAttributeDelete(position);
                             return true;
                     }
                     return false;
