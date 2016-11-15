@@ -15,6 +15,8 @@ import android.view.View;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.AttributeFragment;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
+import com.wolandsoft.sss.activity.fragment.EntryFragment;
+import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 
 import java.util.UUID;
@@ -24,8 +26,10 @@ import java.util.UUID;
  *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class MainActivity extends AppCompatActivity
-        implements AttributeFragment.OnFragmentInteractionListener, FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends AppCompatActivity        implements
+        EntryFragment.OnFragmentInteractionListener,
+        AttributeFragment.OnFragmentInteractionListener,
+        FragmentManager.OnBackStackChangedListener {
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -147,9 +151,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSecretEntryAttributeApply(int sePos, int attrPos, SecretEntryAttribute attr) {
+    public void onSecretEntryAttributeApply(UUID seID, int attrPos, SecretEntryAttribute attr) {
 
     }
 
 
+    @Override
+    public void onEntryDeleted(UUID seeID) {
+
+    }
+
+    @Override
+    public void onEntryUpdated(SecretEntry entry) {
+
+    }
 }

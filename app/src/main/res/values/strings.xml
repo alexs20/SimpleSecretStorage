@@ -3,8 +3,10 @@
     <string name="action_settings">Settings</string>
     <string name="auth_service_label">Authentication Service</string>
 
+    <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
     <string name="enum_URL">URL</string>
+    <string name="enum_USER">User</string>
     <string name="enum_PASSWORD">Password</string>
 
     <string name="exception_invalid_password">Invalid password</string>
@@ -23,8 +25,13 @@
     <string name="label_attribute_protected">Encrypted</string>
     <string name="label_search">Search</string>
     <string name="label_loading_ellipsis">Loading...</string>
+    <string name="label_delete_all">Delete All</string>
+
+    <string name="message_are_you_sure">Are you sure?</string>
 
     <string name="label_remove">Remove</string>
+
+
 
     <string name="vertical_ellipsis">&#8942;</string>
 

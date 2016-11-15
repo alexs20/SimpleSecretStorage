@@ -1,7 +1,11 @@
 package com.wolandsoft.sss.activity.fragment;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,9 +20,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Locale;
@@ -27,31 +34,34 @@ import java.util.UUID;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntryFragment extends Fragment  {
+public class EntryFragment extends Fragment {
+    private static final int DIALOG_FRAGMENT = 1;
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_ENTRY = "entry";
     private OnFragmentInteractionListener mListener;
-    private RecyclerView mRecyclerView;
     private SecretEntryAdapter mRecyclerViewAdapter;
+    private SecretEntry mSecretEntry;
 
     public static EntryFragment newInstance(SecretEntry entry) {
         EntryFragment fragment = new EntryFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_ENTRY, entry);
-        fragment.setArguments(args);
+        if (entry != null) {
+            Bundle args = new Bundle();
+            args.putSerializable(ARG_ENTRY, (Serializable) entry.clone());
+            fragment.setArguments(args);
+        }
         return fragment;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        try {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(
-//                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-//                            OnFragmentInteractionListener.class.getName()));
-//        }
+        try {
+            mListener = (OnFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(
+                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
+                            OnFragmentInteractionListener.class.getName()));
+        }
     }
 
     @Override
@@ -60,51 +70,51 @@ public class EntryFragment extends Fragment  {
         View view = inflater.inflate(R.layout.fragment_entry, container, false);
 
         Bundle args = getArguments();
-        SecretEntry entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+        if (args != null) {
+            mSecretEntry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+        } else {
+            mSecretEntry = new SecretEntry();
+            for (PredefinedAttribute attr : PredefinedAttribute.values()) {
+                mSecretEntry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
+            }
+        }
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.rvAttrList);
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvAttrList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
+        mRecyclerViewAdapter = new SecretEntryAdapter(mSecretEntry);
+        recyclerView.setAdapter(mRecyclerViewAdapter);
 
-        // use a linear layout manager
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(layoutManager);
-
-        // specify an adapter (see also next example)
-        mRecyclerViewAdapter = new SecretEntryAdapter(entry);
-        mRecyclerView.setAdapter(mRecyclerViewAdapter);
-        //registerForContextMenu(mRecyclerView);
-
-        ItemTouchHelper.Callback callback = new  ItemTouchHelperCallback(mRecyclerViewAdapter);
+        ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(mRecyclerViewAdapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-        touchHelper.attachToRecyclerView(mRecyclerView);
+        touchHelper.attachToRecyclerView(recyclerView);
 
-        //connect to add button
-//        FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
-//        btnDelete.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                onDeleteClicked();
-//            }
-//        });
-//
-//        FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
-//        btnDelete.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                onAddClicked();
-//            }
-//        });
+        FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddClicked();
+            }
+        });
 
+        FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
+        if (mSecretEntry.getCreated() == 0) {
+            btnDelete.setVisibility(View.GONE);
+        } else {
+            btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onDeleteClicked();
+                }
+            });
+        }
         return view;
     }
 
-
     private void onAddClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = null;//AttributeFragment.newInstance(null);
+        Fragment fragment = AttributeFragment.newInstance(mSecretEntry.getID(), -1, null);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -112,12 +122,26 @@ public class EntryFragment extends Fragment  {
 
     private void onDeleteClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new EntryFragment();
-        transaction.replace(R.id.content_fragment, fragment);
+        DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
+                R.string.label_delete_all, R.string.message_are_you_sure, true);
+        fragment.setCancelable(true);
+        fragment.setTargetFragment(this, DIALOG_FRAGMENT);
         transaction.addToBackStack(null);
-        transaction.commit();
+        fragment.show(transaction, "DIALOG");
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case DIALOG_FRAGMENT:
+                if (resultCode == Activity.RESULT_OK) {
+                    mListener.onEntryDeleted(mSecretEntry.getID());
+                } else if (resultCode == Activity.RESULT_CANCELED) {
+                    // nothing
+                }
+                break;
+        }
+    }
 
     @Override
     public void onDetach() {
@@ -126,21 +150,11 @@ public class EntryFragment extends Fragment  {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 
-    private void openPopup(View view){
+    private void openPopup(View view) {
         // Create a PopupMenu, giving it the clicked view for an anchor
         PopupMenu popup = new PopupMenu(getActivity(), view);
 
@@ -168,16 +182,27 @@ public class EntryFragment extends Fragment  {
 
     public interface OnFragmentInteractionListener {
 
-        /**
-         * Triggered when user select an entry.
-         */
-        void onEntrySelected(UUID entryId);
+        void onEntryDeleted(UUID seeID);
+
+        void onEntryUpdated(SecretEntry entry);
+    }
+
+    public interface ItemTouchHelperAdapter {
+
+        boolean onItemMove(int fromPosition, int toPosition);
+
+        void onItemDismiss(int position);
     }
 
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder>
-    implements ItemTouchHelperAdapter {
+            implements ItemTouchHelperAdapter {
         public int longPressItem;
         private SecretEntry mEntry;
+
+        // Provide a suitable constructor (depends on the kind of dataset)
+        public SecretEntryAdapter(SecretEntry entry) {
+            mEntry = entry;
+        }
 
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
@@ -201,33 +226,6 @@ public class EntryFragment extends Fragment  {
             //notifyDataSetChanged();
         }
 
-
-
-        // Provide a reference to the views for each data item
-        // Complex data items may need more than one view per item, and
-        // you provide access to all the views for a data item in a view holder
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            // each data item is just a string in this case
-            public View mView;
-            public TextView mTxtKey;
-            public TextView mTxtValue;
-            public ImageView mImgProtected;
-            public ImageView mImgMenu;
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mTxtKey = (TextView) view.findViewById(R.id.txtKey);
-                mTxtValue = (TextView) view.findViewById(R.id.txtValue);
-                mImgProtected = (ImageView) view.findViewById(R.id.imgProtected);
-                mImgMenu = (ImageView) view.findViewById(R.id.imgMenu);
-            }
-        }
-
-        // Provide a suitable constructor (depends on the kind of dataset)
-        public SecretEntryAdapter(SecretEntry entry) {
-            mEntry = entry;
-        }
-
         // Create new views (invoked by the layout manager)
         @Override
         public SecretEntryAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -243,7 +241,7 @@ public class EntryFragment extends Fragment  {
             SecretEntryAttribute attr = mEntry.get(position);
             holder.mTxtKey.setText(attr.getKey());
             holder.mTxtValue.setText(attr.getValue());
-            if(!attr.isProtected()){
+            if (!attr.isProtected()) {
                 holder.mImgProtected.setVisibility(View.GONE);
             }
             holder.mImgMenu.setOnClickListener(new View.OnClickListener() {
@@ -260,7 +258,7 @@ public class EntryFragment extends Fragment  {
             return mEntry.size();
         }
 
-        private void openPopup(View v, int position){
+        private void openPopup(View v, int position) {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
 
             // Inflate our menu resource into the PopupMenu's Menu
@@ -283,12 +281,34 @@ public class EntryFragment extends Fragment  {
             // Finally show the PopupMenu
             popup.show();
         }
+
+        // Provide a reference to the views for each data item
+        // Complex data items may need more than one view per item, and
+        // you provide access to all the views for a data item in a view holder
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            // each data item is just a string in this case
+            public View mView;
+            public TextView mTxtKey;
+            public TextView mTxtValue;
+            public ImageView mImgProtected;
+            public ImageView mImgMenu;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+                mTxtKey = (TextView) view.findViewById(R.id.txtKey);
+                mTxtValue = (TextView) view.findViewById(R.id.txtValue);
+                mImgProtected = (ImageView) view.findViewById(R.id.imgProtected);
+                mImgMenu = (ImageView) view.findViewById(R.id.imgMenu);
+            }
+        }
     }
 
-    static class ItemTouchHelperCallback extends ItemTouchHelper.Callback{
+    static class ItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
         private ItemTouchHelperAdapter mAdapter;
-        public ItemTouchHelperCallback (ItemTouchHelperAdapter adapter){
+
+        public ItemTouchHelperCallback(ItemTouchHelperAdapter adapter) {
             mAdapter = adapter;
         }
 
@@ -308,11 +328,5 @@ public class EntryFragment extends Fragment  {
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
             mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
         }
-    }
-    public interface ItemTouchHelperAdapter {
-
-        boolean onItemMove(int fromPosition, int toPosition);
-
-        void onItemDismiss(int position);
     }
 }

@@ -125,7 +125,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        return false;
+        return true;
     }
 
     @Override
@@ -133,7 +133,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         //searching
         mRecyclerViewAdapter.updateSearchCriteria(newText);
         LogEx.d(newText);
-        return false;
+        return true;
     }
 
     static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {

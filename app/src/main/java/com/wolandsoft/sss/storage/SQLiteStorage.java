@@ -97,14 +97,6 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     public synchronized List<SecretEntry> find(String criteria, boolean isASC, int offset, int limit) throws StorageException {
-        //sqlite> explain select e.*, a.* from secret_entry as e
-        //...> inner join secret_entry_attribute as a on (
-        //...> e.uuid_msb=a.entry_uuid_msb and e.uuid_lsb=a.entry_uuid_lsb and a.key='Name')
-        //...> inner join secret_entry_attribute as f on (
-        //...> e.uuid_msb=f.entry_uuid_msb and e.uuid_lsb=f.entry_uuid_lsb and f.protected=0)
-        //...> where f.value like '%example%7.%'
-        //...> order by a.value
-        //...> ;
         List<SecretEntry> result = new ArrayList<>();
         if (dbHelper == null) {
             return result;
