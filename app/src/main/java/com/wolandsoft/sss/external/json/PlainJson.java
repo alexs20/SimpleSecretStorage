@@ -143,12 +143,12 @@ public class PlainJson extends AExternal {
             Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             List<Map> entriesList = gson.fromJson(json.toString(), ArrayList.class);
             for(Map entryMap : entriesList){
-                UUID uuid = UUID.fromString(entryMap.get(KEY_UUID).toString());
-                SecretEntry oldEntry = toStorage.get(uuid);
+                long id = Long.parseLong(entryMap.get(KEY_UUID).toString());
+                SecretEntry oldEntry = toStorage.get(id);
                 if(oldEntry != null || isOverwrite) {
-                    SecretEntry entry = new SecretEntry(uuid);
-                    entry.setCreated(format.parse(entryMap.get(CREATED).toString()).getTime());
-                    entry.setUpdated(format.parse(entryMap.get(UPDATED).toString()).getTime());
+                    SecretEntry entry = new SecretEntry(id,
+                            format.parse(entryMap.get(CREATED).toString()).getTime(),
+                            format.parse(entryMap.get(UPDATED).toString()).getTime());
                     List<Map> attrsList = (List<Map>) entryMap.get(DATA);
                     for (Map attrMap : attrsList) {
                         boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;

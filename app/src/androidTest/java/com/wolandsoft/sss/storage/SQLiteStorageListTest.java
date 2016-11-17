@@ -4,20 +4,17 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.wolandsoft.sss.common.AppCentral;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.storage.DatabaseHelper;
-import com.wolandsoft.sss.storage.StorageException;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -37,10 +34,10 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
     private static final int ENTRIES_COUNT = 100;
-    private SQLiteStorage storage;
+    private static SQLiteStorage storage;
 
-    @Before
-    public void setupDB() throws Exception {
+    @BeforeClass
+    public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         storage = new SQLiteStorage(context);
@@ -48,13 +45,14 @@ public class SQLiteStorageListTest {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            entry.add(new SecretEntryAttribute(KEY_PASSWORD, String.format(TEMPLATE_PASSWORD, i), true));
+            String password = AppCentral.getKeyStoreManager().encrypt(String.format(TEMPLATE_PASSWORD, i));
+            entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             storage.put(entry);
         }
     }
 
-    @After
-    public void cleanDB() throws Exception {
+    @AfterClass
+    public static void cleanDB() throws Exception {
         storage.close();
     }
 

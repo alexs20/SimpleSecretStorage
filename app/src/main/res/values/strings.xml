@@ -9,6 +9,8 @@
     <string name="enum_USER">User</string>
     <string name="enum_PASSWORD">Password</string>
 
+    <string name="exception_internal">Internal error</string>
+    <string name="exception_record_not_found">Record %1$d not found</string>
     <string name="exception_invalid_password">Invalid password</string>
     <string name="exception_password_not_set">Password not set</string>
     <string name="exception_storage_not_ready">Storage not ready</string>

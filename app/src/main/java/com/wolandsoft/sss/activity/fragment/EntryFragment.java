@@ -21,17 +21,21 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.wolandsoft.sss.common.AppCentral;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.UUID;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
@@ -39,6 +43,7 @@ import java.util.UUID;
 public class EntryFragment extends Fragment {
     private static final int DELETE_ENTRY = 1;
     private static final int DELETE_ATTRIBUTE = 2;
+    private static final int NEW_ATTRIBUTE = 3;
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_ENTRY = "entry";
     private final static String ARG_POSITION = "position";
@@ -163,6 +168,7 @@ public class EntryFragment extends Fragment {
     private void onAddClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = AttributeFragment.newInstance(mRVAdapter.getSecretEntry().getID(), -1, null);
+        fragment.setTargetFragment(EntryFragment.this, NEW_ATTRIBUTE);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -196,6 +202,8 @@ public class EntryFragment extends Fragment {
                     mRVAdapter.notifyDataSetChanged();
                 }
                 break;
+            case NEW_ATTRIBUTE:
+                break;
         }
     }
 
@@ -207,7 +215,7 @@ public class EntryFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
 
-        void onEntryDeleted(UUID seeID);
+        void onEntryDeleted(long seID);
 
         void onEntryUpdated(SecretEntry entry);
     }
@@ -266,9 +274,19 @@ public class EntryFragment extends Fragment {
             final int pos = position;
             SecretEntryAttribute attr = mEntry.get(position);
             holder.mTxtKey.setText(attr.getKey());
-            holder.mTxtValue.setText(attr.getValue());
             if (!attr.isProtected()) {
+                holder.mTxtValue.setText(attr.getValue());
                 holder.mImgProtected.setVisibility(View.GONE);
+            } else {
+                holder.mTxtValue.setText("");
+                if(attr.getValue() != null && attr.getValue().length() > 0) {
+                    try {
+                        String plain = AppCentral.getKeyStoreManager().decrupt(attr.getValue());
+                        holder.mTxtValue.setText(plain);
+                    } catch (BadPaddingException | IllegalBlockSizeException e) {
+                        LogEx.e(e.getMessage(), e);
+                    }
+                }
             }
             holder.mImgMenu.setOnClickListener(new View.OnClickListener() {
                 @Override

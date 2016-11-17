@@ -6,8 +6,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.storage.DatabaseHelper;
-import com.wolandsoft.sss.storage.StorageException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,16 +13,11 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
@@ -44,6 +37,7 @@ public class SQLiteStorageEntryTest {
         entry.add(new SecretEntryAttribute("Password", "12345", true));
 
         Context context = InstrumentationRegistry.getTargetContext();
+        context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         storage = new SQLiteStorage(context);
     }
 
@@ -54,25 +48,31 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_s0_get_null() throws StorageException {
-        SecretEntry se = storage.get(entry.getID());
+        SecretEntry se = storage.get(1);
         assertNull(se);
     }
 
     @Test
     public void test_s0_put() throws StorageException {
         SecretEntry se = storage.put(entry);
-        assertNull(se);
+        assertNotNull(se);
+        assertTrue(se.getID() > 0);
+        assertTrue(se.getCreated() > 0);
+        assertTrue(se.getUpdated() > 0);
+        assertEquals(entry.size(), se.size());
     }
 
     @Test
     public void test_s1_put_and_get() throws StorageException {
-        SecretEntry se = storage.put(entry);
-        assertNull(se);
-        se = storage.get(entry.getID());
+        SecretEntry out = storage.put(entry);
+        assertNotNull(out);
+        SecretEntry se = storage.get(out.getID());
         assertNotNull(se);
-        assertEquals(entry.getID(), se.getID());
+        assertEquals(out.getID(), se.getID());
+        assertEquals(out.getCreated(), se.getCreated());
+        assertEquals(out.getUpdated(), se.getUpdated());
         assertEquals(entry.size(), se.size());
-        for(int i = 0; i < entry.size(); i++){
+        for (int i = 0; i < entry.size(); i++) {
             SecretEntryAttribute inSeAttr = entry.get(i);
             SecretEntryAttribute outSeAttr = se.get(i);
             assertEquals(inSeAttr.getKey(), outSeAttr.getKey());
@@ -83,20 +83,20 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_s2_put_update_and_get() throws StorageException {
-        SecretEntry se = storage.put(entry);
-        assertNull(se);
-        for(int i = 0; i < entry.size(); i++){
-            SecretEntryAttribute inSeAttr = entry.get(i);
+        SecretEntry out = storage.put(entry);
+        assertNotNull(out);
+        for (int i = 0; i < entry.size(); i++) {
+            SecretEntryAttribute inSeAttr = out.get(i);
             inSeAttr.setValue(inSeAttr.getValue() + "_changed");
             inSeAttr.setProtected(false);
         }
-        se = storage.put(entry);
+        SecretEntry se = storage.put(out);
         assertNotNull(se);
-        se = storage.get(entry.getID());
+        se = storage.get(out.getID());
         assertNotNull(se);
-        assertEquals(entry.getID(), se.getID());
-        assertEquals(entry.size(), se.size());
-        for(int i = 0; i < entry.size(); i++){
+        assertEquals(out.getID(), se.getID());
+        assertEquals(out.size(), se.size());
+        for (int i = 0; i < entry.size(); i++) {
             SecretEntryAttribute inSeAttr = entry.get(i);
             SecretEntryAttribute outSeAttr = se.get(i);
             assertEquals(inSeAttr.getKey(), outSeAttr.getKey());

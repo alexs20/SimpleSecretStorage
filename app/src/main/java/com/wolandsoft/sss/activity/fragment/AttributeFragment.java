@@ -1,6 +1,8 @@
 package com.wolandsoft.sss.activity.fragment;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -20,22 +22,22 @@ import java.util.UUID;
  */
 public class AttributeFragment extends Fragment {
     private final static String ARG_ATTR = "attr";
-    private final static String ARG_SE_UUID = "se_uuid";
+    private final static String ARG_SE_ID = "se_id";
     private final static String ARG_ATTR_POS = "attr_pos";
     private OnFragmentInteractionListener mListener;
 
     private TextView mTxtKey;
     private TextView mTxtValue;
     private ToggleButton mChkProtected;
-    private UUID mSeUUID = null;
+    private long mSeID = 0;
     private int mAttrPos = -1;
 
-    public static AttributeFragment newInstance(UUID seUUID, int attrPos, SecretEntryAttribute attr) {
+    public static AttributeFragment newInstance(long seID, int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
         if (attr != null) {
             Bundle args = new Bundle();
             args.putSerializable(ARG_ATTR, attr);
-            args.putSerializable(ARG_SE_UUID, seUUID);
+            args.putLong(ARG_SE_ID, seID);
             args.putInt(ARG_ATTR_POS, attrPos);
             fragment.setArguments(args);
         }
@@ -66,7 +68,7 @@ public class AttributeFragment extends Fragment {
             Bundle args = getArguments();
             if (args != null && !args.isEmpty()) {
                 SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
-                mSeUUID = (UUID) args.getSerializable(ARG_SE_UUID);
+                mSeID = args.getLong(ARG_SE_ID);
                 mAttrPos = args.getInt(ARG_ATTR_POS);
                 if(attr != null) {
                     mTxtKey.setText(attr.getKey());
@@ -90,7 +92,12 @@ public class AttributeFragment extends Fragment {
     private void onOkClicked() {
         SecretEntryAttribute attr = new SecretEntryAttribute(
                 mTxtKey.getText().toString(), mTxtValue.getText().toString(), mChkProtected.isChecked());
-        mListener.onSecretEntryAttributeApply(mSeUUID, mAttrPos, attr);
+        mListener.onSecretEntryAttributeApply(mSeID, mAttrPos, attr);
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_ATTR, attr);
+        Intent intent = new Intent();
+        intent.putExtras(args);
+        getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
     }
 
 
@@ -106,6 +113,6 @@ public class AttributeFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        void onSecretEntryAttributeApply(UUID seUUID, int attrPos, SecretEntryAttribute attr);
+        void onSecretEntryAttributeApply(long seID, int attrPos, SecretEntryAttribute attr);
     }
 }

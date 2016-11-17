@@ -151,13 +151,13 @@ public class MainActivity extends AppCompatActivity        implements
     }
 
     @Override
-    public void onSecretEntryAttributeApply(UUID seID, int attrPos, SecretEntryAttribute attr) {
+    public void onSecretEntryAttributeApply(long seID, int attrPos, SecretEntryAttribute attr) {
 
     }
 
 
     @Override
-    public void onEntryDeleted(UUID seeID) {
+    public void onEntryDeleted(long seID) {
 
     }
 
