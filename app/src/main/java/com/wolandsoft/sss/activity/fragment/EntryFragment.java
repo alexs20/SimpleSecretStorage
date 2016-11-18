@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.wolandsoft.sss.common.AppCentral;
+import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
@@ -281,7 +281,7 @@ public class EntryFragment extends Fragment {
                 holder.mTxtValue.setText("");
                 if(attr.getValue() != null && attr.getValue().length() > 0) {
                     try {
-                        String plain = AppCentral.getKeyStoreManager().decrupt(attr.getValue());
+                        String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);

@@ -8,7 +8,7 @@ import java.util.LinkedList;
  */
 
 public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Serializable {
-    private long id;
+    private int id;
     private long created;
     private long updated;
 
@@ -16,13 +16,13 @@ public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Ser
         this(0, 0, 0);
     }
 
-    public SecretEntry(long id, long created, long updated) {
+    public SecretEntry(int id, long created, long updated) {
         this.id = id;
         this.created = created;
         this.updated = updated;
     }
 
-    public long getID() {
+    public int getID() {
         return id;
     }
 

@@ -86,37 +86,37 @@ public class PlainJson extends AExternal {
         if (jsonFile.exists()) {
             jsonFile.delete();
         }
-        try (FileOutputStream fOut = new FileOutputStream(jsonFile);
-             OutputStreamWriter out = new OutputStreamWriter(fOut, "UTF-8")) {
-
-            List<Object> jsonEntries = new LinkedList<>();
-            List<SecretEntry> entries = fromStorage.find(null, true, 0, Integer.MAX_VALUE);
-
-                for (SecretEntry entry : entries) {
-                    Map<String, Object> jsonEntry = new LinkedHashMap<>();
-                    jsonEntry.put(KEY_UUID, entry.getID());
-                    jsonEntry.put(CREATED, format.format(new Date(entry.getCreated())));
-                    jsonEntry.put(UPDATED, format.format(new Date(entry.getUpdated())));
-                    List<Object> jsonAttrs = new LinkedList<>();
-                    for (SecretEntryAttribute attr : entry) {
-                        Map<String, Object> jsonAttr = new LinkedHashMap<>();
-                        jsonAttr.put(KEY, attr.getKey());
-                        jsonAttr.put(VALUE, attr.getValue());
-                        if (attr.isProtected()) {
-                            jsonAttr.put(PROTECTED, true);
-                        }
-                        jsonAttrs.add(jsonAttr);
-                    }
-                    jsonEntry.put(DATA, jsonAttrs);
-                    jsonEntries.add(jsonEntry);
-                }
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-            String outStr = gson.toJson(jsonEntries);
-            out.write(outStr);
-        } catch (StorageException | IOException e) {
-            throw new ExternalException(e.getMessage(), e);
-        }
+        //try (FileOutputStream fOut = new FileOutputStream(jsonFile);
+        //     OutputStreamWriter out = new OutputStreamWriter(fOut, "UTF-8")) {
+//
+//            List<Object> jsonEntries = new LinkedList<>();
+//            List<SecretEntry> entries = fromStorage.find(null, true, 0, Integer.MAX_VALUE);
+//
+//                for (SecretEntry entry : entries) {
+//                    Map<String, Object> jsonEntry = new LinkedHashMap<>();
+//                    jsonEntry.put(KEY_UUID, entry.getID());
+//                    jsonEntry.put(CREATED, format.format(new Date(entry.getCreated())));
+//                    jsonEntry.put(UPDATED, format.format(new Date(entry.getUpdated())));
+//                    List<Object> jsonAttrs = new LinkedList<>();
+//                    for (SecretEntryAttribute attr : entry) {
+//                        Map<String, Object> jsonAttr = new LinkedHashMap<>();
+//                        jsonAttr.put(KEY, attr.getKey());
+//                        jsonAttr.put(VALUE, attr.getValue());
+//                        if (attr.isProtected()) {
+//                            jsonAttr.put(PROTECTED, true);
+//                        }
+//                        jsonAttrs.add(jsonAttr);
+//                    }
+//                    jsonEntry.put(DATA, jsonAttrs);
+//                    jsonEntries.add(jsonEntry);
+//                }
+//
+//            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+//            String outStr = gson.toJson(jsonEntries);
+//            out.write(outStr);
+        //} catch (StorageException | IOException e) {
+//            throw new ExternalException(e.getMessage(), e);
+        //}
     }
 
     @Override
@@ -143,7 +143,7 @@ public class PlainJson extends AExternal {
             Gson gson = new GsonBuilder().disableHtmlEscaping().create();
             List<Map> entriesList = gson.fromJson(json.toString(), ArrayList.class);
             for(Map entryMap : entriesList){
-                long id = Long.parseLong(entryMap.get(KEY_UUID).toString());
+                int id = Integer.parseInt(entryMap.get(KEY_UUID).toString());
                 SecretEntry oldEntry = toStorage.get(id);
                 if(oldEntry != null || isOverwrite) {
                     SecretEntry entry = new SecretEntry(id,

@@ -14,7 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.SparseArray;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,9 +28,8 @@ import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
+import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.LogEx;
-
-import java.util.List;
 
 
 /**
@@ -38,24 +37,24 @@ import java.util.List;
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener {
 
-    private SQLiteStorage mStorage;
+    private SQLiteStorage mSQLtStorage;
+    private LruCache<Integer, SecretEntry> mEntriesCache;
     private SecretEntriesAdapter mRecyclerViewAdapter;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mStorage = new SQLiteStorage(context);
-            SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
-                @Override
-                public void onSecretEntryClick(SecretEntry entry) {
-                    EntriesFragment.this.onSecretEntryClick(entry);
-                }
-            };
-            mRecyclerViewAdapter = new SecretEntriesAdapter(icl, mStorage);
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
-        }
+        AppCentral.init(context);
+        mSQLtStorage = AppCentral.getInstance().getSQLiteStorage();
+        mEntriesCache = AppCentral.getInstance().getEntriesCache();
+
+        SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
+            @Override
+            public void onSecretEntryClick(SecretEntry entry) {
+                EntriesFragment.this.onSecretEntryClick(entry);
+            }
+        };
+        mRecyclerViewAdapter = new SecretEntriesAdapter(icl, mSQLtStorage, mEntriesCache);
     }
 
     @Override
@@ -108,10 +107,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onDetach() {
         super.onDetach();
-        if (mStorage != null) {
-            mStorage.close();
-            mStorage = null;
-        }
     }
 
     @Override
@@ -138,21 +133,21 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
-        private int mCount;
-        private SparseArray<SecretEntry> mEntries;
+        private int[] mSeIds = null;
         private OnSecretEntryClickListener mOnClickListener;
-        private SQLiteStorage mStorage;
         private String mSearchCriteria = "";
         private Handler mHandler;
         private Runnable mSearchUpdate;
+        private SQLiteStorage mSQLtStorage;
+        private LruCache<Integer, SecretEntry> mEntriesCache;
 
-        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage storage) {
+        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage, LruCache<Integer, SecretEntry> entriesCache) {
             mOnClickListener = onClickListener;
-            mStorage = storage;
-            mEntries = new SparseArray<>();
             mHandler = new Handler();
+            mSQLtStorage = sqltStorage;
+            mEntriesCache = entriesCache;
             try {
-                mCount = mStorage.count(mSearchCriteria);
+                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }
@@ -165,11 +160,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 public void run() {
                     if (!criteria.equals(mSearchCriteria)) {
                         mSearchCriteria = criteria;
-                        mCount = 0;
-                        mEntries.clear();
-                        notifyDataSetChanged();
                         try {
-                            mCount = mStorage.count(mSearchCriteria);
+                            mSeIds = mSQLtStorage.find(mSearchCriteria, true);
                             notifyDataSetChanged();
                         } catch (StorageException e) {
                             LogEx.e(e.getMessage(), e);
@@ -206,23 +198,24 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         @Override
         public int getItemCount() {
-            return mCount;
+            return mSeIds == null ? 0 : mSeIds.length;
         }
 
         @Nullable
         SecretEntry getItem(int position) {
-            SecretEntry entry = mEntries.get(position);
+            int id = mSeIds[position];
+            SecretEntry entry = mEntriesCache.get(id);
             //on-demand loading items if not available
             if (entry == null) {
                 new AsyncTask<Integer, Void, Integer>() {
                     @Override
                     protected Integer doInBackground(Integer... params) {
                         try {
-                            int pos = params[0];
-                            List<SecretEntry> entryList = mStorage.find(mSearchCriteria, true, pos, 1);
-                            if (!entryList.isEmpty()) {
-                                mEntries.put(pos, entryList.get(0));
-                                return pos;
+                            int id =  mSeIds[params[0]];
+                            SecretEntry entry = mSQLtStorage.get(id);
+                            if (entry != null) {
+                                mEntriesCache.put(id, entry);
+                                return params[0];
                             }
                         } catch (StorageException e) {
                             LogEx.e(e.getMessage(), e);
@@ -231,14 +224,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     }
 
                     @Override
-                    protected void onPostExecute(Integer pos) {
-                        if (pos != -1) {
-                            SecretEntriesAdapter.this.notifyItemChanged(pos);
+                    protected void onPostExecute(Integer position) {
+                        if (position > -1) {
+                            SecretEntriesAdapter.this.notifyItemChanged(position);
                         }
                     }
                 }.execute(position);
             }
-            return mEntries.get(position);
+            return entry;
         }
 
         interface OnSecretEntryClickListener {

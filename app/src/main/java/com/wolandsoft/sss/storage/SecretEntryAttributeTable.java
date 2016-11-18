@@ -6,20 +6,21 @@ public final class SecretEntryAttributeTable extends ATableDefinition {
     public static final String FLD_ORDER_ID = "order_id";
     public static final String FLD_KEY = "key";
     public static final String FLD_VALUE = "value";
-    public static final String FLD_PROTECTED = "protected";
+    public static final String FLD_PROTECTED_VALUE = "protected_value";
 
     @Override
     public String[] getCreateSQL() {
-        return new String[]{"CREATE TABLE " + TBL_NAME + " (" +
-                FLD_ENTRY_ID + " INTEGER," +
-                FLD_ORDER_ID + " INTEGER," +
-                FLD_KEY + " TEXT," +
-                FLD_VALUE + " TEXT," +
-                FLD_PROTECTED + " INTEGER," +
-                "PRIMARY KEY (" + FLD_ENTRY_ID + ", " + FLD_ORDER_ID + "));",
+        return new String[]{
+                "CREATE TABLE " + TBL_NAME + " (" +
+                        FLD_ENTRY_ID + " INTEGER," +
+                        FLD_ORDER_ID + " INTEGER," +
+                        FLD_KEY + " TEXT," +
+                        FLD_VALUE + " TEXT," +
+                        FLD_PROTECTED_VALUE + " TEXT," +
+                        "PRIMARY KEY (" + FLD_ENTRY_ID + ", " + FLD_ORDER_ID + "));",
                 "CREATE INDEX search_idx ON " + TBL_NAME +
-                        " (" + FLD_VALUE + "," + FLD_PROTECTED + ") WHERE " +
-                        FLD_PROTECTED + "=0;"};
+                        " (" + FLD_ORDER_ID + "," + FLD_VALUE + ");",
+                };
     }
 
     @Override
