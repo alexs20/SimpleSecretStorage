@@ -1,6 +1,7 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,17 +37,15 @@ import com.wolandsoft.sss.util.LogEx;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener {
-
-    private SQLiteStorage mSQLtStorage;
-    private LruCache<Integer, SecretEntry> mEntriesCache;
-    private SecretEntriesAdapter mRecyclerViewAdapter;
+    private static final int ENTRY_UPDATE = 1;
+    private SecretEntriesAdapter mRVAdapter;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         AppCentral.init(context);
-        mSQLtStorage = AppCentral.getInstance().getSQLiteStorage();
-        mEntriesCache = AppCentral.getInstance().getEntriesCache();
+        SQLiteStorage sqltStorage = AppCentral.getInstance().getSQLiteStorage();
+        LruCache<Integer, SecretEntry> entriesCache = AppCentral.getInstance().getEntriesCache();
 
         SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
             @Override
@@ -54,7 +53,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 EntriesFragment.this.onSecretEntryClick(entry);
             }
         };
-        mRecyclerViewAdapter = new SecretEntriesAdapter(icl, mSQLtStorage, mEntriesCache);
+        mRVAdapter = new SecretEntriesAdapter(icl, sqltStorage, entriesCache);
     }
 
     @Override
@@ -64,7 +63,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(mRecyclerViewAdapter);
+        recyclerView.setAdapter(mRVAdapter);
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -91,16 +90,18 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     private void onAddClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(null);
+        fragment.setTargetFragment(this, ENTRY_UPDATE);
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(null);
+        transaction.addToBackStack(EntriesFragment.class.getName());
         transaction.commit();
     }
 
     public void onSecretEntryClick(SecretEntry entry) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry);
+        fragment.setTargetFragment(this, ENTRY_UPDATE);
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(null);
+        transaction.addToBackStack(EntriesFragment.class.getName());
         transaction.commit();
     }
 
@@ -126,9 +127,20 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public boolean onQueryTextChange(String newText) {
         //searching
-        mRecyclerViewAdapter.updateSearchCriteria(newText);
+        mRVAdapter.updateSearchCriteria(newText);
         LogEx.d(newText);
         return true;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case ENTRY_UPDATE:
+                if (resultCode == EntryFragment.RESULT_DELETE) {
+                    int id = data.getExtras().getInt(EntryFragment.ARG_ID);
+                    mRVAdapter.deleteItem(id);
+                }
+        }
     }
 
     static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
@@ -201,6 +213,17 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             return mSeIds == null ? 0 : mSeIds.length;
         }
 
+        public void deleteItem(int id){
+            try {
+                mSQLtStorage.delete(id);
+                mEntriesCache.remove(id);
+                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
+                notifyDataSetChanged();
+            } catch (StorageException e) {
+                LogEx.e(e.getMessage(), e);
+            }
+        }
+
         @Nullable
         SecretEntry getItem(int position) {
             int id = mSeIds[position];
@@ -211,7 +234,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     @Override
                     protected Integer doInBackground(Integer... params) {
                         try {
-                            int id =  mSeIds[params[0]];
+                            int id = mSeIds[params[0]];
                             SecretEntry entry = mSQLtStorage.get(id);
                             if (entry != null) {
                                 mEntriesCache.put(id, entry);

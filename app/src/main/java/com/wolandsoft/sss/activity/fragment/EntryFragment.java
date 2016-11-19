@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -41,15 +43,18 @@ import javax.crypto.IllegalBlockSizeException;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntryFragment extends Fragment {
+    public static final int RESULT_ADD = 1;
+    public static final int RESULT_DELETE = 2;
+    public static final String ARG_ID = "id";
+
     private static final int DELETE_ENTRY = 1;
     private static final int DELETE_ATTRIBUTE = 2;
     private static final int NEW_ATTRIBUTE = 3;
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_ENTRY = "entry";
     private final static String ARG_POSITION = "position";
-    private OnFragmentInteractionListener mListener;
     private SecretEntryAdapter mRVAdapter;
-
+    private Handler mHandler;
     public static EntryFragment newInstance(SecretEntry entry) {
         EntryFragment fragment = new EntryFragment();
         if (entry != null) {
@@ -63,13 +68,7 @@ public class EntryFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-                            OnFragmentInteractionListener.class.getName()));
-        }
+        mHandler = new Handler();
     }
 
     @Override
@@ -106,7 +105,15 @@ public class EntryFragment extends Fragment {
                     fragment.setCancelable(true);
                     fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
                     transaction.addToBackStack(null);
-                    fragment.show(transaction, "DIALOG");
+                    fragment.show(transaction, DialogFragment.class.getName());
+                } else if(position == 0 && mRVAdapter.getSecretEntry().get(1).isProtected()){
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
+                            R.string.label_delete_field, R.string.message_can_not_delete_before_protected_attribute, false, null);
+                    fragment.setCancelable(true);
+                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
+                    transaction.addToBackStack(null);
+                    fragment.show(transaction, DialogFragment.class.getName());
                 } else {
                     Bundle extras = new Bundle();
                     extras.putInt(ARG_POSITION, position);
@@ -117,13 +124,8 @@ public class EntryFragment extends Fragment {
                     fragment.setCancelable(true);
                     fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
                     transaction.addToBackStack(null);
-                    fragment.show(transaction, "DIALOG");
+                    fragment.show(transaction, DialogFragment.class.getName());
                 }
-            }
-
-            @Override
-            public void onSecretEntryAttributeReorder(int fromPosition, int toPosition) {
-                mListener.onEntryUpdated(mRVAdapter.getSecretEntry());
             }
         });
         recyclerView.setAdapter(mRVAdapter);
@@ -151,6 +153,14 @@ public class EntryFragment extends Fragment {
                 }
             });
         }
+
+        FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
+        btnApply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onApplyClicked();
+            }
+        });
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
@@ -181,7 +191,17 @@ public class EntryFragment extends Fragment {
         fragment.setCancelable(true);
         fragment.setTargetFragment(this, DELETE_ENTRY);
         transaction.addToBackStack(null);
-        fragment.show(transaction, "DIALOG");
+        fragment.show(transaction, DialogFragment.class.getName());
+    }
+
+
+    private void onApplyClicked() {
+        Intent intent = new Intent();
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_ENTRY, mRVAdapter.getSecretEntry());
+        intent.putExtras(args);
+        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_ADD, intent);
+        getFragmentManager().popBackStack();
     }
 
     @Override
@@ -189,7 +209,12 @@ public class EntryFragment extends Fragment {
         switch (requestCode) {
             case DELETE_ENTRY:
                 if (resultCode == Activity.RESULT_OK) {
-                    mListener.onEntryDeleted(mRVAdapter.getSecretEntry().getID());
+                    Intent intent = new Intent();
+                    Bundle args = new Bundle();
+                    args.putInt(ARG_ID, mRVAdapter.getSecretEntry().getID());
+                    intent.putExtras(args);
+                    getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_DELETE, intent);
+                    getFragmentManager().popBackStack (EntriesFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 break;
             case DELETE_ATTRIBUTE:
@@ -197,8 +222,8 @@ public class EntryFragment extends Fragment {
                     int position = data.getExtras().getInt(ARG_POSITION);
                     mRVAdapter.getSecretEntry().remove(position);
                     mRVAdapter.notifyItemRemoved(position);
-                    mListener.onEntryUpdated(mRVAdapter.getSecretEntry());
                 } else if (resultCode == Activity.RESULT_CANCELED) {
+                    //restoring presence of deleted attribute
                     mRVAdapter.notifyDataSetChanged();
                 }
                 break;
@@ -207,17 +232,13 @@ public class EntryFragment extends Fragment {
         }
     }
 
+    private void updateEntry(SecretEntry entry){
+
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener {
-
-        void onEntryDeleted(long seID);
-
-        void onEntryUpdated(SecretEntry entry);
     }
 
     public interface ItemTouchHelperAdapter {
@@ -229,8 +250,6 @@ public class EntryFragment extends Fragment {
 
     interface OnSecretEntryAttributeActionListener {
         void onSecretEntryAttributeDelete(int position);
-
-        void onSecretEntryAttributeReorder(int fromPosition, int toPosition);
     }
 
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder> implements ItemTouchHelperAdapter {
@@ -244,6 +263,10 @@ public class EntryFragment extends Fragment {
 
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
+            //need to be sure that protected field will not move to the top
+            if(toPosition == 0 && mEntry.get(fromPosition).isProtected()){
+                return false;
+            }
             if (fromPosition < toPosition) {
                 for (int i = fromPosition; i < toPosition; i++) {
                     Collections.swap(mEntry, i, i + 1);
@@ -254,7 +277,6 @@ public class EntryFragment extends Fragment {
                 }
             }
             notifyItemMoved(fromPosition, toPosition);
-            mListener.onSecretEntryAttributeReorder(fromPosition, toPosition);
             return true;
         }
 

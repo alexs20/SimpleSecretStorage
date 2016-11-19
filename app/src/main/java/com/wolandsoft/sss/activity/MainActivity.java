@@ -27,7 +27,6 @@ import java.util.UUID;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class MainActivity extends AppCompatActivity        implements
-        EntryFragment.OnFragmentInteractionListener,
         AttributeFragment.OnFragmentInteractionListener,
         FragmentManager.OnBackStackChangedListener {
     private DrawerLayout mDrawer;
@@ -156,13 +155,5 @@ public class MainActivity extends AppCompatActivity        implements
     }
 
 
-    @Override
-    public void onEntryDeleted(long seID) {
 
-    }
-
-    @Override
-    public void onEntryUpdated(SecretEntry entry) {
-
-    }
 }

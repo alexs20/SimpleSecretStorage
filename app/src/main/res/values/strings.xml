@@ -35,6 +35,7 @@
 
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
+    <string name="message_can_not_delete_before_protected_attribute">Top field before protected an not be deleted.</string>
 
 
 
