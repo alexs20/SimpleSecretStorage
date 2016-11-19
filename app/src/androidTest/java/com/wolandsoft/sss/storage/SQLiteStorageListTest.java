@@ -68,6 +68,12 @@ public class SQLiteStorageListTest {
         int [] seIds = storage.find(name, true);
         assertNotNull(seIds);
         assertEquals(1, seIds.length);
+
+        SecretEntry se = storage.get(seIds[0]);
+        assertNotNull(se);
+        assertEquals(3, se.size());
+        assertEquals(KEY_NAME, se.get(0).getKey());
+        assertEquals(name, se.get(0).getValue());
     }
 
     @Test
@@ -76,6 +82,12 @@ public class SQLiteStorageListTest {
         int [] seIds = storage.find(name, true);
         assertNotNull(seIds);
         assertEquals(1, seIds.length);
+
+        SecretEntry se = storage.get(seIds[0]);
+        assertNotNull(se);
+        assertEquals(3, se.size());
+        assertEquals(KEY_URL, se.get(1).getKey());
+        assertEquals(name, se.get(1).getValue());
     }
 
     @Test

@@ -104,4 +104,13 @@ public class SQLiteStorageEntryTest {
             assertEquals(inSeAttr.isProtected(), outSeAttr.isProtected());
         }
     }
+
+    @Test
+    public void test_s3_delete() throws StorageException {
+        SecretEntry out = storage.put(entry);
+        assertNotNull(out);
+        storage.delete(out.getID());
+        out = storage.get(out.getID());
+        assertNull(out);
+    }
 }

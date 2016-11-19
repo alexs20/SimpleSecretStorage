@@ -84,7 +84,6 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     public void delete(long id) throws StorageException {
-        SecretEntry result = null;
         try (SQLiteDatabase db = dbHelper.getWritableDatabase()) {
             try {
                 StringBuilder sb = new StringBuilder();
@@ -94,6 +93,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                         .append(" WHERE ").append(SecretEntryTable.FLD_ID).append("=?");
                 db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
                 //delete attributes
+                sb.setLength(0);
                 sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME)
                         .append(" WHERE ").append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
                 db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
@@ -216,7 +216,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                     String value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));
                     boolean isProtected = value == null;
                     if (isProtected) {
-                        value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));
+                        value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_PROTECTED_VALUE));
                     }
                     SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                     entry.add(attr);
