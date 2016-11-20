@@ -37,7 +37,7 @@ import com.wolandsoft.sss.util.LogEx;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener {
-    private static final int ENTRY_UPDATE = 1;
+    private static final int ENTRY_FRAGMENT = 1;
     private SecretEntriesAdapter mRVAdapter;
 
     @Override
@@ -90,7 +90,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     private void onAddClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(null);
-        fragment.setTargetFragment(this, ENTRY_UPDATE);
+        fragment.setTargetFragment(this, ENTRY_FRAGMENT);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(EntriesFragment.class.getName());
         transaction.commit();
@@ -99,7 +99,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onSecretEntryClick(SecretEntry entry) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry);
-        fragment.setTargetFragment(this, ENTRY_UPDATE);
+        fragment.setTargetFragment(this, ENTRY_FRAGMENT);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(EntriesFragment.class.getName());
         transaction.commit();
@@ -135,11 +135,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case ENTRY_UPDATE:
+            case ENTRY_FRAGMENT:
                 if (resultCode == EntryFragment.RESULT_DELETE) {
                     int id = data.getExtras().getInt(EntryFragment.ARG_ID);
                     mRVAdapter.deleteItem(id);
+                } else if (resultCode == EntryFragment.RESULT_UPDATE) {
+                    SecretEntry se = (SecretEntry) data.getExtras().getSerializable(EntryFragment.ARG_ENTRY);
+                    mRVAdapter.updateItem(se);
                 }
+                break;
         }
     }
 
@@ -217,6 +221,17 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             try {
                 mSQLtStorage.delete(id);
                 mEntriesCache.remove(id);
+                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
+                notifyDataSetChanged();
+            } catch (StorageException e) {
+                LogEx.e(e.getMessage(), e);
+            }
+        }
+
+        public void updateItem(SecretEntry se){
+            try {
+                se = mSQLtStorage.put(se);
+                mEntriesCache.put(se.getID(), se);
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
                 notifyDataSetChanged();
             } catch (StorageException e) {

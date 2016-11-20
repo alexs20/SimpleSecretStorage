@@ -23,12 +23,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.Serializable;
@@ -43,18 +43,18 @@ import javax.crypto.IllegalBlockSizeException;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntryFragment extends Fragment {
-    public static final int RESULT_ADD = 1;
+    public static final int RESULT_UPDATE = 1;
     public static final int RESULT_DELETE = 2;
     public static final String ARG_ID = "id";
+    public final static String ARG_ENTRY = "entry";
 
-    private static final int DELETE_ENTRY = 1;
-    private static final int DELETE_ATTRIBUTE = 2;
+    private static final int DELETE_ENTRY_CONFIRMATION_DIALOG = 1;
+    private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 2;
     private static final int NEW_ATTRIBUTE = 3;
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
-    private final static String ARG_ENTRY = "entry";
     private final static String ARG_POSITION = "position";
     private SecretEntryAdapter mRVAdapter;
-    private Handler mHandler;
+
     public static EntryFragment newInstance(SecretEntry entry) {
         EntryFragment fragment = new EntryFragment();
         if (entry != null) {
@@ -68,7 +68,6 @@ public class EntryFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mHandler = new Handler();
     }
 
     @Override
@@ -77,7 +76,7 @@ public class EntryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_entry, container, false);
 
         SecretEntry entry;
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             Bundle args = getArguments();
             if (args != null) {
                 entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
@@ -103,15 +102,15 @@ public class EntryFragment extends Fragment {
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_can_not_delete_last_attribute, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
+                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE_CONFIRMATION_DIALOG);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
-                } else if(position == 0 && mRVAdapter.getSecretEntry().get(1).isProtected()){
+                } else if (position == 0 && mRVAdapter.getSecretEntry().get(1).isProtected()) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_can_not_delete_before_protected_attribute, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
+                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE_CONFIRMATION_DIALOG);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 } else {
@@ -122,7 +121,7 @@ public class EntryFragment extends Fragment {
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_are_you_sure, true, extras);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE);
+                    fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE_CONFIRMATION_DIALOG);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 }
@@ -189,7 +188,7 @@ public class EntryFragment extends Fragment {
         DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                 R.string.label_delete_all, R.string.message_are_you_sure, true, null);
         fragment.setCancelable(true);
-        fragment.setTargetFragment(this, DELETE_ENTRY);
+        fragment.setTargetFragment(this, DELETE_ENTRY_CONFIRMATION_DIALOG);
         transaction.addToBackStack(null);
         fragment.show(transaction, DialogFragment.class.getName());
     }
@@ -200,24 +199,24 @@ public class EntryFragment extends Fragment {
         Bundle args = new Bundle();
         args.putSerializable(ARG_ENTRY, mRVAdapter.getSecretEntry());
         intent.putExtras(args);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_ADD, intent);
+        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
         getFragmentManager().popBackStack();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case DELETE_ENTRY:
+            case DELETE_ENTRY_CONFIRMATION_DIALOG:
                 if (resultCode == Activity.RESULT_OK) {
                     Intent intent = new Intent();
                     Bundle args = new Bundle();
                     args.putInt(ARG_ID, mRVAdapter.getSecretEntry().getID());
                     intent.putExtras(args);
                     getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_DELETE, intent);
-                    getFragmentManager().popBackStack (EntriesFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    getFragmentManager().popBackStack(EntriesFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 break;
-            case DELETE_ATTRIBUTE:
+            case DELETE_ATTRIBUTE_CONFIRMATION_DIALOG:
                 if (resultCode == Activity.RESULT_OK) {
                     int position = data.getExtras().getInt(ARG_POSITION);
                     mRVAdapter.getSecretEntry().remove(position);
@@ -230,10 +229,6 @@ public class EntryFragment extends Fragment {
             case NEW_ATTRIBUTE:
                 break;
         }
-    }
-
-    private void updateEntry(SecretEntry entry){
-
     }
 
     @Override
@@ -264,7 +259,8 @@ public class EntryFragment extends Fragment {
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
             //need to be sure that protected field will not move to the top
-            if(toPosition == 0 && mEntry.get(fromPosition).isProtected()){
+            if ((toPosition == 0 && mEntry.get(fromPosition).isProtected()) ||
+                    (fromPosition == 0 && mEntry.get(1).isProtected())) {
                 return false;
             }
             if (fromPosition < toPosition) {
@@ -301,7 +297,7 @@ public class EntryFragment extends Fragment {
                 holder.mImgProtected.setVisibility(View.GONE);
             } else {
                 holder.mTxtValue.setText("");
-                if(attr.getValue() != null && attr.getValue().length() > 0) {
+                if (attr.getValue() != null && attr.getValue().length() > 0) {
                     try {
                         String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
                         holder.mTxtValue.setText(plain);
