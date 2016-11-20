@@ -1,6 +1,5 @@
 package com.wolandsoft.sss.activity.fragment;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,30 +13,30 @@ import android.widget.ToggleButton;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.LogEx;
 
-import java.util.UUID;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class AttributeFragment extends Fragment {
-    private final static String ARG_ATTR = "attr";
-    private final static String ARG_SE_ID = "se_id";
-    private final static String ARG_ATTR_POS = "attr_pos";
-    private OnFragmentInteractionListener mListener;
+    public static final int RESULT_UPDATE = 1;
+    public final static String ARG_ATTR = "attr";
+    public final static String ARG_ATTR_POS = "attr_pos";
 
     private TextView mTxtKey;
     private TextView mTxtValue;
     private ToggleButton mChkProtected;
-    private long mSeID = 0;
     private int mAttrPos = -1;
 
-    public static AttributeFragment newInstance(long seID, int attrPos, SecretEntryAttribute attr) {
+    public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
         if (attr != null) {
             Bundle args = new Bundle();
             args.putSerializable(ARG_ATTR, attr);
-            args.putLong(ARG_SE_ID, seID);
             args.putInt(ARG_ATTR_POS, attrPos);
             fragment.setArguments(args);
         }
@@ -47,13 +46,6 @@ public class AttributeFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement), context.toString(),
-                            OnFragmentInteractionListener.class.getName()));
-        }
     }
 
     @Override
@@ -68,11 +60,19 @@ public class AttributeFragment extends Fragment {
             Bundle args = getArguments();
             if (args != null && !args.isEmpty()) {
                 SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
-                mSeID = args.getLong(ARG_SE_ID);
                 mAttrPos = args.getInt(ARG_ATTR_POS);
-                if(attr != null) {
+                if (attr != null) {
                     mTxtKey.setText(attr.getKey());
-                    mTxtValue.setText(attr.getValue());
+                    if (!attr.isProtected()) {
+                        mTxtValue.setText(attr.getValue());
+                    } else {
+                        try {
+                            String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                            mTxtValue.setText(plain);
+                        } catch (BadPaddingException | IllegalBlockSizeException e) {
+                            LogEx.e(e.getMessage(), e);
+                        }
+                    }
                     mChkProtected.setChecked(attr.isProtected());
                 }
             }
@@ -85,34 +85,42 @@ public class AttributeFragment extends Fragment {
                 onOkClicked();
             }
         });
+
+        if (mAttrPos == 0) {
+            mChkProtected.setVisibility(View.GONE);
+            view.findViewById(R.id.lblProtected).setVisibility(View.GONE);
+        }
         return view;
     }
 
 
     private void onOkClicked() {
+        String protectedStr = mTxtValue.getText().toString();
+        if (mChkProtected.isChecked()) {
+            try {
+                protectedStr = AppCentral.getInstance().getKeyStoreManager().encrypt(protectedStr);
+            } catch (BadPaddingException | IllegalBlockSizeException e) {
+                LogEx.e(e.getMessage(), e);
+            }
+        }
         SecretEntryAttribute attr = new SecretEntryAttribute(
-                mTxtKey.getText().toString(), mTxtValue.getText().toString(), mChkProtected.isChecked());
-        mListener.onSecretEntryAttributeApply(mSeID, mAttrPos, attr);
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_ATTR, attr);
+                mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
         Intent intent = new Intent();
+        Bundle args = new Bundle();
+        args.putInt(ARG_ATTR_POS, mAttrPos);
+        args.putSerializable(ARG_ATTR, attr);
         intent.putExtras(args);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
+        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
+        getFragmentManager().popBackStack();
     }
-
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-    }
-
-    public interface OnFragmentInteractionListener {
-        void onSecretEntryAttributeApply(long seID, int attrPos, SecretEntryAttribute attr);
     }
 }

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -50,7 +49,8 @@ public class EntryFragment extends Fragment {
 
     private static final int DELETE_ENTRY_CONFIRMATION_DIALOG = 1;
     private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 2;
-    private static final int NEW_ATTRIBUTE = 3;
+    private static final int ATTRIBUTE_FRAGMENT = 3;
+
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_POSITION = "position";
     private SecretEntryAdapter mRVAdapter;
@@ -126,6 +126,16 @@ public class EntryFragment extends Fragment {
                     fragment.show(transaction, DialogFragment.class.getName());
                 }
             }
+
+            @Override
+            public void onSecretEntryAttributeEdit(int position) {
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();// getActivity().getSupportFragmentManager().beginTransaction();
+                Fragment fragment = AttributeFragment.newInstance(position, mRVAdapter.getSecretEntry().get(position));
+                fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
+                transaction.replace(R.id.content_fragment, fragment);
+                transaction.addToBackStack(EntryFragment.class.getName());
+                transaction.commit();
+            }
         });
         recyclerView.setAdapter(mRVAdapter);
 
@@ -175,11 +185,11 @@ public class EntryFragment extends Fragment {
     }
 
     private void onAddClicked() {
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = AttributeFragment.newInstance(mRVAdapter.getSecretEntry().getID(), -1, null);
-        fragment.setTargetFragment(EntryFragment.this, NEW_ATTRIBUTE);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();// getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment = AttributeFragment.newInstance(-1, null);
+        fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(null);
+        transaction.addToBackStack(EntryFragment.class.getName());
         transaction.commit();
     }
 
@@ -226,7 +236,17 @@ public class EntryFragment extends Fragment {
                     mRVAdapter.notifyDataSetChanged();
                 }
                 break;
-            case NEW_ATTRIBUTE:
+            case ATTRIBUTE_FRAGMENT:
+                int attrPos = data.getExtras().getInt(AttributeFragment.ARG_ATTR_POS);
+                SecretEntryAttribute attr = (SecretEntryAttribute) data.getExtras().getSerializable(AttributeFragment.ARG_ATTR);
+                SecretEntry se = mRVAdapter.getSecretEntry();
+                if (attrPos > -1) {
+                    se.set(attrPos, attr);
+                    mRVAdapter.notifyItemChanged(attrPos);
+                } else {
+                    se.add(attr);
+                    mRVAdapter.notifyItemInserted(se.size() - 1);
+                }
                 break;
         }
     }
@@ -245,6 +265,8 @@ public class EntryFragment extends Fragment {
 
     interface OnSecretEntryAttributeActionListener {
         void onSecretEntryAttributeDelete(int position);
+
+        void onSecretEntryAttributeEdit(int position);
     }
 
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder> implements ItemTouchHelperAdapter {
@@ -312,6 +334,12 @@ public class EntryFragment extends Fragment {
                     openPopup(v, pos);
                 }
             });
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mListener.onSecretEntryAttributeEdit(pos);
+                }
+            });
         }
 
         @Override
@@ -325,13 +353,16 @@ public class EntryFragment extends Fragment {
 
         private void openPopup(View v, final int position) {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
-            popup.getMenuInflater().inflate(R.menu.fragment_entry_include_card_popup, popup.getMenu());
+            popup.getMenuInflater().inflate(R.menu.fragment_entry_card_popup, popup.getMenu());
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
-                        case R.id.menu_remove:
+                        case R.id.menuDelete:
                             mListener.onSecretEntryAttributeDelete(position);
+                            return true;
+                        case R.id.menuEdit:
+                            mListener.onSecretEntryAttributeEdit(position);
                             return true;
                     }
                     return false;

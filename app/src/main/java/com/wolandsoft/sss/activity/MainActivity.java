@@ -27,7 +27,6 @@ import java.util.UUID;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class MainActivity extends AppCompatActivity        implements
-        AttributeFragment.OnFragmentInteractionListener,
         FragmentManager.OnBackStackChangedListener {
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -148,12 +147,5 @@ public class MainActivity extends AppCompatActivity        implements
         getSupportFragmentManager().popBackStack();
         return true;
     }
-
-    @Override
-    public void onSecretEntryAttributeApply(long seID, int attrPos, SecretEntryAttribute attr) {
-
-    }
-
-
 
 }
