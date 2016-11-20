@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -95,6 +96,13 @@ public class AttributeFragment extends Fragment {
 
 
     private void onOkClicked() {
+        InputMethodManager inputManager =
+                (InputMethodManager) getContext().
+                        getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(
+                getActivity().getCurrentFocus().getWindowToken(),
+                InputMethodManager.HIDE_NOT_ALWAYS);
+
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
             try {
