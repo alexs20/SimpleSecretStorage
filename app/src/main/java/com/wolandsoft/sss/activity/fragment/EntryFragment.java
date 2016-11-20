@@ -1,6 +1,8 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -312,7 +314,7 @@ public class EntryFragment extends Fragment {
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             final int pos = position;
-            SecretEntryAttribute attr = mEntry.get(position);
+            final SecretEntryAttribute attr = mEntry.get(position);
             holder.mTxtKey.setText(attr.getKey());
             if (!attr.isProtected()) {
                 holder.mTxtValue.setText(attr.getValue());
@@ -331,7 +333,7 @@ public class EntryFragment extends Fragment {
             holder.mImgMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    openPopup(v, pos);
+                    openPopup(v, pos, attr);
                 }
             });
             holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -351,7 +353,7 @@ public class EntryFragment extends Fragment {
             return mEntry;
         }
 
-        private void openPopup(View v, final int position) {
+        private void openPopup(final View v, final int position, final SecretEntryAttribute attr) {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
             popup.getMenuInflater().inflate(R.menu.fragment_entry_card_popup, popup.getMenu());
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -364,6 +366,21 @@ public class EntryFragment extends Fragment {
                         case R.id.menuEdit:
                             mListener.onSecretEntryAttributeEdit(position);
                             return true;
+                        case R.id.menuCopy:
+                            ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                            String text = attr.getValue();
+                            if (attr.isProtected()) {
+                                if (attr.getValue() != null && attr.getValue().length() > 0) {
+                                    try {
+                                        text = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                                    } catch (BadPaddingException | IllegalBlockSizeException e) {
+                                        LogEx.e(e.getMessage(), e);
+                                    }
+                                }
+                            }
+                            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+                            clipboard.setPrimaryClip(clip);
+                            break;
                     }
                     return false;
                 }

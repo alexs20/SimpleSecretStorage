@@ -67,11 +67,13 @@ public class AttributeFragment extends Fragment {
                     if (!attr.isProtected()) {
                         mTxtValue.setText(attr.getValue());
                     } else {
-                        try {
-                            String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
-                            mTxtValue.setText(plain);
-                        } catch (BadPaddingException | IllegalBlockSizeException e) {
-                            LogEx.e(e.getMessage(), e);
+                        if (attr.getValue() != null && attr.getValue().length() > 0) {
+                            try {
+                                String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                                mTxtValue.setText(plain);
+                            } catch (BadPaddingException | IllegalBlockSizeException e) {
+                                LogEx.e(e.getMessage(), e);
+                            }
                         }
                     }
                     mChkProtected.setChecked(attr.isProtected());
