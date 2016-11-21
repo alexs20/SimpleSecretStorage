@@ -7,7 +7,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_margin="2dp"
+        android:orientation="vertical" >
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -15,10 +16,11 @@
             app:hintTextAppearance="@style/TextInputHint">
 
             <android.support.design.widget.TextInputEditText
-                android:id="@+id/txtKey"
+                android:id="@+id/edtLcChars"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_attribute_key" />
+                android:hint="@string/label_number_of_lowercase_chars"
+                android:inputType="numberDecimal"/>
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -27,39 +29,48 @@
             app:hintTextAppearance="@style/TextInputHint">
 
             <android.support.design.widget.TextInputEditText
-                android:id="@+id/txtValue"
+                android:id="@+id/edtUpChars"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_attribute_value" />
+                android:hint="@string/label_number_of_uppercase_chars"
+                android:inputType="numberDecimal"/>
         </android.support.design.widget.TextInputLayout>
 
-        <LinearLayout
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            app:hintTextAppearance="@style/TextInputHint">
 
-            <TextView
-                android:id="@+id/lblProtected"
-                android:layout_width="wrap_content"
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/edtNumChars"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="2dp"
-                android:paddingEnd="2dp"
-                android:text="@string/label_attribute_protected"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:hint="@string/label_number_of_numeric_chars"
+                android:inputType="numberDecimal"/>
+        </android.support.design.widget.TextInputLayout>
 
-            <ToggleButton
-                android:id="@+id/chkProtected"
-                android:layout_width="wrap_content"
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintTextAppearance="@style/TextInputHint">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/edtSpChars"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawablePadding="0dp"
-                android:drawableTop="@drawable/toggle_locked"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:textOff=""
-                android:textOn=""
-                android:textSize="0dp" />
+                android:hint="@string/label_number_of_special_chars"
+                android:inputType="numberDecimal"/>
+        </android.support.design.widget.TextInputLayout>
 
-        </LinearLayout>
+        <TextView
+            android:id="@+id/txtPwdPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="?android:attr/colorPrimary"
+            android:layout_marginTop="5sp"
+            android:textAlignment="center" />
 
     </LinearLayout>
 
@@ -71,11 +82,11 @@
         android:layout_alignParentEnd="true">
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/btnGenerate"
+            android:id="@+id/btnRefresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:src="@mipmap/img24dp_key"
+            android:src="@mipmap/img24dp_refresh"
             app:fabSize="normal" />
 
         <android.support.design.widget.FloatingActionButton
@@ -87,4 +98,5 @@
             app:fabSize="normal" />
 
     </GridLayout>
+
 </RelativeLayout>

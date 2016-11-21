@@ -1,18 +1,23 @@
 package com.wolandsoft.sss.activity.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.LogEx;
@@ -27,11 +32,15 @@ public class AttributeFragment extends Fragment {
     public static final int RESULT_UPDATE = 1;
     public final static String ARG_ATTR = "attr";
     public final static String ARG_ATTR_POS = "attr_pos";
+    public static final int PWDGEN_FRAGMENT = 1;
 
     private TextView mTxtKey;
     private TextView mTxtValue;
     private ToggleButton mChkProtected;
+    private FloatingActionButton mBtnGenerate;
     private int mAttrPos = -1;
+    private String mKey;
+    private String mValue;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
@@ -47,6 +56,11 @@ public class AttributeFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        Bundle args = getArguments();
+        if (args != null && !args.isEmpty()) {
+            SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
+            mAttrPos = args.getInt(ARG_ATTR_POS);
+        }
     }
 
     @Override
@@ -56,6 +70,7 @@ public class AttributeFragment extends Fragment {
         mTxtKey = (TextView) view.findViewById(R.id.txtKey);
         mTxtValue = (TextView) view.findViewById(R.id.txtValue);
         mChkProtected = (ToggleButton) view.findViewById(R.id.chkProtected);
+        mBtnGenerate = (FloatingActionButton) view.findViewById(R.id.btnGenerate);
 
         if (savedInstanceState == null) {
             Bundle args = getArguments();
@@ -81,8 +96,8 @@ public class AttributeFragment extends Fragment {
             }
         }
 
-        FloatingActionButton btnOk = (FloatingActionButton) view.findViewById(R.id.btnOk);
-        btnOk.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
+        btnApply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onOkClicked();
@@ -93,9 +108,39 @@ public class AttributeFragment extends Fragment {
             mChkProtected.setVisibility(View.GONE);
             view.findViewById(R.id.lblProtected).setVisibility(View.GONE);
         }
+
+        mBtnGenerate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onGenerateClicked();
+            }
+        });
+        if(!mChkProtected.isChecked()){
+            mBtnGenerate.setVisibility(View.GONE);
+        }
+        mChkProtected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    mBtnGenerate.setVisibility(View.VISIBLE);
+                } else {
+                    mBtnGenerate.setVisibility(View.GONE);
+                }
+
+            }
+        });
         return view;
     }
 
+    private void onGenerateClicked() {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        Fragment fragment = PwdGenFragment.newInstance();
+        fragment.setTargetFragment(this, PWDGEN_FRAGMENT);
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(AttributeFragment.class.getName());
+        transaction.commit();
+    }
 
     private void onOkClicked() {
         InputMethodManager inputManager =
@@ -124,6 +169,17 @@ public class AttributeFragment extends Fragment {
         getFragmentManager().popBackStack();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case PWDGEN_FRAGMENT:
+                if (resultCode == Activity.RESULT_OK) {
+                    String pwd = data.getExtras().getString(PwdGenFragment.ARG_PWD);
+                    mTxtValue.setText(pwd);
+                }
+                break;
+        }
+    }
     @Override
     public void onDetach() {
         super.onDetach();

@@ -128,7 +128,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public boolean onQueryTextChange(String newText) {
         //searching
         mRVAdapter.updateSearchCriteria(newText);
-        LogEx.d(newText);
         return true;
     }
 

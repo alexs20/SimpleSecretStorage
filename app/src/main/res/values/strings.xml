@@ -34,11 +34,15 @@
     <string name="label_delete">Delete</string>
     <string name="label_edit">Edit</string>
     <string name="label_copy">Copy</string>
+    <string name="label_generate">Generate</string>
+    <string name="label_number_of_lowercase_chars">Number of Lowercase Characters</string>
+    <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
+    <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>
+    <string name="label_number_of_special_chars">Number of Special Characters</string>
 
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
     <string name="message_can_not_delete_before_protected_attribute">Top field before protected an not be deleted.</string>
-
 
 
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item  type="string" name="pref_pwdgen_lowercase_chars_key" translatable="false">pwdgen_lowercase_chars</item>
+    <item  type="integer" name="pref_pwdgen_lowercase_chars_value" translatable="false">3</item>
+    <item  type="integer" name="pref_pwdgen_lowercase_chars_value_min" translatable="false">0</item>
+    <item  type="integer" name="pref_pwdgen_lowercase_chars_value_max" translatable="false">12</item>
+
+    <item  type="string" name="pref_pwdgen_uppercase_chars_key" translatable="false">pwdgen_uppercase_chars</item>
+    <item  type="integer" name="pref_pwdgen_uppercase_chars_value" translatable="false">2</item>
+    <item  type="integer" name="pref_pwdgen_uppercase_chars_value_min" translatable="false">0</item>
+    <item  type="integer" name="pref_pwdgen_uppercase_chars_value_max" translatable="false">12</item>
+
+    <item  type="string" name="pref_pwdgen_numeric_chars_key" translatable="false">pwdgen_numeric_chars</item>
+    <item  type="integer" name="pref_pwdgen_numeric_chars_value" translatable="false">2</item>
+    <item  type="integer" name="pref_pwdgen_numeric_chars_value_min" translatable="false">0</item>
+    <item  type="integer" name="pref_pwdgen_numeric_chars_value_max" translatable="false">12</item>
+
+    <item  type="string" name="pref_pwdgen_special_chars_key" translatable="false">pwdgen_special_chars</item>
+    <item  type="integer" name="pref_pwdgen_special_chars_value" translatable="false">1</item>
+    <item  type="integer" name="pref_pwdgen_special_chars_value_min" translatable="false">0</item>
+    <item  type="integer" name="pref_pwdgen_special_chars_value_max" translatable="false">12</item>
+</resources>

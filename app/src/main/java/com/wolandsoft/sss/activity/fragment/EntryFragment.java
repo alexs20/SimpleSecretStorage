@@ -70,36 +70,23 @@ public class EntryFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_entry, container, false);
-
         SecretEntry entry;
-        if (savedInstanceState == null) {
-            Bundle args = getArguments();
-            if (args != null) {
-                entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
-            } else {
-                entry = new SecretEntry();
-                for (PredefinedAttribute attr : PredefinedAttribute.values()) {
-                    entry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
-                }
-            }
+        Bundle args = getArguments();
+        if (args != null && !args.isEmpty()) {
+            entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
         } else {
-            entry = (SecretEntry) savedInstanceState.getSerializable(ARG_ENTRY);
+            entry = new SecretEntry();
+            for (PredefinedAttribute attr : PredefinedAttribute.values()) {
+                entry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
+            }
         }
-
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvAttrList);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         mRVAdapter = new SecretEntryAdapter(entry, new OnSecretEntryAttributeActionListener() {
             @Override
             public void onSecretEntryAttributeDelete(int position) {
+                //swipe left/right to delete + delete from popup
                 if (mRVAdapter.getItemCount() == 1) {
+                    //can not delete last element
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_can_not_delete_last_attribute, false, null);
@@ -108,6 +95,7 @@ public class EntryFragment extends Fragment {
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 } else if (position == 0 && mRVAdapter.getSecretEntry().get(1).isProtected()) {
+                    //can not perform delete operation when result leads to make a protected field be moved to the top
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
                             R.string.label_delete_field, R.string.message_can_not_delete_before_protected_attribute, false, null);
@@ -116,6 +104,7 @@ public class EntryFragment extends Fragment {
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 } else {
+                    //confirmation dialog
                     Bundle extras = new Bundle();
                     extras.putInt(ARG_POSITION, position);
 
@@ -131,7 +120,7 @@ public class EntryFragment extends Fragment {
 
             @Override
             public void onSecretEntryAttributeEdit(int position) {
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();// getActivity().getSupportFragmentManager().beginTransaction();
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 Fragment fragment = AttributeFragment.newInstance(position, mRVAdapter.getSecretEntry().get(position));
                 fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
                 transaction.replace(R.id.content_fragment, fragment);
@@ -139,6 +128,17 @@ public class EntryFragment extends Fragment {
                 transaction.commit();
             }
         });
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_entry, container, false);
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvAttrList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
         recyclerView.setAdapter(mRVAdapter);
 
         ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(mRVAdapter);
@@ -154,7 +154,7 @@ public class EntryFragment extends Fragment {
         });
 
         FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
-        if (entry.getCreated() == 0) {
+        if (mRVAdapter.getSecretEntry().getCreated() == 0) {
             btnDelete.setVisibility(View.GONE);
         } else {
             btnDelete.setOnClickListener(new View.OnClickListener() {
@@ -187,7 +187,7 @@ public class EntryFragment extends Fragment {
     }
 
     private void onAddClicked() {
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();// getActivity().getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
         Fragment fragment = AttributeFragment.newInstance(-1, null);
         fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
         transaction.replace(R.id.content_fragment, fragment);
