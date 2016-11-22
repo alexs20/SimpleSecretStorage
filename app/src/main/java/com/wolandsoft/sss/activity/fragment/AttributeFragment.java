@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +21,7 @@ import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 import javax.crypto.BadPaddingException;
@@ -28,28 +30,33 @@ import javax.crypto.IllegalBlockSizeException;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class AttributeFragment extends Fragment {
+public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract{
     public static final int RESULT_UPDATE = 1;
     public final static String ARG_ATTR = "attr";
     public final static String ARG_ATTR_POS = "attr_pos";
-    public static final int PWDGEN_FRAGMENT = 1;
 
+    //ui elements
     private TextView mTxtKey;
     private TextView mTxtValue;
     private ToggleButton mChkProtected;
     private FloatingActionButton mBtnGenerate;
-    private int mAttrPos = -1;
-    private String mKey;
-    private String mValue;
+    //model objects
+    private int mAttrPos;
+    private SecretEntryAttribute mAttr;
+    //model adjustment
+    private String mGeneratedPwd = null;
+    //utils
+    private KeyStoreManager mKsMgr;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
-        if (attr != null) {
-            Bundle args = new Bundle();
-            args.putSerializable(ARG_ATTR, attr);
-            args.putInt(ARG_ATTR_POS, attrPos);
-            fragment.setArguments(args);
+        if (attr == null) {
+            attr = new SecretEntryAttribute("", "", false);
         }
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_ATTR, attr);
+        args.putInt(ARG_ATTR_POS, attrPos);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -57,10 +64,9 @@ public class AttributeFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         Bundle args = getArguments();
-        if (args != null && !args.isEmpty()) {
-            SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
-            mAttrPos = args.getInt(ARG_ATTR_POS);
-        }
+        mAttr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
+        mAttrPos = args.getInt(ARG_ATTR_POS);
+        mKsMgr = AppCentral.getInstance().getKeyStoreManager();
     }
 
     @Override
@@ -73,27 +79,20 @@ public class AttributeFragment extends Fragment {
         mBtnGenerate = (FloatingActionButton) view.findViewById(R.id.btnGenerate);
 
         if (savedInstanceState == null) {
-            Bundle args = getArguments();
-            if (args != null && !args.isEmpty()) {
-                SecretEntryAttribute attr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
-                mAttrPos = args.getInt(ARG_ATTR_POS);
-                if (attr != null) {
-                    mTxtKey.setText(attr.getKey());
-                    if (!attr.isProtected()) {
-                        mTxtValue.setText(attr.getValue());
-                    } else {
-                        if (attr.getValue() != null && attr.getValue().length() > 0) {
-                            try {
-                                String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
-                                mTxtValue.setText(plain);
-                            } catch (BadPaddingException | IllegalBlockSizeException e) {
-                                LogEx.e(e.getMessage(), e);
-                            }
-                        }
+            mTxtKey.setText(mAttr.getKey());
+            if (mAttr.isProtected()) {
+                if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
+                    try {
+                        String plain = mKsMgr.decrupt(mAttr.getValue());
+                        mTxtValue.setText(plain);
+                    } catch (BadPaddingException | IllegalBlockSizeException e) {
+                        LogEx.e(e.getMessage(), e);
                     }
-                    mChkProtected.setChecked(attr.isProtected());
                 }
+            } else {
+                mTxtValue.setText(mAttr.getValue());
             }
+            mChkProtected.setChecked(mAttr.isProtected());
         }
 
         FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
@@ -133,22 +132,27 @@ public class AttributeFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if(mGeneratedPwd != null){
+            mTxtValue.setText(mGeneratedPwd);
+            mGeneratedPwd = null;
+        }
+    }
+
     private void onGenerateClicked() {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        Fragment fragment = PwdGenFragment.newInstance();
-        fragment.setTargetFragment(this, PWDGEN_FRAGMENT);
+        Fragment fragment = new PwdGenFragment();
+        fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(AttributeFragment.class.getName());
         transaction.commit();
     }
 
     private void onOkClicked() {
-        InputMethodManager inputManager =
-                (InputMethodManager) getContext().
-                        getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(
-                getActivity().getCurrentFocus().getWindowToken(),
-                InputMethodManager.HIDE_NOT_ALWAYS);
+        InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
@@ -165,28 +169,13 @@ public class AttributeFragment extends Fragment {
         args.putInt(ARG_ATTR_POS, mAttrPos);
         args.putSerializable(ARG_ATTR, attr);
         intent.putExtras(args);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
         getFragmentManager().popBackStack();
+        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
+
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case PWDGEN_FRAGMENT:
-                if (resultCode == Activity.RESULT_OK) {
-                    String pwd = data.getExtras().getString(PwdGenFragment.ARG_PWD);
-                    mTxtValue.setText(pwd);
-                }
-                break;
-        }
-    }
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public void onPasswordGenerated(String password) {
+        mGeneratedPwd = password;
     }
 }

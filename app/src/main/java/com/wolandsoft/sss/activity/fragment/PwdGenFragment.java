@@ -1,8 +1,6 @@
 package com.wolandsoft.sss.activity.fragment;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -26,7 +24,6 @@ import java.util.Random;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class PwdGenFragment extends Fragment {
-    public static final String ARG_PWD = "pwd";
     private EditText mEdtLcChars;
     private EditText mEdtUpChars;
     private EditText mEdtNumChars;
@@ -35,20 +32,15 @@ public class PwdGenFragment extends Fragment {
     private KeySharedPreferences mPref;
     private Random mRandom;
 
-    public static PwdGenFragment newInstance() {
-        PwdGenFragment fragment = new PwdGenFragment();
-        return fragment;
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        mRandom = new Random();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mRandom = new Random();
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         mPref = new KeySharedPreferences(shPref, getContext());
@@ -57,22 +49,22 @@ public class PwdGenFragment extends Fragment {
         mEdtLcChars = (EditText) view.findViewById(R.id.edtLcChars);
         int min = getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_min);
         int max = getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_max);
-        mEdtLcChars.setFilters(new InputFilter[] {new InputFilterMinMax(min,max)});
+        mEdtLcChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
 
         mEdtUpChars = (EditText) view.findViewById(R.id.edtUpChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_max);
-        mEdtUpChars.setFilters(new InputFilter[] {new InputFilterMinMax(min,max)});
+        mEdtUpChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
 
         mEdtNumChars = (EditText) view.findViewById(R.id.edtNumChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_max);
-        mEdtNumChars.setFilters(new InputFilter[] {new InputFilterMinMax(min,max)});
+        mEdtNumChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
 
         mEdtSpChars = (EditText) view.findViewById(R.id.edtSpChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_max);
-        mEdtSpChars.setFilters(new InputFilter[] {new InputFilterMinMax(min,max)});
+        mEdtSpChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
 
         mTxtPwdPreview = (TextView) view.findViewById(R.id.txtPwdPreview);
 
@@ -90,6 +82,8 @@ public class PwdGenFragment extends Fragment {
             mEdtSpChars.setText(String.valueOf(spChars));
 
             onRefreshClicked();
+        } else {
+            mTxtPwdPreview.setText(savedInstanceState.getString(String.valueOf(R.id.txtPwdPreview)));
         }
 
         FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
@@ -117,34 +111,34 @@ public class PwdGenFragment extends Fragment {
         int numChars = Integer.parseInt(mEdtNumChars.getText().toString());
         int spChars = Integer.parseInt(mEdtSpChars.getText().toString());
 
-        char [] pwd = new char [lcChars + ucChars + numChars + spChars];
-        Arrays.fill(pwd, (char)0);
+        char[] pwd = new char[lcChars + ucChars + numChars + spChars];
+        Arrays.fill(pwd, (char) 0);
         genFromRange(pwd, 0x61, 0x7A, lcChars);
         genFromRange(pwd, 0x41, 0x5A, ucChars);
         genFromRange(pwd, 0x30, 0x39, numChars);
-        genFromRange(pwd, new char [] {'!','@','#','$','%','^','&','*'}, spChars);
+        genFromRange(pwd, new char[]{'!', '@', '#', '$', '%', '^', '&', '*'}, spChars);
 
         mTxtPwdPreview.setText(String.valueOf(pwd));
     }
 
-    private void genFromRange(char [] dest, int from, int to, int count){
-        char [] src = new char[to - from + 1];
-        for(int i = 0; i < src.length; i++){
-            src[i] = (char)(mRandom.nextInt(to - from) + from);
+    private void genFromRange(char[] dest, int from, int to, int count) {
+        char[] src = new char[to - from + 1];
+        for (int i = 0; i < src.length; i++) {
+            src[i] = (char) (mRandom.nextInt(to - from) + from);
         }
         genFromRange(dest, src, count);
     }
 
-    private void genFromRange(char [] dest, char [] src, int count){
-        for(int i = 0; i < count; i++){
+    private void genFromRange(char[] dest, char[] src, int count) {
+        for (int i = 0; i < count; i++) {
             int idx = mRandom.nextInt(dest.length);
-            while(true) {
-                if(dest[idx] == 0){
+            while (true) {
+                if (dest[idx] == 0) {
                     dest[idx] = src[mRandom.nextInt(src.length)];
                     break;
                 }
                 idx++;
-                if(idx >= dest.length){
+                if (idx >= dest.length) {
                     idx = 0;
                 }
             }
@@ -159,11 +153,18 @@ public class PwdGenFragment extends Fragment {
         editor.putInt(R.string.pref_pwdgen_special_chars_key, Integer.parseInt(mEdtSpChars.getText().toString()));
         editor.apply();
 
-        Intent intent = new Intent();
-        Bundle args = new Bundle();
-        args.putString(ARG_PWD, mTxtPwdPreview.getText().toString());
-        intent.putExtras(args);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            ((OnFragmentToFragmentInteract) parent).onPasswordGenerated(mTxtPwdPreview.getText().toString());
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            parent.toString(),
+                            OnFragmentToFragmentInteract.class.getName()
+                    )
+            );
+        }
         getFragmentManager().popBackStack();
     }
 
@@ -175,5 +176,13 @@ public class PwdGenFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putString(String.valueOf(R.id.txtPwdPreview), mTxtPwdPreview.getText().toString());
+    }
+
+    /**
+     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
+     */
+    interface OnFragmentToFragmentInteract {
+        void onPasswordGenerated(String password);
     }
 }

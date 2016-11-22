@@ -70,7 +70,8 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="?android:attr/colorPrimary"
             android:layout_marginTop="5sp"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textIsSelectable="true"/>
 
     </LinearLayout>
 
