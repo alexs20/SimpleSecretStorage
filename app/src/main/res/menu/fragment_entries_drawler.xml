@@ -3,16 +3,16 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_first_fragment"
-            android:icon="@mipmap/img24dp_delete"
-            android:title="First" />
+            android:id="@+id/navExport"
+            android:icon="@mipmap/img24dp_export"
+            android:title="@string/label_export" />
         <item
-            android:id="@+id/nav_second_fragment"
-            android:icon="@mipmap/img24dp_delete"
-            android:title="Second" />
+            android:id="@+id/navImport"
+            android:icon="@mipmap/img24dp_import"
+            android:title="@string/label_import" />
         <item
-            android:id="@+id/nav_third_fragment"
-            android:icon="@mipmap/img24dp_delete"
-            android:title="Third" />
+            android:id="@+id/navSettings"
+            android:icon="@mipmap/img24dp_settings"
+            android:title="@string/label_settings" />
     </group>
 </menu>

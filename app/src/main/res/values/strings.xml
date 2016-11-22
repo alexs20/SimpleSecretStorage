@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Simple Secret Storage</string>
-    <string name="action_settings">Settings</string>
     <string name="auth_service_label">Authentication Service</string>
 
     <!-- predefined entry fields -->
@@ -41,6 +40,12 @@
     <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
     <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>
     <string name="label_number_of_special_chars">Number of Special Characters</string>
+    <string name="label_open_drawer">Open Drawer</string>
+    <string name="label_close_drawer">Close Drawer</string>
+    <string name="label_options">Options</string>
+    <string name="label_export">Export</string>
+    <string name="label_import">Import</string>
+    <string name="label_settings">Settings</string>
 
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
