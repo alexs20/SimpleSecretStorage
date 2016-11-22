@@ -3,10 +3,13 @@ package com.wolandsoft.sss.activity.fragment.dialog;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+
+import com.wolandsoft.sss.R;
 
 /**
  * Alert dialog to be presented as fragment element.
@@ -19,6 +22,7 @@ public class AlertDialogFragment extends DialogFragment {
     private static final String ARG_MESSAGE = "message";
     private static final String ARG_YESNO = "yes_no";
     private static final String ARG_DATA = "data";
+    private OnDialogToFragmentInteract mListener;
 
     public AlertDialogFragment() {
         // Required empty public constructor
@@ -41,17 +45,27 @@ public class AlertDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        int iconId = getArguments().getInt(ARG_ICON);
-        int titleId = getArguments().getInt(ARG_TITLE);
-        int messageId = getArguments().getInt(ARG_MESSAGE);
-        boolean isYesNo = getArguments().getBoolean(ARG_YESNO);
-        Bundle data = getArguments().getBundle(ARG_DATA);
-        final Intent intent = new Intent();
-        if(data != null) {
-            intent.putExtras(data);
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnDialogToFragmentInteract) {
+            mListener = (OnDialogToFragmentInteract) parent;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            parent.toString(),
+                            OnDialogToFragmentInteract.class.getName()
+                    )
+            );
         }
+        Bundle args = getArguments();
+        int iconId = args.getInt(ARG_ICON);
+        int titleId = args.getInt(ARG_TITLE);
+        int messageId = args.getInt(ARG_MESSAGE);
+        boolean isYesNo = args.getBoolean(ARG_YESNO);
+        final Bundle data = args.getBundle(ARG_DATA);
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(getActivity())
                         .setIcon(iconId)
@@ -61,14 +75,24 @@ public class AlertDialogFragment extends DialogFragment {
             builder.setPositiveButton(android.R.string.yes,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
+                            getActivity().runOnUiThread(new Runnable(){
+                                @Override
+                                public void run() {
+                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_OK, data);
+                                }
+                            });
                             dialog.dismiss();
                         }
                     }
             ).setNegativeButton(android.R.string.no,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_CANCELED, intent);
+                            getActivity().runOnUiThread(new Runnable(){
+                                @Override
+                                public void run() {
+                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
+                                }
+                            });
                             dialog.dismiss();
                         }
                     }
@@ -77,7 +101,12 @@ public class AlertDialogFragment extends DialogFragment {
             builder.setPositiveButton(android.R.string.ok,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_CANCELED, intent);
+                            getActivity().runOnUiThread(new Runnable(){
+                                @Override
+                                public void run() {
+                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
+                                }
+                            });
                             dialog.dismiss();
                         }
                     }
@@ -86,5 +115,11 @@ public class AlertDialogFragment extends DialogFragment {
         return builder.create();
     }
 
+    /**
+     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
+     */
+    public interface OnDialogToFragmentInteract {
+        void onDialogResult(int requestCode, int result, Bundle args);
+    }
 
 }

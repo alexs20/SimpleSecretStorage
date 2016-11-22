@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -44,18 +43,16 @@ import javax.crypto.IllegalBlockSizeException;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class EntryFragment extends Fragment {
-    public static final int RESULT_UPDATE = 1;
-    public static final int RESULT_DELETE = 2;
-    public static final String ARG_ID = "id";
-    public final static String ARG_ENTRY = "entry";
+public class EntryFragment extends Fragment implements AttributeFragment.OnFragmentToFragmentInteract,
+        AlertDialogFragment.OnDialogToFragmentInteract {
+    private final static String ARG_ENTRY = "entry";
 
     private static final int DELETE_ENTRY_CONFIRMATION_DIALOG = 1;
     private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 2;
-    private static final int ATTRIBUTE_FRAGMENT = 3;
 
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_POSITION = "position";
+    private OnFragmentToFragmentInteract mListener;
     private SecretEntryAdapter mRVAdapter;
 
     public static EntryFragment newInstance(SecretEntry entry) {
@@ -71,6 +68,19 @@ public class EntryFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            mListener = (OnFragmentToFragmentInteract) parent;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            parent.toString(),
+                            OnFragmentToFragmentInteract.class.getName()
+                    )
+            );
+        }
+
         SecretEntry entry;
         Bundle args = getArguments();
         if (args != null && !args.isEmpty()) {
@@ -123,7 +133,7 @@ public class EntryFragment extends Fragment {
             public void onSecretEntryAttributeEdit(int position) {
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 Fragment fragment = AttributeFragment.newInstance(position, mRVAdapter.getSecretEntry().get(position));
-                fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
+                fragment.setTargetFragment(EntryFragment.this, 0);
                 transaction.replace(R.id.content_fragment, fragment);
                 transaction.addToBackStack(EntryFragment.class.getName());
                 transaction.commit();
@@ -194,8 +204,8 @@ public class EntryFragment extends Fragment {
 
     private void onAddClicked() {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        Fragment fragment = AttributeFragment.newInstance(-1, null);
-        fragment.setTargetFragment(EntryFragment.this, ATTRIBUTE_FRAGMENT);
+        Fragment fragment = AttributeFragment.newInstance(mRVAdapter.getSecretEntry().size(), null);
+        fragment.setTargetFragment(EntryFragment.this, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(EntryFragment.class.getName());
         transaction.commit();
@@ -213,47 +223,27 @@ public class EntryFragment extends Fragment {
 
 
     private void onApplyClicked() {
-        Intent intent = new Intent();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_ENTRY, mRVAdapter.getSecretEntry());
-        intent.putExtras(args);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
+        mListener.onEntryUpdate(mRVAdapter.getSecretEntry());
         getFragmentManager().popBackStack();
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onDialogResult(int requestCode, int resultCode, Bundle args) {
         switch (requestCode) {
             case DELETE_ENTRY_CONFIRMATION_DIALOG:
                 if (resultCode == Activity.RESULT_OK) {
-                    Intent intent = new Intent();
-                    Bundle args = new Bundle();
-                    args.putInt(ARG_ID, mRVAdapter.getSecretEntry().getID());
-                    intent.putExtras(args);
-                    getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_DELETE, intent);
+                    mListener.onEntryDelete(mRVAdapter.getSecretEntry().getID());
                     getFragmentManager().popBackStack(EntriesFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 break;
             case DELETE_ATTRIBUTE_CONFIRMATION_DIALOG:
                 if (resultCode == Activity.RESULT_OK) {
-                    int position = data.getExtras().getInt(ARG_POSITION);
+                    int position = args.getInt(ARG_POSITION);
                     mRVAdapter.getSecretEntry().remove(position);
                     mRVAdapter.notifyItemRemoved(position);
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     //restoring presence of deleted attribute
                     mRVAdapter.notifyDataSetChanged();
-                }
-                break;
-            case ATTRIBUTE_FRAGMENT:
-                int attrPos = data.getExtras().getInt(AttributeFragment.ARG_ATTR_POS);
-                SecretEntryAttribute attr = (SecretEntryAttribute) data.getExtras().getSerializable(AttributeFragment.ARG_ATTR);
-                SecretEntry se = mRVAdapter.getSecretEntry();
-                if (attrPos > -1) {
-                    se.set(attrPos, attr);
-                    mRVAdapter.notifyItemChanged(attrPos);
-                } else {
-                    se.add(attr);
-                    mRVAdapter.notifyItemInserted(se.size() - 1);
                 }
                 break;
         }
@@ -262,6 +252,27 @@ public class EntryFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    @Override
+    public void onAttributeUpdate(int pos, SecretEntryAttribute attr) {
+        SecretEntry se = mRVAdapter.getSecretEntry();
+        if (pos < se.size()) {
+            se.set(pos, attr);
+            mRVAdapter.notifyItemChanged(pos);
+        } else {
+            se.add(attr);
+            mRVAdapter.notifyItemInserted(pos);
+        }
+    }
+
+    /**
+     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
+     */
+    interface OnFragmentToFragmentInteract {
+        void onEntryUpdate(SecretEntry entry);
+
+        void onEntryDelete(int id);
     }
 
     public interface ItemTouchHelperAdapter {

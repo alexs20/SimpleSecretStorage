@@ -1,24 +1,22 @@
 package com.wolandsoft.sss.activity.fragment;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeyStoreManager;
@@ -30,10 +28,9 @@ import javax.crypto.IllegalBlockSizeException;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract{
-    public static final int RESULT_UPDATE = 1;
-    public final static String ARG_ATTR = "attr";
-    public final static String ARG_ATTR_POS = "attr_pos";
+public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract {
+    private final static String ARG_ATTR = "attr";
+    private final static String ARG_ATTR_POS = "attr_pos";
 
     //ui elements
     private TextView mTxtKey;
@@ -114,14 +111,14 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
                 onGenerateClicked();
             }
         });
-        if(!mChkProtected.isChecked()){
+        if (!mChkProtected.isChecked()) {
             mBtnGenerate.setVisibility(View.GONE);
         }
         mChkProtected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     mBtnGenerate.setVisibility(View.VISIBLE);
                 } else {
                     mBtnGenerate.setVisibility(View.GONE);
@@ -129,13 +126,17 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
             }
         });
+
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setTitle(R.string.title_secret_field);
         return view;
     }
 
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        if(mGeneratedPwd != null){
+        if (mGeneratedPwd != null) {
             mTxtValue.setText(mGeneratedPwd);
             mGeneratedPwd = null;
         }
@@ -151,8 +152,12 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     }
 
     private void onOkClicked() {
-        InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        View currentFocus = getActivity().getCurrentFocus();
+        if (currentFocus != null) {
+            //nide soft keyboard
+            InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
@@ -162,20 +167,31 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
                 LogEx.e(e.getMessage(), e);
             }
         }
-        SecretEntryAttribute attr = new SecretEntryAttribute(
-                mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
-        Intent intent = new Intent();
-        Bundle args = new Bundle();
-        args.putInt(ARG_ATTR_POS, mAttrPos);
-        args.putSerializable(ARG_ATTR, attr);
-        intent.putExtras(args);
+        SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            ((OnFragmentToFragmentInteract) parent).onAttributeUpdate(mAttrPos, attr);
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            parent.toString(),
+                            OnFragmentToFragmentInteract.class.getName()
+                    )
+            );
+        }
         getFragmentManager().popBackStack();
-        getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_UPDATE, intent);
-
     }
 
     @Override
-    public void onPasswordGenerated(String password) {
+    public void onPasswordGenerate(String password) {
         mGeneratedPwd = password;
+    }
+
+    /**
+     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
+     */
+    interface OnFragmentToFragmentInteract {
+        void onAttributeUpdate(int pos, SecretEntryAttribute attr);
     }
 }

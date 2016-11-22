@@ -21,6 +21,8 @@
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
 
     <string name="title_secret_fields">Secret Fields</string>
+    <string name="title_secret_field">Secret Field</string>
+    <string name="title_generate_password">Generate Password</string>
 
     <string name="label_created">Created</string>
     <string name="label_updated">Updated</string>

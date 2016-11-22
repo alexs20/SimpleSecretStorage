@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,6 +104,9 @@ public class PwdGenFragment extends Fragment {
             }
         });
 
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setTitle(R.string.title_generate_password);
         return view;
     }
 
@@ -155,7 +160,7 @@ public class PwdGenFragment extends Fragment {
 
         Fragment parent = getTargetFragment();
         if (parent instanceof OnFragmentToFragmentInteract) {
-            ((OnFragmentToFragmentInteract) parent).onPasswordGenerated(mTxtPwdPreview.getText().toString());
+            ((OnFragmentToFragmentInteract) parent).onPasswordGenerate(mTxtPwdPreview.getText().toString());
         } else {
             throw new ClassCastException(
                     String.format(
@@ -183,6 +188,6 @@ public class PwdGenFragment extends Fragment {
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
     interface OnFragmentToFragmentInteract {
-        void onPasswordGenerated(String password);
+        void onPasswordGenerate(String password);
     }
 }
