@@ -46,40 +46,4 @@
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
     <string name="message_can_not_delete_before_protected_attribute">Top field before protected an not be deleted.</string>
 
-
-
-
-    <string name="vertical_ellipsis">&#8942;</string>
-
-
-
-
-    <string name="email_hint">email address</string>
-    <string name="user_id_label">User ID</string>
-    <string name="display_name_label">Display name</string>
-    <string name="password_label">Password</string>
-    <string name="password_repeat_label">Password (confirm)</string>
-
-    <string name="error_dialog_title">Error</string>
-
-    <string name="login_title">Login</string>
-    <string name="login_summary">Please login using your email address as a User ID otherwise create a new account.</string>
-
-    <string name="empty_user_id_error">User ID should not be empty.</string>
-    <string name="invalid_user_id_error">User ID should be a valid email address.</string>
-    <string name="taken_user_id_error">User ID already registered.</string>
-    <string name="empty_display_name_error">Display name should not be empty.</string>
-    <string name="empty_password_error">Password should not be empty.</string>
-    <string name="repeated_password_mismatch_error">The password and its confirm are not the same.</string>
-    <string name="unknown_user_id_or_password">Unknown User ID or Password.</string>
-
-    <string name="service_connection_problem_error">Can not connect to authentication service.</string>
-    <string name="internal_error">Internal error.</string>
-
-    <string name="signup_title">Signup</string>
-    <string name="signup_summary">Please signup using your email address as a User ID.</string>
-
-    <string name="home_summary">Hello %1$s,&lt;br&gt; Thank you for using Technical Sample Application. This application was developed for I2X Technologies by Alexander Shulgin. Hope you have enjoyed it.</string>
-
-
 </resources>
