@@ -27,23 +27,26 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TableRow;
+import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class ExportFragment extends Fragment implements AdapterView.OnItemSelectedListener {
+public class ExportFragment extends Fragment implements AdapterView.OnItemSelectedListener, DirectoryDialogFragment.OnDialogToFragmentInteract {
     private KeySharedPreferences mPref;
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
     private Spinner mSprExtEngine;
+    private TextView mTxtDestinationPath;
     private Button mBtnSelectDest;
     private boolean mIsShowPwd;
     @Override
@@ -66,6 +69,9 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
         View view = inflater.inflate(R.layout.fragment_export, container, false);
 
         mSprExtEngine = (Spinner)view.findViewById(R.id.sprExtEngine);
+
+        mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
+
         mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
         mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,6 +174,11 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+    @Override
+    public void onDirectorySelected(File path) {
+        mTxtDestinationPath.setText(path.toString());
     }
 
     /**

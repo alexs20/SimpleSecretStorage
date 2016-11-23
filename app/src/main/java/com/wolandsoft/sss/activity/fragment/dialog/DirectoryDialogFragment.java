@@ -2,11 +2,13 @@ package com.wolandsoft.sss.activity.fragment.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,6 +52,23 @@ public class DirectoryDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnDialogToFragmentInteract) {
+            mListener = (OnDialogToFragmentInteract) parent;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            parent.toString(),
+                            OnDialogToFragmentInteract.class.getName()
+                    )
+            );
+        }
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -59,7 +78,7 @@ public class DirectoryDialogFragment extends DialogFragment {
         List<ListItem> list = loadFileList(mCurrentPath);
         mAdapter = new FolderListAdapter(list);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.label_select_directory);
+        builder.setTitle(getString(R.string.label_select_directory) + "\n" + mCurrentPath.toString());
         builder.setAdapter(mAdapter, null);
         builder.setPositiveButton(android.R.string.ok,
                 new DialogInterface.OnClickListener() {
@@ -67,14 +86,14 @@ public class DirectoryDialogFragment extends DialogFragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                LogEx.d("OK Clicked");
+                                mListener.onDirectorySelected(mCurrentPath);
                             }
                         });
                         dialog.dismiss();
                     }
                 }
         );
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         dialog.getListView().setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -86,6 +105,7 @@ public class DirectoryDialogFragment extends DialogFragment {
                         }
                         List<ListItem> list = loadFileList(mCurrentPath);
                         mAdapter.updateModel(list);
+                        dialog.setTitle(getString(R.string.label_select_directory) + "\n" + mCurrentPath.toString());
                     }
                 });
         return dialog;
@@ -137,7 +157,7 @@ public class DirectoryDialogFragment extends DialogFragment {
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
     public interface OnDialogToFragmentInteract {
-        void onDialogResult(int requestCode, int result, Bundle args);
+        void onDirectorySelected(File path);
     }
 
     public static class FolderListAdapter extends BaseAdapter {

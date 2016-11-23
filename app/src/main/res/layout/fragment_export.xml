@@ -103,7 +103,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1.9"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="?android:attr/colorPrimary"/>
+                    android:textColor="?android:attr/colorPrimary"
+                    android:id="@+id/txtDestinationPath"/>
 
                 <Button
                     android:text="..."
