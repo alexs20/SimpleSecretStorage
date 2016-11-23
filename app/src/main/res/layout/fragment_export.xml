@@ -88,6 +88,36 @@
 
 
         </TableRow>
+
+        <TableRow>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_span="2">
+
+                <TextView
+                    android:text="@string/label_select_destination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.9"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="?android:attr/colorPrimary"/>
+
+                <Button
+                    android:text="..."
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnSelectDest"
+                    android:layout_weight="0.1"
+                    android:drawablePadding="0dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"/>
+            </LinearLayout>
+
+
+        </TableRow>
     </TableLayout>
 
     <android.support.design.widget.FloatingActionButton

@@ -50,6 +50,9 @@
     <string name="label_password">Password</string>
     <string name="label_password_repeat">Password Repeat</string>
     <string name="label_show_password">Show Password</string>
+    <string name="label_select_destination">Choose Destination</string>
+    <string name="label_select_directory">Choose Directory</string>
+    <string name="label_back">Back</string>
 
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>

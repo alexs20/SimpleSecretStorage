@@ -1,12 +1,17 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -19,10 +24,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TableRow;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 
@@ -37,6 +44,7 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
     private Spinner mSprExtEngine;
+    private Button mBtnSelectDest;
     private boolean mIsShowPwd;
     @Override
     public void onAttach(Context context) {
@@ -58,6 +66,14 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
         View view = inflater.inflate(R.layout.fragment_export, container, false);
 
         mSprExtEngine = (Spinner)view.findViewById(R.id.sprExtEngine);
+        mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
+        mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onDestinationSelectClicked();
+            }
+        });
+
 
         if (savedInstanceState == null) {
 
@@ -91,6 +107,16 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
         tr = (TableRow) view.findViewById(R.id.trPasswordRepeat);
         tr.setVisibility(mIsShowPwd ? View.GONE : View.VISIBLE);
     }
+
+    private void onDestinationSelectClicked(){
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        DialogFragment fragment = DirectoryDialogFragment.newInstance();
+        fragment.setCancelable(true);
+        fragment.setTargetFragment(this, 9);
+        transaction.addToBackStack(null);
+        fragment.show(transaction, DialogFragment.class.getName());
+    }
+
     private void onApplyClicked() {
 
     }
