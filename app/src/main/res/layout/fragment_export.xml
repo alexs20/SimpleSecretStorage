@@ -4,14 +4,91 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <TableLayout
+        android:id="@+id/mainTable"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:paddingLeft="3dip"
+        android:paddingRight="3dip"
+        android:shrinkColumns="1"
+        android:stretchColumns="*">
 
 
-    </LinearLayout>
+        <TableRow>
+
+            <TextView
+                android:text="@string/label_export_engine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/sprExtEngine"
+                android:layout_weight="1" />
+        </TableRow>
+        <TableRow  android:id="@+id/trPassword">
+
+            <TextView
+                android:text="@string/label_password"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/edtPassword"
+                android:layout_weight="1" />
+
+
+        </TableRow>
+        <TableRow  android:id="@+id/trPasswordRepeat">
+
+            <TextView
+                android:text="@string/label_password_repeat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/edtPasswordRepeat"
+                android:layout_weight="1" />
+
+
+        </TableRow>
+        <TableRow android:id="@+id/trPasswordOpen">
+
+            <TextView
+                android:text="@string/label_password"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:ems="10"
+                android:id="@+id/edtPasswordOpen"
+                android:layout_weight="1" />
+
+
+        </TableRow>
+    </TableLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btnApply"

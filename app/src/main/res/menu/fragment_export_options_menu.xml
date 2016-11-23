@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/showPwd"
+        android:title="@string/label_show_password"
+        android:icon="@mipmap/img24dp_eye_w"
+        app:showAsAction="collapseActionView|ifRoom"
+        android:checkable="true" />
+</menu>

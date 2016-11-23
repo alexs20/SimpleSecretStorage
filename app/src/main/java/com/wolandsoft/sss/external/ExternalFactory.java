@@ -36,4 +36,8 @@ public final class ExternalFactory extends ContextWrapper {
     public IExternal getExternal(String id) throws StorageException {
         return externals.get(id);
     }
+
+    public String[] getAvailableIds() {
+        return externals.keySet().toArray(new String[0]);
+    }
 }
