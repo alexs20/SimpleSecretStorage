@@ -16,6 +16,7 @@
     <string name="exception_no_storage_permission">No storage permission granted</string>
     <string name="exception_no_file_found">File not found %1$s</string>
     <string name="exception_no_dir_found">Directory not found %1$s</string>
+    <string name="exception_invalid_input_file">Invalid input file %1$s</string>
 
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
 

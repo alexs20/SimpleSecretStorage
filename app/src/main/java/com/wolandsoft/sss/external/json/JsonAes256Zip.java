@@ -3,7 +3,6 @@ package com.wolandsoft.sss.external.json;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 
 import com.google.gson.Gson;
@@ -17,13 +16,17 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
-import java.io.BufferedReader;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
+
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.InputStream;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,21 +41,13 @@ import java.util.Map;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
-
-import static com.wolandsoft.sss.AppConstants.APP_SHORT_NAME;
-
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 
-public class JsonAesZip extends AExternal {
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static final String PUBLIC_DIRECTORY = APP_SHORT_NAME;
+public class JsonAes256Zip extends AExternal {
+    //private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final String JSON_FILE_ENTRY_NAME = "secret.json";
     private static final String PROTECTED = "Protected";
     private static final String KEY = "Entry";
     private static final String VALUE = "Value";
@@ -66,7 +61,7 @@ public class JsonAesZip extends AExternal {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    public JsonAesZip(Context base) {
+    public JsonAes256Zip(Context base) {
         super(base);
     }
 
@@ -93,19 +88,23 @@ public class JsonAesZip extends AExternal {
         }
         try {
             ZipFile zip = new ZipFile(jsonFile);
-        } catch (ZipException e) {
-            e.printStackTrace();
-        }
+            ZipParameters parameters = new ZipParameters();
+            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+            parameters.setEncryptFiles(true);
+            parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
+            parameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
+            parameters.setPassword(password);
+            parameters.setSourceExternalStream(true);
+            parameters.setFileNameInZip(JSON_FILE_ENTRY_NAME);
 
-        try (FileOutputStream fOut = new FileOutputStream(jsonFile);
-             OutputStreamWriter out = new OutputStreamWriter(fOut, "UTF-8")) {
 
             List<Object> jsonEntries = new LinkedList<>();
             int[] entries = storage.find(null, true);
             for (int id : entries) {
                 SecretEntry entry = storage.get(id);
                 Map<String, Object> jsonEntry = new LinkedHashMap<>();
-                jsonEntry.put(KEY_ID, entry.getID());
+                jsonEntry.put(KEY_ID, String.valueOf(entry.getID()));
                 jsonEntry.put(CREATED, format.format(new Date(entry.getCreated())));
                 jsonEntry.put(UPDATED, format.format(new Date(entry.getUpdated())));
                 List<Object> jsonAttrs = new LinkedList<>();
@@ -127,8 +126,11 @@ public class JsonAesZip extends AExternal {
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             String outStr = gson.toJson(jsonEntries);
-            out.write(outStr);
-        } catch (StorageException | IOException | IllegalBlockSizeException | BadPaddingException e) {
+
+            InputStream in = IOUtils.toInputStream(outStr);
+            zip.addStream(in, parameters);
+
+        } catch (StorageException | IllegalBlockSizeException | BadPaddingException | ZipException e) {
             throw new ExternalException(e.getMessage(), e);
         }
     }
@@ -156,16 +158,18 @@ public class JsonAesZip extends AExternal {
             throw new ExternalException(String.format(getString(R.string.exception_no_file_found), source));
         }
 
-        try (FileInputStream fIn = new FileInputStream(jsonFile);
-             InputStreamReader in = new InputStreamReader(fIn);
-             BufferedReader br = new BufferedReader(in)) {
-            StringBuilder json = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                json.append(line).append('\n');
+        try {
+            ZipFile zip = new ZipFile(jsonFile);
+            if (!zip.isValidZipFile()) {
+                throw new ExternalException(String.format(getString(R.string.exception_invalid_input_file), source));
             }
+            zip.setPassword(password);
+            FileHeader header = zip.getFileHeader(JSON_FILE_ENTRY_NAME);
+            InputStream in = zip.getInputStream(header);
+            String dataString = IOUtils.toString(in, "UTF-8");
+
             Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-            List<Map> entriesList = gson.fromJson(json.toString(), ArrayList.class);
+            List<Map> entriesList = gson.fromJson(dataString, ArrayList.class);
             for (Map entryMap : entriesList) {
                 int id = Integer.parseInt(entryMap.get(KEY_ID).toString());
                 SecretEntry entry = new SecretEntry(id,
@@ -175,7 +179,7 @@ public class JsonAesZip extends AExternal {
                 for (Map attrMap : attrsList) {
                     boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                     String value = attrMap.get(VALUE).toString();
-                    if(isProtected){
+                    if (isProtected) {
                         value = keystore.encrypt(value);
                     }
                     SecretEntryAttribute attr = new SecretEntryAttribute(
@@ -191,12 +195,12 @@ public class JsonAesZip extends AExternal {
                     long created = oldEntry.getCreated() > entry.getCreated() ? entry.getCreated() : oldEntry.getCreated();
                     long updated = oldEntry.getUpdated() < entry.getUpdated() ? entry.getUpdated() : oldEntry.getUpdated();
                     SecretEntry mergedEntry = new SecretEntry(id, created, updated);
-                    for(SecretEntryAttribute oldAttr : oldEntry){
+                    for (SecretEntryAttribute oldAttr : oldEntry) {
                         mergedEntry.add(oldAttr);
-                        for(int i = 0; i < entry.size(); i++){
+                        for (int i = 0; i < entry.size(); i++) {
                             SecretEntryAttribute attr = entry.get(i);
-                            if(attr.getKey().equals(oldAttr.getKey())){
-                                if(!attr.getValue().equals(oldAttr.getValue())){
+                            if (attr.getKey().equals(oldAttr.getKey())) {
+                                if (!attr.getValue().equals(oldAttr.getValue())) {
                                     mergedEntry.add(attr);
                                 }
                                 entry.remove(i);
@@ -204,12 +208,14 @@ public class JsonAesZip extends AExternal {
                             }
                         }
                     }
-                    for(SecretEntryAttribute attr : entry){
+                    for (SecretEntryAttribute attr : entry) {
                         mergedEntry.add(attr);
                     }
+                    toStorage.put(mergedEntry);
                 }
+
             }
-        } catch (StorageException | IOException | ParseException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (ZipException | StorageException | IOException | ParseException | IllegalBlockSizeException | BadPaddingException e) {
             throw new ExternalException(e.getMessage(), e);
         }
     }
