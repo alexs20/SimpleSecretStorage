@@ -25,11 +25,13 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;
@@ -41,14 +43,23 @@ import java.util.List;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class ExportFragment extends Fragment implements AdapterView.OnItemSelectedListener, DirectoryDialogFragment.OnDialogToFragmentInteract {
+public class ExportFragment extends Fragment implements DirectoryDialogFragment.OnDialogToFragmentInteract,
+        AlertDialogFragment.OnDialogToFragmentInteract{
+    private final static int DONE_DIALOG = 1;
     private KeySharedPreferences mPref;
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
+
     private Spinner mSprExtEngine;
+
     private TextView mTxtDestinationPath;
     private Button mBtnSelectDest;
+    private EditText mEdtPassword1;
+    private EditText mEdtPassword2;
+    private EditText mEdtPasswordOpen;
+
     private boolean mIsShowPwd;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -69,7 +80,9 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
         View view = inflater.inflate(R.layout.fragment_export, container, false);
 
         mSprExtEngine = (Spinner)view.findViewById(R.id.sprExtEngine);
-
+        mEdtPassword1= (EditText) view.findViewById(R.id.edtPassword);
+        mEdtPassword2= (EditText) view.findViewById(R.id.edtPasswordRepeat);
+        mEdtPasswordOpen= (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
 
         mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
@@ -124,7 +137,36 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
     }
 
     private void onApplyClicked() {
-
+        String exportEngine = mSprExtEngine.getSelectedItem().toString();
+        String pwd;
+        if(mIsShowPwd){
+            pwd = mEdtPasswordOpen.getText().toString();
+        } else {
+            pwd = mEdtPassword1.getText().toString();
+            String pwd2 = mEdtPassword2.getText().toString();
+            if(!pwd.equals(pwd2)){
+                FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                        R.string.label_error, R.string.message_password_not_the_same, false, null);
+                fragment.setCancelable(true);
+                fragment.setTargetFragment(this, 0); //response is going to be ignored
+                transaction.addToBackStack(null);
+                fragment.show(transaction, DialogFragment.class.getName());
+                return;
+            }
+        }
+        String destination = mTxtDestinationPath.getText().toString();
+        if(!destination.startsWith("/")){
+            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                    R.string.label_error, R.string.message_no_destination_directory_selected, false, null);
+            fragment.setCancelable(true);
+            fragment.setTargetFragment(this, 0); //response is going to be ignored
+            transaction.addToBackStack(null);
+            fragment.show(transaction, DialogFragment.class.getName());
+            return;
+        }
+        //TODO do export
     }
 
     @Override
@@ -146,6 +188,14 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.showPwd) {
+            if(mIsShowPwd){
+                String pwd = mEdtPasswordOpen.getText().toString();
+                mEdtPassword1.setText(pwd);
+                mEdtPassword2.setText(pwd);
+            } else {
+                String pwd = mEdtPassword1.getText().toString();
+                mEdtPasswordOpen.setText(pwd);
+            }
             item.setChecked(!item.isChecked());
             item.setIcon(item.isChecked() ? R.mipmap.img24dp_no_eye_w : R.mipmap.img24dp_eye_w);
             mIsShowPwd = item.isChecked();
@@ -167,24 +217,12 @@ public class ExportFragment extends Fragment implements AdapterView.OnItemSelect
     }
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
-    }
-
-    @Override
     public void onDirectorySelected(File path) {
         mTxtDestinationPath.setText(path.toString());
     }
 
-    /**
-     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
-     */
-    interface OnFragmentToFragmentInteract {
+    @Override
+    public void onDialogResult(int requestCode, int result, Bundle args) {
 
     }
 }
