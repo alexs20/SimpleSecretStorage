@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.util.LogEx;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -31,7 +30,8 @@ import java.util.List;
  *
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class DirectoryDialogFragment extends DialogFragment {
+public class FileDialogFragment extends DialogFragment {
+    private static final String KEY_IS_FILE_CHOOSER = "file_chooser";
     private static final String KEY_CURRENT_PATH = "current_path";
     private OnDialogToFragmentInteract mListener;
 
@@ -39,10 +39,12 @@ public class DirectoryDialogFragment extends DialogFragment {
 
     private File mBasePath = Environment.getExternalStorageDirectory();
     private File mCurrentPath = mBasePath;
+    private boolean mIsFileChooser = false;
 
-    public static DirectoryDialogFragment newInstance(/*int iconId, int titleId, int messageId, boolean isYesNo, Bundle data*/) {
-        DirectoryDialogFragment fragment = new DirectoryDialogFragment();
+    public static FileDialogFragment newInstance(boolean isFileChooser) {
+        FileDialogFragment fragment = new FileDialogFragment();
         Bundle args = new Bundle();
+        args.putBoolean(KEY_IS_FILE_CHOOSER, isFileChooser);
         fragment.setArguments(args);
         return fragment;
     }
@@ -67,6 +69,10 @@ public class DirectoryDialogFragment extends DialogFragment {
                     )
             );
         }
+        Bundle args = getArguments();
+        if (args != null && !args.isEmpty()) {
+            mIsFileChooser = args.getBoolean(KEY_IS_FILE_CHOOSER);
+        }
     }
 
     @NonNull
@@ -78,21 +84,23 @@ public class DirectoryDialogFragment extends DialogFragment {
         List<ListItem> list = loadFileList(mCurrentPath);
         mAdapter = new FolderListAdapter(list);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.label_select_directory) + "\n" + mCurrentPath.toString());
+        builder.setTitle(getString(mIsFileChooser ? R.string.label_select_file : R.string.label_select_directory));
         builder.setAdapter(mAdapter, null);
-        builder.setPositiveButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mListener.onDirectorySelected(mCurrentPath);
-                            }
-                        });
-                        dialog.dismiss();
+        if (!mIsFileChooser) {
+            builder.setPositiveButton(android.R.string.ok,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mListener.onFileSelected(mCurrentPath);
+                                }
+                            });
+                            dialog.dismiss();
+                        }
                     }
-                }
-        );
+            );
+        }
         final AlertDialog dialog = builder.create();
         dialog.getListView().setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
@@ -102,10 +110,17 @@ public class DirectoryDialogFragment extends DialogFragment {
                             mCurrentPath = mCurrentPath.getParentFile();
                         } else {
                             mCurrentPath = new File(mCurrentPath, li.label);
+                            if (li.isFile) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mListener.onFileSelected(mCurrentPath);
+                                    }
+                                });
+                            }
                         }
                         List<ListItem> list = loadFileList(mCurrentPath);
                         mAdapter.updateModel(list);
-                        dialog.setTitle(getString(R.string.label_select_directory) + "\n" + mCurrentPath.toString());
                     }
                 });
         return dialog;
@@ -116,20 +131,20 @@ public class DirectoryDialogFragment extends DialogFragment {
     }
 
     private List<ListItem> loadFileList(File path) {
-        String[] fileList;
+        File[] fileList;
         if (path.exists()) {
             FilenameFilter filter = new FilenameFilter() {
 
                 @Override
                 public boolean accept(File dir, String filename) {
                     File sel = new File(dir, filename);
-                    return sel.isDirectory() && !filename.startsWith(".");
+                    return (sel.isDirectory() || mIsFileChooser) && !filename.startsWith(".");
                 }
 
             };
-            fileList = path.list(filter);
+            fileList = path.listFiles(filter);
         } else {
-            fileList = new String[0];
+            fileList = new File[0];
         }
         List<ListItem> list = new ArrayList<>();
         if (!path.equals(mBasePath)) {
@@ -139,9 +154,13 @@ public class DirectoryDialogFragment extends DialogFragment {
             li.label = getString(R.string.label_back);
             list.add(li);
         }
-        for (String file : fileList) {
+        for (File file : fileList) {
             ListItem li = new ListItem();
-            li.label = file;
+            li.label = file.getName();
+            if (file.isFile()) {
+                li.isFile = true;
+                li.iconId = R.mipmap.img24dp_file;
+            }
             list.add(li);
         }
         return list;
@@ -157,7 +176,7 @@ public class DirectoryDialogFragment extends DialogFragment {
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
     public interface OnDialogToFragmentInteract {
-        void onDirectorySelected(File path);
+        void onFileSelected(File path);
     }
 
     public static class FolderListAdapter extends BaseAdapter {
@@ -203,6 +222,7 @@ public class DirectoryDialogFragment extends DialogFragment {
     }
 
     private static class ListItem {
+        boolean isFile = false;
         boolean isBackButton = false;
         String label;
         int iconId = R.mipmap.img24dp_directory;

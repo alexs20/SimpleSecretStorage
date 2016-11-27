@@ -27,6 +27,7 @@ import android.widget.TextView;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
+import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 
@@ -37,7 +38,7 @@ import java.util.List;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class ImportFragment extends Fragment implements DirectoryDialogFragment.OnDialogToFragmentInteract,
+public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract{
     private final static int DONE_DIALOG = 1;
     private KeySharedPreferences mPref;
@@ -119,7 +120,7 @@ public class ImportFragment extends Fragment implements DirectoryDialogFragment.
 
     private void onDestinationSelectClicked(){
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        DialogFragment fragment = DirectoryDialogFragment.newInstance();
+        DialogFragment fragment = FileDialogFragment.newInstance(true);
         fragment.setCancelable(true);
         fragment.setTargetFragment(this, 9);
         transaction.addToBackStack(null);
@@ -195,7 +196,7 @@ public class ImportFragment extends Fragment implements DirectoryDialogFragment.
     }
 
     @Override
-    public void onDirectorySelected(File path) {
+    public void onFileSelected(File path) {
         mTxtSourcePath.setText(path.toString());
     }
 
