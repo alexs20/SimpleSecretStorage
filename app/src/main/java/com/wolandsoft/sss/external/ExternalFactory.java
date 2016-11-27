@@ -3,7 +3,7 @@ package com.wolandsoft.sss.external;
 import android.content.Context;
 import android.content.ContextWrapper;
 
-import com.wolandsoft.sss.external.json.PlainJson;
+import com.wolandsoft.sss.external.json.JsonAesZip;
 import com.wolandsoft.sss.storage.StorageException;
 
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public final class ExternalFactory extends ContextWrapper {
         super(base);
         externals = new HashMap<>();
         //TODO multi-externals initialization logic here
-        IExternal external = new PlainJson(this);
+        IExternal external = new JsonAesZip(this);
         externals.put(external.getID(), external);
     }
 

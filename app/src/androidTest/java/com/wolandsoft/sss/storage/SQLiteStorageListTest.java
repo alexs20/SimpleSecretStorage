@@ -31,7 +31,7 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_NAME = "thename%1$s";
     private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
-    private static final int ENTRIES_COUNT = 1000;
+    private static final int ENTRIES_COUNT = 100;
     private static SQLiteStorage storage;
 
     @BeforeClass

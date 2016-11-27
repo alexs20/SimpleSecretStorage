@@ -1,6 +1,6 @@
 package com.wolandsoft.sss;
 
-import com.wolandsoft.sss.external.json.PlainJsonTest;
+import com.wolandsoft.sss.external.json.JsonAesZipTest;
 import com.wolandsoft.sss.storage.SQLiteStorageEntryTest;
 import com.wolandsoft.sss.storage.SQLiteStorageListTest;
 import com.wolandsoft.sss.util.KeyStoreManagerTest;
@@ -19,7 +19,7 @@ import org.junit.runners.Suite;
                 KeyStoreManagerTest.class,
                 SQLiteStorageEntryTest.class,
                 SQLiteStorageListTest.class,
-                PlainJsonTest.class
+                JsonAesZipTest.class
         })
 
 public class UnitTestSuite {
