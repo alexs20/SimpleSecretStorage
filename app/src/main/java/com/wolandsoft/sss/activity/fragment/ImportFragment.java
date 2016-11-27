@@ -26,7 +26,6 @@ import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
-import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;

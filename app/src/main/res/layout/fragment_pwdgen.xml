@@ -20,7 +20,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_number_of_lowercase_chars"
-                android:inputType="numberDecimal"/>
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -33,7 +34,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_number_of_uppercase_chars"
-                android:inputType="numberDecimal"/>
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -46,7 +48,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_number_of_numeric_chars"
-                android:inputType="numberDecimal"/>
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -59,7 +62,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/label_number_of_special_chars"
-                android:inputType="numberDecimal"/>
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
 
         <TextView

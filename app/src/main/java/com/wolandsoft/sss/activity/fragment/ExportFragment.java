@@ -1,28 +1,22 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,7 +26,7 @@ import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
-import com.wolandsoft.sss.activity.fragment.dialog.DirectoryDialogFragment;
+import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 
@@ -43,7 +37,7 @@ import java.util.List;
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
-public class ExportFragment extends Fragment implements DirectoryDialogFragment.OnDialogToFragmentInteract,
+public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract{
     private final static int DONE_DIALOG = 1;
     private KeySharedPreferences mPref;
@@ -129,7 +123,7 @@ public class ExportFragment extends Fragment implements DirectoryDialogFragment.
 
     private void onDestinationSelectClicked(){
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        DialogFragment fragment = DirectoryDialogFragment.newInstance();
+        DialogFragment fragment = FileDialogFragment.newInstance(false);
         fragment.setCancelable(true);
         fragment.setTargetFragment(this, 9);
         transaction.addToBackStack(null);
@@ -217,7 +211,7 @@ public class ExportFragment extends Fragment implements DirectoryDialogFragment.
     }
 
     @Override
-    public void onDirectorySelected(File path) {
+    public void onFileSelected(File path) {
         mTxtDestinationPath.setText(path.toString());
     }
 
