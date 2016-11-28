@@ -33,7 +33,7 @@ public final class ExternalFactory extends ContextWrapper {
         return thisInstance;
     }
 
-    public IExternal getExternal(String id) throws StorageException {
+    public IExternal getExternal(String id) throws ExternalException {
         return externals.get(id);
     }
 

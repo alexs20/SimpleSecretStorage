@@ -46,7 +46,6 @@ import javax.crypto.IllegalBlockSizeException;
  */
 
 public class JsonAes256Zip extends AExternal {
-    //private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static final String JSON_FILE_ENTRY_NAME = "secret.json";
     private static final String PROTECTED = "Protected";
     private static final String KEY = "Entry";
@@ -56,10 +55,6 @@ public class JsonAes256Zip extends AExternal {
     private static final String KEY_ID = "ID";
     private static final String DATA = "Data";
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
 
     public JsonAes256Zip(Context base) {
         super(base);
@@ -70,12 +65,6 @@ public class JsonAes256Zip extends AExternal {
                          URI destination, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            //We don't have permission so prompt the user
-//            ActivityCompat.requestPermissions(
-//                        activity,
-//                        PERMISSIONS_STORAGE,
-//                        REQUEST_EXTERNAL_STORAGE
-//                );
             callback.onPermissionRequest(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -140,12 +129,6 @@ public class JsonAes256Zip extends AExternal {
                          ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            //We don't have permission so prompt the user
-//            ActivityCompat.requestPermissions(
-//                        activity,
-//                        PERMISSIONS_STORAGE,
-//                        REQUEST_EXTERNAL_STORAGE
-//                );
             callback.onPermissionRequest(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (permission != PackageManager.PERMISSION_GRANTED) {

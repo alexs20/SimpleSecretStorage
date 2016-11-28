@@ -91,7 +91,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         Fragment fragment = EntryFragment.newInstance(null);
         fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(EntriesFragment.class.getName());
+        transaction.addToBackStack(EntryFragment.class.getName());
         transaction.commit();
     }
 
@@ -100,7 +100,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         Fragment fragment = EntryFragment.newInstance(entry);
         fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(EntriesFragment.class.getName());
+        transaction.addToBackStack(EntryFragment.class.getName());
         transaction.commit();
     }
 

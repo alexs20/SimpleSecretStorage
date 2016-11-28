@@ -233,7 +233,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             case DELETE_ENTRY_CONFIRMATION_DIALOG:
                 if (resultCode == Activity.RESULT_OK) {
                     mListener.onEntryDelete(mRVAdapter.getSecretEntry().getID());
-                    getFragmentManager().popBackStack(EntriesFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    getFragmentManager().popBackStack(EntryFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 break;
             case DELETE_ATTRIBUTE_CONFIRMATION_DIALOG:

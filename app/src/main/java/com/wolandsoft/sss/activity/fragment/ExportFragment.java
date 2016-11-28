@@ -6,11 +6,14 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,26 +23,40 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
+import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
+import com.wolandsoft.sss.external.IExternal;
+import com.wolandsoft.sss.storage.StorageException;
+import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract{
-    private final static int DONE_DIALOG = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE = 10;
+    private static final int DONE_DIALOG = 1;
+    private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
+    private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
+
     private KeySharedPreferences mPref;
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
@@ -51,6 +68,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private EditText mEdtPassword1;
     private EditText mEdtPassword2;
     private EditText mEdtPasswordOpen;
+    private RelativeLayout mLayWait;
 
     private boolean mIsShowPwd;
 
@@ -87,6 +105,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             }
         });
 
+        mLayWait = (RelativeLayout) view.findViewById(R.id.layWait);
 
         if (savedInstanceState == null) {
 
@@ -149,6 +168,16 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
                 return;
             }
         }
+        if(pwd.length() == 0){
+            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                    R.string.label_error, R.string.message_no_password, false, null);
+            fragment.setCancelable(true);
+            fragment.setTargetFragment(this, 0); //response is going to be ignored
+            transaction.addToBackStack(null);
+            fragment.show(transaction, DialogFragment.class.getName());
+            return;
+        }
         String destination = mTxtDestinationPath.getText().toString();
         if(!destination.startsWith("/")){
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
@@ -160,6 +189,37 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
+        File destFile = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        while(destFile.exists()){
+            destFile = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        }
+        mLayWait.setVisibility(View.VISIBLE);
+        try {
+            IExternal external = ExternalFactory.getInstance(getContext()).getExternal(exportEngine);
+            IExternal.OnExternalInteract callback = new IExternal.OnExternalInteract(){
+                @Override
+                public void onPermissionRequest(String permission) {
+                    ActivityCompat.requestPermissions(
+                        getActivity(),
+                        new String [] {permission},
+                        REQUEST_EXTERNAL_STORAGE
+                );
+                }
+            };
+            external.doExport(AppCentral.getInstance().getSQLiteStorage(), AppCentral.getInstance().getKeyStoreManager(),
+                    callback, destFile.toURI(), pwd);
+            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
+                    R.string.label_export, R.string.message_export_process_completed, false, null);
+            fragment.setCancelable(true);
+            fragment.setTargetFragment(this, DONE_DIALOG);
+            transaction.addToBackStack(null);
+            fragment.show(transaction, DialogFragment.class.getName());
+        } catch ( ExternalException e) {
+            LogEx.e(e.getMessage(), e);
+            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+        mLayWait.setVisibility(View.GONE);
         //TODO do export
     }
 
@@ -217,6 +277,8 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
-
+        if(requestCode == DONE_DIALOG){
+            getFragmentManager().popBackStack(ExportFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
     }
 }

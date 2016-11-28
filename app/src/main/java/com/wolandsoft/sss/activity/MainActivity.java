@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
         }
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(null);
+        transaction.addToBackStack(fragment.getClass().getName());
         transaction.commit();
     }
 

@@ -126,6 +126,23 @@
         </TableRow>
     </TableLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:id="@+id/layWait"
+        android:visibility="gone">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="false"
+            android:layout_centerVertical="false"
+            android:layout_centerInParent="true" />
+
+    </RelativeLayout>
+
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btnApply"
         android:layout_width="wrap_content"
