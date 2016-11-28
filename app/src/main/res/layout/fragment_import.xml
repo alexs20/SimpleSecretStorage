@@ -63,11 +63,11 @@
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="text"
                 android:ems="10"
                 android:id="@+id/edtPasswordOpen"
                 android:layout_weight="1"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:inputType="textVisiblePassword" />
 
 
         </TableRow>
@@ -88,7 +88,7 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="?android:attr/colorPrimary"
                     android:id="@+id/txtSourcePath"
-                    android:ellipsize="start"
+                    android:ellipsize="end"
                     android:maxLines="1"/>
 
                 <Button

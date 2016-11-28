@@ -73,19 +73,13 @@ public class JsonAes256ZipTest {
 
     @Test
     public void test_export_import() throws ExternalException, StorageException, InterruptedException {
-        IExternal.OnExternalInteract callback = new IExternal.OnExternalInteract() {
-            @Override
-            public void onPermissionRequest(String permission) {
-
-            }
-        };
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File location = new File(dir, FILE_NAME);
         if (location.exists()) {
             location.delete();
         }
         assertFalse(location.exists());
-        external.doExport(storage, AppCentral.getInstance().getKeyStoreManager(), callback, location.toURI(), FILE_PASSWORD);
+        external.doExport(storage, AppCentral.getInstance().getKeyStoreManager(), location.toURI(), FILE_PASSWORD);
         assertTrue(location.exists());
 
         int[] entries = storage.find(null, true);
@@ -96,7 +90,7 @@ public class JsonAes256ZipTest {
         attr.setValue("CHANGED");
         storage.put(se);
 
-        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), callback, IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
+        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
         assertEquals(ENTRIES_COUNT, entries.length);
 
@@ -111,7 +105,7 @@ public class JsonAes256ZipTest {
         attr.setValue("CHANGED");
         storage.put(se);
 
-        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), callback, IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
+        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
         assertEquals(ENTRIES_COUNT, entries.length);
 

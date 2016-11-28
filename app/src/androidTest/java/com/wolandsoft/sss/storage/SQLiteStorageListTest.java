@@ -31,7 +31,7 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_NAME = "thename%1$s";
     private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
-    private static final int ENTRIES_COUNT = 100;
+    private static final int ENTRIES_COUNT = 1000;
     private static SQLiteStorage storage;
 
     @BeforeClass
@@ -59,7 +59,7 @@ public class SQLiteStorageListTest {
     public void test_s0_get_id_all() throws StorageException {
         int [] seIds = storage.find(null, true);
         assertNotNull(seIds);
-        assertEquals(1000, seIds.length);
+        assertEquals(ENTRIES_COUNT, seIds.length);
     }
 
     @Test

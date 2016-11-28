@@ -1,12 +1,16 @@
 package com.wolandsoft.sss.activity;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -25,10 +29,14 @@ import com.wolandsoft.sss.activity.fragment.ImportFragment;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class MainActivity extends AppCompatActivity implements
-        FragmentManager.OnBackStackChangedListener {
+        FragmentManager.OnBackStackChangedListener,
+        ActivityCompat.OnRequestPermissionsResultCallback {
+    private static final int REQUEST_IMPORT = 1;
+    private static final int REQUEST_EXPORT = 2;
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
+    private int mPendingRequestCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                if(getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                     ActionBar actionBar = getSupportActionBar();
                     if (actionBar != null)
                         actionBar.setTitle(R.string.app_name);
@@ -108,6 +116,27 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mPendingRequestCode > 0) {
+            switch (mPendingRequestCode) {
+                case REQUEST_EXPORT:
+                    openExportFragment();
+                    break;
+                case REQUEST_IMPORT:
+                    openImportFragment();
+                    break;
+            }
+            mPendingRequestCode = 0;
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
@@ -120,18 +149,55 @@ public class MainActivity extends AppCompatActivity implements
 
     public void selectDrawerItem(MenuItem menuItem) {
         mDrawer.closeDrawers();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = null;
+
         switch (menuItem.getItemId()) {
             case R.id.navExport:
-                fragment = new ExportFragment();
-                break;
             case R.id.navImport:
-                fragment = new ImportFragment();
+                String[] requiredPermissions = new String[]{
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                };
+                boolean needUpdates = false;
+                for (String permission : requiredPermissions) {
+                    int permissionGranted = ContextCompat.checkSelfPermission(this, permission);
+                    if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
+                        needUpdates = true;
+                        break;
+                    }
+                }
+                if (needUpdates) {
+                    ActivityCompat.requestPermissions(this, requiredPermissions,
+                            menuItem.getItemId() == R.id.navExport ? REQUEST_EXPORT : REQUEST_IMPORT);
+                } else {
+                    switch (menuItem.getItemId()) {
+                        case R.id.navExport:
+                            openExportFragment();
+                            break;
+                        case R.id.navImport:
+                            openImportFragment();
+                            break;
+                    }
+                }
                 break;
         }
+
+    }
+
+    private void openImportFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment fragment = new ImportFragment();
+        ;
         transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(fragment.getClass().getName());
+        transaction.addToBackStack(ImportFragment.class.getName());
+        transaction.commit();
+    }
+
+    private void openExportFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment fragment = new ExportFragment();
+        ;
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(ExportFragment.class.getName());
         transaction.commit();
     }
 
@@ -157,5 +223,26 @@ public class MainActivity extends AppCompatActivity implements
         //This method is called when the up button is pressed. Just the pop back stack.
         getSupportFragmentManager().popBackStack();
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case REQUEST_EXPORT:
+            case REQUEST_IMPORT:
+                boolean canContinue = true;
+                for (int permission : grantResults) {
+                    if (permission != PackageManager.PERMISSION_GRANTED) {
+                        canContinue = false;
+                        break;
+                    }
+                }
+                if (canContinue) {
+                    mPendingRequestCode = requestCode;
+                }
+                break;
+        }
     }
 }

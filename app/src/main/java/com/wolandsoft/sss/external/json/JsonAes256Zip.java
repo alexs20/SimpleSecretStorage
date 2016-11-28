@@ -61,15 +61,11 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doExport(SQLiteStorage storage, KeyStoreManager keystore, OnExternalInteract callback,
+    public void doExport(SQLiteStorage storage, KeyStoreManager keystore,
                          URI destination, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            callback.onPermissionRequest(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                throw new ExternalException(getString(R.string.exception_no_storage_permission));
-            }
+            throw new ExternalException(getString(R.string.exception_no_storage_permission));
         }
         File jsonFile = new File(destination);
         if (jsonFile.exists()) {
@@ -125,15 +121,11 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doImport(SQLiteStorage toStorage, KeyStoreManager keystore, OnExternalInteract callback,
+    public void doImport(SQLiteStorage toStorage, KeyStoreManager keystore,
                          ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
-        int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            callback.onPermissionRequest(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                throw new ExternalException(getString(R.string.exception_no_storage_permission));
-            }
+            throw new ExternalException(getString(R.string.exception_no_storage_permission));
         }
 
         File jsonFile = new File(source);
@@ -202,7 +194,6 @@ public class JsonAes256Zip extends AExternal {
             throw new ExternalException(e.getMessage(), e);
         }
     }
-
 
     @Override
     public String getID() {

@@ -108,7 +108,7 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="?android:attr/colorPrimary"
                     android:id="@+id/txtDestinationPath"
-                    android:ellipsize="start"
+                    android:ellipsize="end"
                     android:maxLines="1"/>
 
                 <Button

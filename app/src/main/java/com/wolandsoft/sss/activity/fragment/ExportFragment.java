@@ -2,18 +2,17 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,7 +34,6 @@ import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
@@ -51,7 +49,7 @@ import java.util.Locale;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
-        AlertDialogFragment.OnDialogToFragmentInteract{
+        AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int REQUEST_EXTERNAL_STORAGE = 10;
     private static final int DONE_DIALOG = 1;
     private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
@@ -80,7 +78,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         List<String> engines = Arrays.asList(mExtFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
     }
 
     @Override
@@ -91,10 +88,10 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         mPref = new KeySharedPreferences(shPref, getContext());
         View view = inflater.inflate(R.layout.fragment_export, container, false);
 
-        mSprExtEngine = (Spinner)view.findViewById(R.id.sprExtEngine);
-        mEdtPassword1= (EditText) view.findViewById(R.id.edtPassword);
-        mEdtPassword2= (EditText) view.findViewById(R.id.edtPasswordRepeat);
-        mEdtPasswordOpen= (EditText) view.findViewById(R.id.edtPasswordOpen);
+        mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
+        mEdtPassword1 = (EditText) view.findViewById(R.id.edtPassword);
+        mEdtPassword2 = (EditText) view.findViewById(R.id.edtPasswordRepeat);
+        mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
 
         mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
@@ -131,7 +128,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         return view;
     }
 
-    private void setOpenPasswordView(View view){
+    private void setOpenPasswordView(View view) {
         TableRow tr = (TableRow) view.findViewById(R.id.trPasswordOpen);
         tr.setVisibility(mIsShowPwd ? View.VISIBLE : View.GONE);
         tr = (TableRow) view.findViewById(R.id.trPassword);
@@ -140,7 +137,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         tr.setVisibility(mIsShowPwd ? View.GONE : View.VISIBLE);
     }
 
-    private void onDestinationSelectClicked(){
+    private void onDestinationSelectClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         DialogFragment fragment = FileDialogFragment.newInstance(false);
         fragment.setCancelable(true);
@@ -150,14 +147,21 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     }
 
     private void onApplyClicked() {
-        String exportEngine = mSprExtEngine.getSelectedItem().toString();
-        String pwd;
-        if(mIsShowPwd){
-            pwd = mEdtPasswordOpen.getText().toString();
+        ExportArgs args = new ExportArgs();
+        String selectedEngine = mSprExtEngine.getSelectedItem().toString();
+        try {
+            args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
+        } catch (ExternalException e) {
+            LogEx.e(e.getMessage(), e);
+            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (mIsShowPwd) {
+            args.password = mEdtPasswordOpen.getText().toString();
         } else {
-            pwd = mEdtPassword1.getText().toString();
+            args.password = mEdtPassword1.getText().toString();
             String pwd2 = mEdtPassword2.getText().toString();
-            if(!pwd.equals(pwd2)){
+            if (!args.password.equals(pwd2)) {
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                         R.string.label_error, R.string.message_password_not_the_same, false, null);
@@ -168,7 +172,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
                 return;
             }
         }
-        if(pwd.length() == 0){
+        if (args.password.length() == 0) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_password, false, null);
@@ -179,7 +183,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             return;
         }
         String destination = mTxtDestinationPath.getText().toString();
-        if(!destination.startsWith("/")){
+        if (!destination.startsWith("/")) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_destination_directory_selected, false, null);
@@ -189,38 +193,46 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        File destFile = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
-        while(destFile.exists()){
-            destFile = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        args.destination = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        while (args.destination.exists()) {
+            args.destination = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
         }
-        mLayWait.setVisibility(View.VISIBLE);
-        try {
-            IExternal external = ExternalFactory.getInstance(getContext()).getExternal(exportEngine);
-            IExternal.OnExternalInteract callback = new IExternal.OnExternalInteract(){
-                @Override
-                public void onPermissionRequest(String permission) {
-                    ActivityCompat.requestPermissions(
-                        getActivity(),
-                        new String [] {permission},
-                        REQUEST_EXTERNAL_STORAGE
-                );
+
+        new AsyncTask<ExportArgs, Void, Boolean>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                mLayWait.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aBoolean) {
+                super.onPostExecute(aBoolean);
+                mLayWait.setVisibility(View.GONE);
+                if (aBoolean) {
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
+                            R.string.label_export, R.string.message_export_process_completed, false, null);
+                    fragment.setCancelable(true);
+                    fragment.setTargetFragment(ExportFragment.this, DONE_DIALOG);
+                    transaction.addToBackStack(null);
+                    fragment.show(transaction, DialogFragment.class.getName());
                 }
-            };
-            external.doExport(AppCentral.getInstance().getSQLiteStorage(), AppCentral.getInstance().getKeyStoreManager(),
-                    callback, destFile.toURI(), pwd);
-            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
-                    R.string.label_export, R.string.message_export_process_completed, false, null);
-            fragment.setCancelable(true);
-            fragment.setTargetFragment(this, DONE_DIALOG);
-            transaction.addToBackStack(null);
-            fragment.show(transaction, DialogFragment.class.getName());
-        } catch ( ExternalException e) {
-            LogEx.e(e.getMessage(), e);
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-        mLayWait.setVisibility(View.GONE);
-        //TODO do export
+            }
+
+            @Override
+            protected Boolean doInBackground(ExportArgs... params) {
+                try {
+                    params[0].engine.doExport(AppCentral.getInstance().getSQLiteStorage(),
+                            AppCentral.getInstance().getKeyStoreManager(),
+                            params[0].destination.toURI(), params[0].password);
+                } catch (ExternalException e) {
+                    LogEx.e(e.getMessage(), e);
+                    return false;
+                }
+                return true;
+            }
+        }.execute(args);
     }
 
     @Override
@@ -242,7 +254,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.showPwd) {
-            if(mIsShowPwd){
+            if (mIsShowPwd) {
                 String pwd = mEdtPasswordOpen.getText().toString();
                 mEdtPassword1.setText(pwd);
                 mEdtPassword2.setText(pwd);
@@ -277,8 +289,14 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
-        if(requestCode == DONE_DIALOG){
+        if (requestCode == DONE_DIALOG) {
             getFragmentManager().popBackStack(ExportFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
         }
+    }
+
+    class ExportArgs {
+        IExternal engine;
+        String password;
+        File destination;
     }
 }
