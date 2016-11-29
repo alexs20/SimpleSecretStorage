@@ -1,3 +1,18 @@
+/*
+    Copyright 2016 Alexander Shulgin
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ */
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
@@ -33,7 +48,9 @@ import com.wolandsoft.sss.util.LogEx;
 
 
 /**
- * @author Alexander Shulgin /alexs20@gmail.com/
+ * List of secret entries with search capability.
+ *
+ * @author Alexander Shulgin
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
         EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract {
@@ -193,8 +210,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             if (entry != null) {
                 holder.mTxtTitle.setText(entry.get(0).getValue());
                 int next = 0;
-                while(++next < entry.size() && entry.get(next).isProtected());
-                if(next < entry.size() && !entry.get(next).isProtected()){
+                while (++next < entry.size() && entry.get(next).isProtected()) ;
+                if (next < entry.size() && !entry.get(next).isProtected()) {
                     holder.mTxtTitleSmall.setText(entry.get(next).getValue());
                     holder.mTxtTitleSmall.setVisibility(View.VISIBLE);
                 } else {

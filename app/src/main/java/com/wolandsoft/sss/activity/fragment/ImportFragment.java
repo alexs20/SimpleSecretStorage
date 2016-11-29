@@ -1,3 +1,18 @@
+/*
+    Copyright 2016 Alexander Shulgin
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ */
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
@@ -35,7 +50,6 @@ import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
 import com.wolandsoft.sss.util.AppCentral;
-import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.File;
@@ -43,12 +57,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Alexander Shulgin /alexs20@gmail.com/
+ * Import from external file.
+ *
+ * @author Alexander Shulgin
  */
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private final static int DONE_DIALOG = 1;
-    private KeySharedPreferences mPref;
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
 
@@ -78,7 +93,6 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
                              Bundle savedInstanceState) {
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mPref = new KeySharedPreferences(shPref, getContext());
         View view = inflater.inflate(R.layout.fragment_import, container, false);
 
         mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
@@ -172,7 +186,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        String conflictRes = mSprExtEngine.getSelectedItem().toString();
+        String conflictRes = mSprConflictResolution.getSelectedItem().toString();
         if (conflictRes.equals(getString(R.string.label_merge))) {
             args.conflictResolution = IExternal.ConflictResolution.merge;
         } else {
@@ -286,14 +300,14 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         }
     }
 
+    interface OnFragmentToFragmentInteract {
+        void onImportCompleted();
+    }
+
     class ExportArgs {
         IExternal engine;
         String password;
         File source;
         IExternal.ConflictResolution conflictResolution;
-    }
-
-    interface OnFragmentToFragmentInteract {
-        void onImportCompleted();
     }
 }

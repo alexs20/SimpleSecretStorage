@@ -1,3 +1,18 @@
+/*
+    Copyright 2016 Alexander Shulgin
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ */
 package com.wolandsoft.sss.util;
 
 import android.content.Context;
@@ -21,12 +36,14 @@ import java.security.cert.CertificateException;
 import javax.crypto.NoSuchPaddingException;
 
 /**
- * @author Alexander Shulgin /alexs20@gmail.com/
+ * A shared object that holds references of commonly used objects such as database, keystore, cache...
+ *
+ * @author Alexander Shulgin
  */
 
 public class AppCentral extends ContextWrapper {
-    private static AppCentral mThisInstance;
     private static final int ENTRIES_CACHE_SIZE = 100;
+    private static AppCentral mThisInstance;
     private KeyStoreManager mKSManager;
     private SQLiteStorage mSQLtStorage;
     private LruCache<Integer, SecretEntry> mEntryCache;
