@@ -122,23 +122,29 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                 StringBuilder sb = new StringBuilder();
                 long updated = System.currentTimeMillis();
                 db.beginTransaction();
-                if (id > 0) { //presuming that row already exist
+                if (id > 0) { //presume that row already exist
                     SecretEntry oldEntry = readEntry(id, db);
-                    if (oldEntry == null) {
-                        throw new StorageException(String.format(getString(R.string.exception_record_not_found), id));
+                    if (oldEntry != null) {
+                        //update entry
+                        sb.append("UPDATE ").append(SecretEntryTable.TBL_NAME).append(" SET ")
+                                .append(SecretEntryTable.FLD_UPDATED).append("=? WHERE ")
+                                .append(SecretEntryTable.FLD_ID).append("=?");
+                        db.execSQL(sb.toString(), new String[]{String.valueOf(updated), String.valueOf(id)});
+                        result = new SecretEntry(id, oldEntry.getCreated(), updated);
+                        db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+                        //delete old attributes
+                        sb.setLength(0);
+                        sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
+                                .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
+                        db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+                    } else { //no row, means inserting with id ... importing
+                        sb.append("INSERT INTO ").append(SecretEntryTable.TBL_NAME).append(" (rowid,")
+                                .append(SecretEntryTable.FLD_CREATED).append(",")
+                                .append(SecretEntryTable.FLD_UPDATED).append(") VALUES (?,?,?)");
+                        String[] args = {String.valueOf(id), String.valueOf(updated), String.valueOf(updated)};
+                        db.execSQL(sb.toString(), args);
+                        result = new SecretEntry(id, updated, updated);
                     }
-                    //update entry
-                    sb.append("UPDATE ").append(SecretEntryTable.TBL_NAME).append(" SET ")
-                            .append(SecretEntryTable.FLD_UPDATED).append("=? WHERE ")
-                            .append(SecretEntryTable.FLD_ID).append("=?");
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(updated), String.valueOf(id)});
-                    result = new SecretEntry(id, oldEntry.getCreated(), updated);
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
-                    //delete old attributes
-                    sb.setLength(0);
-                    sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
-                            .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
                 } else {
                     sb.append("INSERT INTO ").append(SecretEntryTable.TBL_NAME).append(" ( ")
                             .append(SecretEntryTable.FLD_CREATED).append(", ")

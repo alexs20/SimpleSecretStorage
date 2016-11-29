@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new EntriesFragment();
-            transaction.replace(R.id.content_fragment, fragment);
+            transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
             transaction.commit();
         }
 
@@ -184,9 +184,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void openImportFragment() {
+        Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = new ImportFragment();
-        ;
+        fragment.setTargetFragment(target, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(ImportFragment.class.getName());
         transaction.commit();
@@ -195,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements
     private void openExportFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = new ExportFragment();
-        ;
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(ExportFragment.class.getName());
         transaction.commit();

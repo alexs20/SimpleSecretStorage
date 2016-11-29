@@ -58,7 +58,15 @@
     <string name="label_select_file">Choose File</string>
     <string name="label_back">Back</string>
     <string name="label_error">Error</string>
-    <string name="label_ellipsis">&#8230;</string>
+    <string name="label_ellipsis" translatable="false">&#8230;</string>
+    <string name="label_conflict_resolution">Conflict Resolution</string>
+    <string name="label_overwrite">Overwrite</string>
+    <string name="label_merge">Merge</string>
+
+    <string-array name="spinner_conflict_resolution">
+        <item>@string/label_overwrite</item>
+        <item>@string/label_merge</item>
+    </string-array>
 
     <string name="message_no_destination_directory_selected">Destination directory not selected.</string>
     <string name="message_no_source_file_selected">Source file not selected.</string>

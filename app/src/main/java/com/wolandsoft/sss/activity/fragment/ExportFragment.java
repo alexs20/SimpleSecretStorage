@@ -60,13 +60,13 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
-
     private TextView mTxtDestinationPath;
     private Button mBtnSelectDest;
     private EditText mEdtPassword1;
     private EditText mEdtPassword2;
     private EditText mEdtPasswordOpen;
     private RelativeLayout mLayWait;
+    private FloatingActionButton mBtnApply;
 
     private boolean mIsShowPwd;
 
@@ -93,7 +93,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         mEdtPassword2 = (EditText) view.findViewById(R.id.edtPasswordRepeat);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
-
         mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
         mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,7 +100,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
                 onDestinationSelectClicked();
             }
         });
-
         mLayWait = (RelativeLayout) view.findViewById(R.id.layWait);
 
         if (savedInstanceState == null) {
@@ -114,8 +112,8 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
         mSprExtEngine.setAdapter(mExtEngAdapter);
 
-        FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
-        btnApply.setOnClickListener(new View.OnClickListener() {
+        mBtnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
+        mBtnApply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onApplyClicked();
@@ -203,6 +201,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             protected void onPreExecute() {
                 super.onPreExecute();
                 mLayWait.setVisibility(View.VISIBLE);
+                mBtnApply.setEnabled(false);
             }
 
             @Override

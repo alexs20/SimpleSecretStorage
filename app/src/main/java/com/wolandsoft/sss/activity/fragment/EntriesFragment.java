@@ -36,7 +36,7 @@ import com.wolandsoft.sss.util.LogEx;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
-        EntryFragment.OnFragmentToFragmentInteract {
+        EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract {
     private SecretEntriesAdapter mRVAdapter;
 
     @Override
@@ -140,6 +140,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         mRVAdapter.deleteItem(id);
     }
 
+    @Override
+    public void onImportCompleted() {
+        mRVAdapter.refresh();
+    }
+
     static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
         private int[] mSeIds = null;
@@ -169,12 +174,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 public void run() {
                     if (!criteria.equals(mSearchCriteria)) {
                         mSearchCriteria = criteria;
-                        try {
-                            mSeIds = mSQLtStorage.find(mSearchCriteria, true);
-                            notifyDataSetChanged();
-                        } catch (StorageException e) {
-                            LogEx.e(e.getMessage(), e);
-                        }
+                        refresh();
                     }
                 }
             };
@@ -214,6 +214,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             try {
                 mSQLtStorage.delete(id);
                 mEntriesCache.remove(id);
+                refresh();
+            } catch (StorageException e) {
+                LogEx.e(e.getMessage(), e);
+            }
+        }
+
+        void refresh() {
+            try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
                 notifyDataSetChanged();
             } catch (StorageException e) {
@@ -225,8 +233,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             try {
                 se = mSQLtStorage.put(se);
                 mEntriesCache.put(se.getID(), se);
-                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
-                notifyDataSetChanged();
+                refresh();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }

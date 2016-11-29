@@ -10,9 +10,5 @@
             android:id="@+id/navImport"
             android:icon="@mipmap/img24dp_import"
             android:title="@string/label_import" />
-        <item
-            android:id="@+id/navSettings"
-            android:icon="@mipmap/img24dp_settings"
-            android:title="@string/label_settings" />
     </group>
 </menu>

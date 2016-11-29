@@ -2,12 +2,14 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -20,15 +22,21 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
+import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
+import com.wolandsoft.sss.external.IExternal;
+import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.io.File;
 import java.util.Arrays;
@@ -38,20 +46,21 @@ import java.util.List;
  * @author Alexander Shulgin /alexs20@gmail.com/
  */
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
-        AlertDialogFragment.OnDialogToFragmentInteract{
+        AlertDialogFragment.OnDialogToFragmentInteract {
     private final static int DONE_DIALOG = 1;
     private KeySharedPreferences mPref;
     private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
-
+    private Spinner mSprConflictResolution;
     private TextView mTxtSourcePath;
     private Button mBtnSelectDest;
     private EditText mEdtPassword;
     private EditText mEdtPasswordOpen;
-
+    private RelativeLayout mLayWait;
     private boolean mIsShowPwd;
+    private FloatingActionButton mBtnApply;
 
     @Override
     public void onAttach(Context context) {
@@ -72,11 +81,11 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         mPref = new KeySharedPreferences(shPref, getContext());
         View view = inflater.inflate(R.layout.fragment_import, container, false);
 
-        mSprExtEngine = (Spinner)view.findViewById(R.id.sprExtEngine);
-        mEdtPassword= (EditText) view.findViewById(R.id.edtPassword);
-        mEdtPasswordOpen= (EditText) view.findViewById(R.id.edtPasswordOpen);
+        mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
+        mSprConflictResolution = (Spinner) view.findViewById(R.id.sprConflictResolution);
+        mEdtPassword = (EditText) view.findViewById(R.id.edtPassword);
+        mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtSourcePath = (TextView) view.findViewById(R.id.txtSourcePath);
-
         mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
         mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,7 +93,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
                 onDestinationSelectClicked();
             }
         });
-
+        mLayWait = (RelativeLayout) view.findViewById(R.id.layWait);
 
         if (savedInstanceState == null) {
 
@@ -96,8 +105,8 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
         mSprExtEngine.setAdapter(mExtEngAdapter);
 
-        FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
-        btnApply.setOnClickListener(new View.OnClickListener() {
+        mBtnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
+        mBtnApply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onApplyClicked();
@@ -106,18 +115,18 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
-            actionBar.setTitle(R.string.label_export);
+            actionBar.setTitle(R.string.label_import);
         return view;
     }
 
-    private void setOpenPasswordView(View view){
+    private void setOpenPasswordView(View view) {
         TableRow tr = (TableRow) view.findViewById(R.id.trPasswordOpen);
         tr.setVisibility(mIsShowPwd ? View.VISIBLE : View.GONE);
         tr = (TableRow) view.findViewById(R.id.trPassword);
         tr.setVisibility(mIsShowPwd ? View.GONE : View.VISIBLE);
     }
 
-    private void onDestinationSelectClicked(){
+    private void onDestinationSelectClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         DialogFragment fragment = FileDialogFragment.newInstance(true);
         fragment.setCancelable(true);
@@ -127,15 +136,22 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     }
 
     private void onApplyClicked() {
-        String exportEngine = mSprExtEngine.getSelectedItem().toString();
-        String pwd;
-        if(mIsShowPwd){
-            pwd = mEdtPasswordOpen.getText().toString();
+        ExportArgs args = new ExportArgs();
+        String selectedEngine = mSprExtEngine.getSelectedItem().toString();
+        try {
+            args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
+        } catch (ExternalException e) {
+            LogEx.e(e.getMessage(), e);
+            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (mIsShowPwd) {
+            args.password = mEdtPasswordOpen.getText().toString();
         } else {
-            pwd = mEdtPassword.getText().toString();
+            args.password = mEdtPassword.getText().toString();
         }
         String source = mTxtSourcePath.getText().toString();
-        if(!source.startsWith("/")){
+        if (!source.startsWith("/")) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_source_file_selected, false, null);
@@ -145,7 +161,59 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        //TODO do export
+        args.source = new File(source);
+        if (args.password.length() == 0) {
+            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                    R.string.label_error, R.string.message_no_password, false, null);
+            fragment.setCancelable(true);
+            fragment.setTargetFragment(this, 0); //response is going to be ignored
+            transaction.addToBackStack(null);
+            fragment.show(transaction, DialogFragment.class.getName());
+            return;
+        }
+        String conflictRes = mSprExtEngine.getSelectedItem().toString();
+        if (conflictRes.equals(getString(R.string.label_merge))) {
+            args.conflictResolution = IExternal.ConflictResolution.merge;
+        } else {
+            args.conflictResolution = IExternal.ConflictResolution.overwrite;
+        }
+        new AsyncTask<ExportArgs, Void, Boolean>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                mLayWait.setVisibility(View.VISIBLE);
+                mBtnApply.setEnabled(false);
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aBoolean) {
+                super.onPostExecute(aBoolean);
+                mLayWait.setVisibility(View.GONE);
+                if (aBoolean) {
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
+                            R.string.label_export, R.string.message_import_process_completed, false, null);
+                    fragment.setCancelable(true);
+                    fragment.setTargetFragment(ImportFragment.this, DONE_DIALOG);
+                    transaction.addToBackStack(null);
+                    fragment.show(transaction, DialogFragment.class.getName());
+                }
+            }
+
+            @Override
+            protected Boolean doInBackground(ExportArgs... params) {
+                try {
+                    params[0].engine.doImport(AppCentral.getInstance().getSQLiteStorage(),
+                            AppCentral.getInstance().getKeyStoreManager(), params[0].conflictResolution,
+                            params[0].source.toURI(), params[0].password);
+                } catch (ExternalException e) {
+                    LogEx.e(e.getMessage(), e);
+                    return false;
+                }
+                return true;
+            }
+        }.execute(args);
     }
 
     @Override
@@ -167,7 +235,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.showPwd) {
-            if(mIsShowPwd){
+            if (mIsShowPwd) {
                 String pwd = mEdtPasswordOpen.getText().toString();
                 mEdtPassword.setText(pwd);
             } else {
@@ -201,6 +269,31 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
+        if (requestCode == DONE_DIALOG) {
+            Fragment parent = getTargetFragment();
+            if (parent instanceof OnFragmentToFragmentInteract) {
+                ((OnFragmentToFragmentInteract) parent).onImportCompleted();
+            } else {
+                throw new ClassCastException(
+                        String.format(
+                                getString(R.string.internal_exception_must_implement),
+                                parent.toString(),
+                                OnFragmentToFragmentInteract.class.getName()
+                        )
+                );
+            }
+            getFragmentManager().popBackStack(ImportFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
 
+    class ExportArgs {
+        IExternal engine;
+        String password;
+        File source;
+        IExternal.ConflictResolution conflictResolution;
+    }
+
+    interface OnFragmentToFragmentInteract {
+        void onImportCompleted();
     }
 }

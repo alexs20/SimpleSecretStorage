@@ -19,55 +19,75 @@
         <TableRow>
 
             <TextView
-                android:text="@string/label_import_engine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="@string/label_import_engine"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <Spinner
+                android:id="@+id/sprExtEngine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/sprExtEngine"
                 android:layout_weight="1" />
         </TableRow>
-        <TableRow  android:id="@+id/trPassword">
+
+        <TableRow>
 
             <TextView
-                android:text="@string/label_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="@string/label_conflict_resolution"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <Spinner
+                android:id="@+id/sprConflictResolution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:entries="@array/spinner_conflict_resolution" />
+        </TableRow>
+
+        <TableRow android:id="@+id/trPassword">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/label_password"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
+                android:id="@+id/edtPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:ems="10"
-                android:id="@+id/edtPassword"
                 android:layout_weight="1"
-                android:maxLines="1"/>
+                android:ems="10"
+                android:inputType="textPassword"
+                android:maxLines="1" />
 
 
         </TableRow>
+
+
         <TableRow android:id="@+id/trPasswordOpen">
 
             <TextView
-                android:text="@string/label_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="@string/label_password"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
+                android:id="@+id/edtPasswordOpen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ems="10"
-                android:id="@+id/edtPasswordOpen"
                 android:layout_weight="1"
-                android:maxLines="1"
-                android:inputType="textVisiblePassword" />
+                android:ems="10"
+                android:inputType="textVisiblePassword"
+                android:maxLines="1" />
 
 
         </TableRow>
@@ -75,36 +95,53 @@
         <TableRow>
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_span="2">
+                android:layout_span="2"
+                android:orientation="horizontal">
 
                 <TextView
-                    android:text="@string/label_select_source"
+                    android:id="@+id/txtSourcePath"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.9"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="?android:attr/colorPrimary"
-                    android:id="@+id/txtSourcePath"
                     android:ellipsize="end"
-                    android:maxLines="1"/>
+                    android:maxLines="1"
+                    android:text="@string/label_select_source"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="?android:attr/colorPrimary" />
 
                 <Button
-                    android:text="@string/label_ellipsis"
+                    android:id="@+id/btnSelectDest"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/btnSelectDest"
                     android:layout_weight="0.1"
                     android:drawablePadding="0dp"
                     android:minHeight="0dp"
-                    android:minWidth="0dp"/>
+                    android:minWidth="0dp"
+                    android:text="@string/label_ellipsis" />
             </LinearLayout>
 
 
         </TableRow>
     </TableLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:id="@+id/layWait"
+        android:visibility="gone">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="false"
+            android:layout_centerVertical="false"
+            android:layout_centerInParent="true" />
+
+    </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btnApply"
