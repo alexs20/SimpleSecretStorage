@@ -192,7 +192,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             final SecretEntry entry = getItem(position);
             if (entry != null) {
                 holder.mTxtTitle.setText(entry.get(0).getValue());
-                holder.mImgIcon.setImageResource(R.mipmap.img24dp_lock_g);
+                int next = 0;
+                while(++next < entry.size() && entry.get(next).isProtected());
+                if(next < entry.size() && !entry.get(next).isProtected()){
+                    holder.mTxtTitleSmall.setText(entry.get(next).getValue());
+                    holder.mTxtTitleSmall.setVisibility(View.VISIBLE);
+                } else {
+                    holder.mTxtTitleSmall.setVisibility(View.GONE);
+                }
+                holder.mImgIcon.setImageResource(R.mipmap.img48dp_lock_g);
                 holder.mView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -279,12 +287,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         class ViewHolder extends RecyclerView.ViewHolder {
             View mView;
             TextView mTxtTitle;
+            TextView mTxtTitleSmall;
             ImageView mImgIcon;
 
             ViewHolder(View view) {
                 super(view);
                 mView = view;
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
+                mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
             }
         }
