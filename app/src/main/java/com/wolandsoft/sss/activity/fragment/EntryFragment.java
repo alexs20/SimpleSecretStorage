@@ -38,6 +38,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
@@ -361,6 +362,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
+                        Toast.makeText(holder.mView.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             }

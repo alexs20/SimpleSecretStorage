@@ -51,7 +51,7 @@ import javax.security.auth.x500.X500Principal;
 
 public class KeyStoreManager extends ContextWrapper {
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    private static final String KEY_ALIAS = "com_wolandsoft_sss0";
+    private static final String KEY_ALIAS = "ssspkey";
     private static final String CIPHER_MODE = "RSA/ECB/PKCS1Padding";
     private String alias;
     private KeyStore keystore;
@@ -96,6 +96,7 @@ public class KeyStoreManager extends ContextWrapper {
             }
             generator.generateKeyPair();
         }
+
         KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(keyAlias, null);
         PublicKey publicKey = (PublicKey) privateKeyEntry.getCertificate().getPublicKey();
         PrivateKey privateKey = (PrivateKey) privateKeyEntry.getPrivateKey();
