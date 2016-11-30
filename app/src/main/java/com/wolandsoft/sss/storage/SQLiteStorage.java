@@ -53,7 +53,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         if (dbHelper == null) {
             return new int[0];
         }
-        try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        try {
+            db = dbHelper.getReadableDatabase();
             String[] keywords = null;
             if (criteria != null) {
                 keywords = criteria.split("\\s");
@@ -83,24 +86,35 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             }
             sb.append(" WHERE R.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0");
             sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE).append(isASC ? " ASC" : " DESC");
-            try (Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]))) {
-                int[] result = new int[cursor.getCount()];
-                while (cursor.moveToNext()) {
-                    result[cursor.getPosition()] = cursor.getInt(0);
-                }
-                return result;
+            cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]));
+            int[] result = new int[cursor.getCount()];
+            while (cursor.moveToNext()) {
+                result[cursor.getPosition()] = cursor.getInt(0);
             }
+            return result;
+        } finally {
+            if (cursor != null)
+                cursor.close();
+            if (db != null)
+                db.close();
         }
     }
 
     public SecretEntry get(int id) throws StorageException {
-        try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
+        SQLiteDatabase db = null;
+        try {
+            db = dbHelper.getReadableDatabase();
             return readEntry(id, db);
+        } finally {
+            if (db != null)
+                db.close();
         }
     }
 
     public void delete(long id) throws StorageException {
-        try (SQLiteDatabase db = dbHelper.getWritableDatabase()) {
+        SQLiteDatabase db = null;
+        try {
+            db = dbHelper.getWritableDatabase();
             try {
                 StringBuilder sb = new StringBuilder();
                 db.beginTransaction();
@@ -119,6 +133,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             }
         } catch (Exception e) {
             throw new StorageException(e.getMessage(), e);
+        } finally {
+            if (db != null)
+                db.close();
         }
     }
 
@@ -133,7 +150,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     public SecretEntry put(SecretEntry entry) throws StorageException {
         SecretEntry result = null;
         int id = entry.getID();
-        try (SQLiteDatabase db = dbHelper.getWritableDatabase()) {
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        try {
+            db = dbHelper.getWritableDatabase();
             try {
                 StringBuilder sb = new StringBuilder();
                 long updated = System.currentTimeMillis();
@@ -167,10 +187,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                             .append(SecretEntryTable.FLD_UPDATED).append(" ) VALUES ( ?, ?)");
                     String[] args = {String.valueOf(updated), String.valueOf(updated)};
                     db.execSQL(sb.toString(), args);
-                    try (Cursor cursor = db.rawQuery("SELECT last_insert_rowid()", null)) {
-                        if (cursor.moveToFirst()) {
-                            result = new SecretEntry(cursor.getInt(0), updated, updated);
-                        }
+                    cursor = db.rawQuery("SELECT last_insert_rowid()", null);
+                    if (cursor.moveToFirst()) {
+                        result = new SecretEntry(cursor.getInt(0), updated, updated);
                     }
                 }
                 if (result == null) {
@@ -202,6 +221,11 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             }
         } catch (Exception e) {
             throw new StorageException(e.getMessage(), e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
+            if (db != null)
+                db.close();
         }
         return result;
     }
@@ -212,14 +236,18 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         sb.append("SELECT * FROM ").append(SecretEntryTable.TBL_NAME).append(" WHERE ")
                 .append(SecretEntryTable.FLD_ID).append("=?");
         String[] args = {String.valueOf(id)};
-
-        try (Cursor cursor = db.rawQuery(sb.toString(), args)) {
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(sb.toString(), args);
             if (cursor.moveToFirst()) {
                 entry = new SecretEntry(id,
                         cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_CREATED)),
                         cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_UPDATED)));
                 entry = readEntryAttributes(entry, db);
             }
+        } finally {
+            if (cursor != null)
+                cursor.close();
         }
         return entry;
     }
@@ -231,8 +259,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                     .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=? ")
                     .append(" ORDER BY ").append(SecretEntryAttributeTable.FLD_ORDER_ID);
             String[] args = {String.valueOf(entry.getID())};
-
-            try (Cursor cursor = db.rawQuery(sb.toString(), args)) {
+            Cursor cursor = null;
+            try {
+                cursor = db.rawQuery(sb.toString(), args);
                 while (cursor.moveToNext()) {
                     String key = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_KEY));
                     String value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));
@@ -245,6 +274,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                 }
             } catch (Exception e) {
                 throw new StorageException(e.getMessage(), e);
+            } finally {
+                if (cursor != null)
+                    cursor.close();
             }
         }
         return entry;

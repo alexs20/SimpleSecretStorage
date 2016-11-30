@@ -229,7 +229,7 @@ public class FileDialogFragment extends DialogFragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
                 LayoutInflater mInflater = (LayoutInflater) parent.getContext().getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-                convertView = mInflater.inflate(R.layout.dialog_file_include_card, null);
+                convertView = mInflater.inflate(R.layout.dialog_file_include_card, parent, false);
             }
             ListItem item = (ListItem) getItem(position);
             ImageView img = (ImageView) convertView.findViewById(R.id.imgIcon);
