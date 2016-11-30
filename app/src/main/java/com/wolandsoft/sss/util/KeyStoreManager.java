@@ -86,6 +86,7 @@ public class KeyStoreManager extends ContextWrapper {
                         .build();
                 generator.initialize(spec);
             } else {
+                //noinspection deprecation : it works only for android version blow 23
                 KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(this)
                         .setAlias(keyAlias)
                         .setSubject(subj)
@@ -99,8 +100,8 @@ public class KeyStoreManager extends ContextWrapper {
         }
 
         KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(keyAlias, null);
-        PublicKey publicKey = (PublicKey) privateKeyEntry.getCertificate().getPublicKey();
-        PrivateKey privateKey = (PrivateKey) privateKeyEntry.getPrivateKey();
+        PublicKey publicKey = privateKeyEntry.getCertificate().getPublicKey();
+        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
 
         encryptCipher = Cipher.getInstance(CIPHER_MODE);
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);

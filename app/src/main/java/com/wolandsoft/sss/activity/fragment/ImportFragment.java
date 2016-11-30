@@ -64,13 +64,11 @@ import java.util.List;
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private final static int DONE_DIALOG = 1;
-    private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
     private Spinner mSprConflictResolution;
     private TextView mTxtSourcePath;
-    private Button mBtnSelectDest;
     private EditText mEdtPassword;
     private EditText mEdtPasswordOpen;
     private RelativeLayout mLayWait;
@@ -80,9 +78,9 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mExtFactory = ExternalFactory.getInstance(context);
+        ExternalFactory extFactory = ExternalFactory.getInstance(context);
 
-        List<String> engines = Arrays.asList(mExtFactory.getAvailableIds());
+        List<String> engines = Arrays.asList(extFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -92,7 +90,6 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         View view = inflater.inflate(R.layout.fragment_import, container, false);
 
         mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
@@ -100,8 +97,8 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         mEdtPassword = (EditText) view.findViewById(R.id.edtPassword);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtSourcePath = (TextView) view.findViewById(R.id.txtSourcePath);
-        mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
-        mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
+        Button btnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
+        btnSelectDest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDestinationSelectClicked();

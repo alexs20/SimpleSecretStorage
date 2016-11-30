@@ -37,7 +37,7 @@
     <string name="label_attribute_value">Field value</string>
     <string name="label_encrypted">Encrypted</string>
     <string name="label_search">Search</string>
-    <string name="label_loading_ellipsis">Loading...</string>
+    <string name="label_loading_ellipsis">Loading&#8230;</string>
     <string name="label_delete_all">Delete The Secret Entry</string>
     <string name="label_delete_field">Delete The Field</string>
     <string name="label_delete">Delete</string>

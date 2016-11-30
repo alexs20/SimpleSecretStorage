@@ -32,7 +32,7 @@ public enum PredefinedAttribute {
     int keyResID;
     boolean isProtected;
 
-    private PredefinedAttribute(boolean isProtected, int keyResID) {
+    PredefinedAttribute(boolean isProtected, int keyResID) {
         this.isProtected = isProtected;
         this.keyResID = keyResID;
     }

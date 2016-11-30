@@ -70,12 +70,10 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
 
-    private ExternalFactory mExtFactory;
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
     private TextView mTxtDestinationPath;
-    private Button mBtnSelectDest;
     private EditText mEdtPassword1;
     private EditText mEdtPassword2;
     private EditText mEdtPasswordOpen;
@@ -87,9 +85,8 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mExtFactory = ExternalFactory.getInstance(context);
-
-        List<String> engines = Arrays.asList(mExtFactory.getAvailableIds());
+        ExternalFactory extFactory = ExternalFactory.getInstance(context);
+        List<String> engines = Arrays.asList(extFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
@@ -98,7 +95,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         View view = inflater.inflate(R.layout.fragment_export, container, false);
 
         mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
@@ -106,8 +102,8 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         mEdtPassword2 = (EditText) view.findViewById(R.id.edtPasswordRepeat);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
-        mBtnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
-        mBtnSelectDest.setOnClickListener(new View.OnClickListener() {
+        Button btnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
+        btnSelectDest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDestinationSelectClicked();

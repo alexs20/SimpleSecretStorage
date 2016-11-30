@@ -39,7 +39,7 @@ public class SecretEntryAttribute  implements Serializable {
     }
 
     public boolean isProtected() {
-        return isProtected;
+        return this.isProtected;
     }
 
     public void setProtected(boolean isProtected) {
