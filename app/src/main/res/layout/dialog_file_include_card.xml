@@ -31,7 +31,8 @@
         android:layout_gravity="right|center_vertical"
         android:layout_marginEnd="10dp"
         android:clickable="false"
-        app:srcCompat="@mipmap/img24dp_directory" />
+        app:srcCompat="@mipmap/img24dp_directory"
+        android:contentDescription="@string/label_file"/>
 
     <TextView
         android:id="@+id/txtFile"

@@ -35,7 +35,8 @@
             android:layout_marginStart="5dp"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            app:srcCompat="@mipmap/img48dp_lock_g" />
+            app:srcCompat="@mipmap/img48dp_lock_g"
+            android:contentDescription="@string/label_logo"/>
 
         <LinearLayout
             android:layout_width="match_parent"

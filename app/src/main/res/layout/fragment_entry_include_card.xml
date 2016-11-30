@@ -45,7 +45,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
-                app:srcCompat="@mipmap/img24dp_3vdots" />
+                app:srcCompat="@mipmap/img24dp_3vdots"
+                android:contentDescription="@string/label_settings"/>
         </GridLayout>
 
         <GridLayout
@@ -69,7 +70,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
-                app:srcCompat="@mipmap/img24dp_lock_g" />
+                app:srcCompat="@mipmap/img24dp_lock_g"
+                android:contentDescription="@string/label_encrypted"/>
         </GridLayout>
 
     </LinearLayout>

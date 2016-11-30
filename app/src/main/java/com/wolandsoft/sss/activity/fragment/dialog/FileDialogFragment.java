@@ -167,6 +167,7 @@ public class FileDialogFragment extends DialogFragment {
         if (!path.equals(mBasePath)) {
             ListItem li = new ListItem();
             li.iconId = R.mipmap.img24dp_back;
+            li.iconDescId = R.string.label_back;
             li.isBackButton = true;
             li.label = getString(R.string.label_back);
             list.add(li);
@@ -177,6 +178,7 @@ public class FileDialogFragment extends DialogFragment {
             if (file.isFile()) {
                 li.isFile = true;
                 li.iconId = R.mipmap.img24dp_file;
+                li.iconDescId = R.string.label_file;
             }
             list.add(li);
         }
@@ -232,6 +234,7 @@ public class FileDialogFragment extends DialogFragment {
             ListItem item = (ListItem) getItem(position);
             ImageView img = (ImageView) convertView.findViewById(R.id.imgIcon);
             img.setImageResource(item.iconId);
+            img.setContentDescription(parent.getContext().getString(item.iconDescId));
             TextView txt = (TextView) convertView.findViewById(R.id.txtFile);
             txt.setText(item.label);
             return convertView;
@@ -243,5 +246,6 @@ public class FileDialogFragment extends DialogFragment {
         boolean isBackButton = false;
         String label;
         int iconId = R.mipmap.img24dp_directory;
+        int iconDescId = R.string.label_directory;
     }
 }
