@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:text="TextView"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="?android:attr/colorPrimary" />
+                android:textColor="@color/colorPrimary" />
 
             <ImageView
                 android:id="@+id/imgMenu"

@@ -123,7 +123,7 @@
                     android:maxLines="1"
                     android:text="@string/label_select_source"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="?android:attr/colorPrimary" />
+                    android:textColor="@color/colorPrimary" />
 
                 <Button
                     android:id="@+id/btnSelectDest"

@@ -88,7 +88,7 @@
             android:text="TextView"
             android:textAlignment="center"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="?android:attr/colorPrimary"
+            android:textColor="@color/colorPrimary"
             android:textIsSelectable="true" />
 
     </LinearLayout>
