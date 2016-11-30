@@ -15,7 +15,6 @@
 -->
 <resources>
     <string name="app_name">Simple Secret Storage</string>
-    <string name="auth_service_label">Authentication Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
@@ -24,13 +23,8 @@
     <string name="enum_PASSWORD">Password</string>
 
     <string name="exception_internal">Internal error</string>
-    <string name="exception_record_not_found">Record %1$d is unavailable</string>
-    <string name="exception_invalid_password">Invalid password</string>
-    <string name="exception_password_not_set">Password not set</string>
-    <string name="exception_storage_not_ready">Storage not ready</string>
     <string name="exception_no_storage_permission">No storage permission granted</string>
     <string name="exception_no_file_found">File not found %1$s</string>
-    <string name="exception_no_dir_found">Directory not found %1$s</string>
     <string name="exception_invalid_input_file">Invalid input file %1$s</string>
 
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
@@ -39,8 +33,6 @@
     <string name="title_secret_field">Secret Field</string>
     <string name="title_generate_password">Generate Password</string>
 
-    <string name="label_created">Created</string>
-    <string name="label_updated">Updated</string>
     <string name="label_attribute_key">Field name</string>
     <string name="label_attribute_value">Field value</string>
     <string name="label_encrypted">Encrypted</string>
@@ -51,7 +43,6 @@
     <string name="label_delete">Delete</string>
     <string name="label_edit">Edit</string>
     <string name="label_copy">Copy</string>
-    <string name="label_generate">Generate</string>
     <string name="label_number_of_lowercase_chars">Number of Lowercase Characters</string>
     <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
     <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>
@@ -77,7 +68,6 @@
     <string name="label_conflict_resolution">Conflict Resolution</string>
     <string name="label_overwrite">Overwrite</string>
     <string name="label_merge">Merge</string>
-    <string name="label_license">License</string>
     <string name="label_file">File</string>
     <string name="label_directory">Directory</string>
     <string name="label_logo">Logo</string>

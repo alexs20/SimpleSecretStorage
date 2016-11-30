@@ -19,7 +19,6 @@
     android:layout_height="match_parent">
 
     <TableLayout
-        android:id="@+id/mainTable"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="5dip"
@@ -28,7 +27,6 @@
         android:paddingRight="3dip"
         android:shrinkColumns="1"
         android:stretchColumns="*">
-
 
         <TableRow>
 
@@ -69,9 +67,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@id/edtPassword"
                 android:text="@string/label_password"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:labelFor="@id/edtPassword"/>
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
                 android:id="@+id/edtPassword"
@@ -81,8 +79,6 @@
                 android:ems="10"
                 android:inputType="textPassword"
                 android:maxLines="1" />
-
-
         </TableRow>
 
 
@@ -92,9 +88,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@id/edtPasswordOpen"
                 android:text="@string/label_password"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:labelFor="@id/edtPasswordOpen"/>
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
                 android:id="@+id/edtPasswordOpen"
@@ -104,8 +100,6 @@
                 android:ems="10"
                 android:inputType="textVisiblePassword"
                 android:maxLines="1" />
-
-
         </TableRow>
 
         <TableRow>
@@ -137,8 +131,6 @@
                     android:minWidth="0dp"
                     android:text="@string/label_ellipsis" />
             </LinearLayout>
-
-
         </TableRow>
     </TableLayout>
 
@@ -156,7 +148,6 @@
             android:layout_centerHorizontal="false"
             android:layout_centerInParent="true"
             android:layout_centerVertical="false" />
-
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
@@ -168,6 +159,4 @@
         android:layout_margin="16dp"
         android:src="@mipmap/img24dp_ok"
         app:fabSize="normal" />
-
-
 </RelativeLayout>
