@@ -32,6 +32,9 @@
     <string name="title_secret_fields">Secret Fields</string>
     <string name="title_secret_field">Secret Field</string>
     <string name="title_generate_password">Generate Password</string>
+    <string name="title_master_pin" translatable="false">@string/label_master_pin</string>
+    <string name="title_export" translatable="false">@string/label_export</string>
+    <string name="title_import" translatable="false">@string/label_import</string>
 
     <string name="label_attribute_key">Field name</string>
     <string name="label_attribute_value">Field value</string>
@@ -71,6 +74,10 @@
     <string name="label_file">File</string>
     <string name="label_directory">Directory</string>
     <string name="label_logo">Logo</string>
+    <string name="label_master_pin">Master Pin</string>
+    <string name="label_enter_pin">Enter Pin</string>
+    <string name="label_enter_new_pin">Enter New Pin</string>
+    <string name="label_repeat_new_pin">Repeat New Pin</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -83,8 +90,11 @@
     <string name="message_no_password">No password defined.</string>
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
-    <string name="message_can_not_delete_before_protected_attribute">Top field before protected an not be deleted.</string>
+    <string name="message_can_not_delete_before_protected_attribute">Top field before protected can not be deleted.</string>
     <string name="message_import_process_completed">All data has been successfully imported.</string>
     <string name="message_export_process_completed">All data has been successfully exported.</string>
+    <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
+    <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
+    <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
 
 </resources>

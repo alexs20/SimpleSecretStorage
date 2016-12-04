@@ -13,20 +13,13 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/navExport"
-            android:icon="@mipmap/img24dp_export"
-            android:title="@string/label_export" />
-        <item
-            android:id="@+id/navImport"
-            android:icon="@mipmap/img24dp_import"
-            android:title="@string/label_import" />
-        <item
-            android:id="@+id/navSettings"
-            android:icon="@mipmap/img24dp_settings"
-            android:title="@string/label_settings" />
-    </group>
-</menu>
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="@bool/pref_pin_enabled_value"
+        android:key="@string/pref_pin_enabled_key"
+        android:summary="@string/message_master_pin_validation"
+        android:title="@string/label_master_pin" />
+
+
+</PreferenceScreen>

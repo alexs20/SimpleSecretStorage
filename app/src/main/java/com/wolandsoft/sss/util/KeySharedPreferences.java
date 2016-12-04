@@ -267,8 +267,9 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
         }
 
         @Override
-        public Editor putString(String key, String value) {
-            return mEditor.putString(key, value);
+        public KeyableEditor putString(String key, String value) {
+            mEditor.putString(key, value);
+            return this;
         }
 
         /**
@@ -280,18 +281,21 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          *              {@link #remove(String)} with this key.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putString(int keyId, String value) {
-            return putString(getString(keyId), value);
+        public KeyableEditor putString(int keyId, String value) {
+            putString(getString(keyId), value);
+            return this;
         }
 
         @Override
-        public Editor putStringSet(String key, Set<String> values) {
-            return mEditor.putStringSet(key, values);
+        public KeyableEditor putStringSet(String key, Set<String> values) {
+            mEditor.putStringSet(key, values);
+            return this;
         }
 
         @Override
-        public Editor putInt(String key, int value) {
-            return mEditor.putInt(key, value);
+        public KeyableEditor putInt(String key, int value) {
+            mEditor.putInt(key, value);
+            return this;
         }
 
         /**
@@ -302,8 +306,9 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param value The new value for the preference.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putInt(int keyId, int value) {
-            return putInt(getString(keyId), value);
+        public KeyableEditor putInt(int keyId, int value) {
+            putInt(getString(keyId), value);
+            return this;
         }
 
         /**
@@ -313,7 +318,7 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param key   The name of the preference to modify.
          * @param array The new array of int values for the preference.
          */
-        public Editor putIntArray(String key, int[] array) {
+        public KeyableEditor putIntArray(String key, int[] array) {
             StringBuilder str = new StringBuilder();
             for (int i = 0; i < array.length; i++) {
                 if (i > 0) {
@@ -321,7 +326,8 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
                 }
                 str.append(array[i]);
             }
-            return putString(key, str.toString());
+            putString(key, str.toString());
+            return this;
         }
 
         /**
@@ -332,13 +338,15 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param array The new array of int values for the preference.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putIntArray(int keyId, int[] array) {
-            return putIntArray(getString(keyId), array);
+        public KeyableEditor putIntArray(int keyId, int[] array) {
+            putIntArray(getString(keyId), array);
+            return this;
         }
 
         @Override
-        public Editor putLong(String key, long value) {
-            return mEditor.putLong(key, value);
+        public KeyableEditor putLong(String key, long value) {
+            mEditor.putLong(key, value);
+            return this;
         }
 
         /**
@@ -349,13 +357,15 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param value The new value for the preference.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putLong(int keyId, long value) {
-            return putLong(getString(keyId), value);
+        public KeyableEditor putLong(int keyId, long value) {
+            putLong(getString(keyId), value);
+            return this;
         }
 
         @Override
-        public Editor putFloat(String key, float value) {
-            return mEditor.putFloat(key, value);
+        public KeyableEditor putFloat(String key, float value) {
+            mEditor.putFloat(key, value);
+            return this;
         }
 
         /**
@@ -366,13 +376,15 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param value The new value for the preference.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putFloat(int keyId, float value) {
-            return putFloat(getString(keyId), value);
+        public KeyableEditor putFloat(int keyId, float value) {
+            putFloat(getString(keyId), value);
+            return this;
         }
 
         @Override
-        public Editor putBoolean(String key, boolean value) {
-            return mEditor.putBoolean(key, value);
+        public KeyableEditor putBoolean(String key, boolean value) {
+            mEditor.putBoolean(key, value);
+            return this;
         }
 
         /**
@@ -383,13 +395,15 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param value The new value for the preference.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor putBoolean(int keyId, boolean value) {
-            return putBoolean(getString(keyId), value);
+        public KeyableEditor putBoolean(int keyId, boolean value) {
+            putBoolean(getString(keyId), value);
+            return this;
         }
 
         @Override
-        public Editor remove(String key) {
-            return mEditor.remove(key);
+        public KeyableEditor remove(String key) {
+            mEditor.remove(key);
+            return this;
         }
 
         /**
@@ -403,13 +417,15 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
          * @param keyId The name of the preference to remove.
          * @return Returns a reference to the same Editor object, so you can chain put calls together.
          */
-        public Editor remove(int keyId) {
-            return mEditor.remove(getString(keyId));
+        public KeyableEditor remove(int keyId) {
+            mEditor.remove(getString(keyId));
+            return this;
         }
 
         @Override
-        public Editor clear() {
-            return mEditor.clear();
+        public KeyableEditor clear() {
+            mEditor.clear();
+            return this;
         }
 
         @Override

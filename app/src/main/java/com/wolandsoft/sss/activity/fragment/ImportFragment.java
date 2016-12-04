@@ -126,7 +126,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
-            actionBar.setTitle(R.string.label_import);
+            actionBar.setTitle(R.string.title_import);
         return view;
     }
 

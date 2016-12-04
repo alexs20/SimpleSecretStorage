@@ -131,7 +131,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
-            actionBar.setTitle(R.string.label_export);
+            actionBar.setTitle(R.string.title_export);
         return view;
     }
 

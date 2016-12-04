@@ -37,7 +37,7 @@ public class AlertDialogFragment extends DialogFragment {
     private static final String ARG_MESSAGE = "message";
     private static final String ARG_YESNO = "yes_no";
     private static final String ARG_DATA = "data";
-    private OnDialogToFragmentInteract mListener;
+    private OnDialogToFragmentInteract mListener = null;
 
     public AlertDialogFragment() {
         // Required empty public constructor
@@ -64,16 +64,18 @@ public class AlertDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Fragment parent = getTargetFragment();
-        if (parent instanceof OnDialogToFragmentInteract) {
-            mListener = (OnDialogToFragmentInteract) parent;
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            parent.toString(),
-                            OnDialogToFragmentInteract.class.getName()
-                    )
-            );
+        if (parent != null) {
+            if (parent instanceof OnDialogToFragmentInteract) {
+                mListener = (OnDialogToFragmentInteract) parent;
+            } else {
+                throw new ClassCastException(
+                        String.format(
+                                getString(R.string.internal_exception_must_implement),
+                                parent.toString(),
+                                OnDialogToFragmentInteract.class.getName()
+                        )
+                );
+            }
         }
         Bundle args = getArguments();
         int iconId = args.getInt(ARG_ICON);
@@ -90,24 +92,26 @@ public class AlertDialogFragment extends DialogFragment {
             builder.setPositiveButton(android.R.string.yes,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_OK, data);
-                                }
-                            });
+                            if (mListener != null)
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_OK, data);
+                                    }
+                                });
                             dialog.dismiss();
                         }
                     }
             ).setNegativeButton(android.R.string.no,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
-                                }
-                            });
+                            if (mListener != null)
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
+                                    }
+                                });
                             dialog.dismiss();
                         }
                     }
@@ -116,12 +120,13 @@ public class AlertDialogFragment extends DialogFragment {
             builder.setPositiveButton(android.R.string.ok,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
-                                }
-                            });
+                            if (mListener != null)
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mListener.onDialogResult(getTargetRequestCode(), Activity.RESULT_CANCELED, data);
+                                    }
+                                });
                             dialog.dismiss();
                         }
                     }

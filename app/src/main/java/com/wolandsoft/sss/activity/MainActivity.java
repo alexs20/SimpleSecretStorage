@@ -16,6 +16,8 @@
 package com.wolandsoft.sss.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -32,11 +34,20 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
 import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
+import com.wolandsoft.sss.activity.fragment.PinFragment;
+import com.wolandsoft.sss.activity.fragment.SettingsFragment;
+import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.LogEx;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 /**
  * Main UI class of the app.
@@ -45,7 +56,8 @@ import com.wolandsoft.sss.activity.fragment.ImportFragment;
  */
 public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        PinFragment.OnFragmentToFragmentInteract {
     private static final int REQUEST_IMPORT = 1;
     private static final int REQUEST_EXPORT = 2;
     private DrawerLayout mDrawer;
@@ -57,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        AppCentral.init(getApplicationContext());
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new EntriesFragment();
@@ -138,6 +150,25 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+
+        SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
+        if (ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value)) {
+            for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+                getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+            }
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setHomeButtonEnabled(false);
+            }
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            Fragment fragment = PinFragment.newInstance(false);
+            transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
+            transaction.commit();
+            return;
+        }
+
         if (mPendingRequestCode > 0) {
             switch (mPendingRequestCode) {
                 case REQUEST_EXPORT:
@@ -193,6 +224,15 @@ public class MainActivity extends AppCompatActivity implements
                             break;
                     }
                 }
+                break;
+            case R.id.navSettings:
+                Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new SettingsFragment();
+                fragment.setTargetFragment(target, 0);
+                transaction.replace(R.id.content_fragment, fragment);
+                transaction.addToBackStack(SettingsFragment.class.getName());
+                transaction.commit();
                 break;
         }
 
@@ -258,6 +298,34 @@ public class MainActivity extends AppCompatActivity implements
                     mPendingRequestCode = requestCode;
                 }
                 break;
+        }
+    }
+
+    @SuppressLint("StringFormatInvalid")
+    @Override
+    public void onPinProvided(String pin) {
+        try {
+            SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
+            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
+            String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
+            storedPin = AppCentral.getInstance().getKeyStoreManager().decrupt(storedPin);
+            if (pin.equals(storedPin)) {
+                for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+                    getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                }
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new EntriesFragment();
+                transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
+                transaction.commit();
+                ActionBar actionBar = getSupportActionBar();
+                if (actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                    actionBar.setHomeButtonEnabled(true);
+                }
+            }
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            LogEx.e(e.getMessage(), e);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 }
