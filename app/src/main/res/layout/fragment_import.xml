@@ -35,13 +35,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_import_engine"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_gravity="center_vertical" />
 
             <Spinner
                 android:id="@+id/sprExtEngine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp" />
         </TableRow>
 
         <TableRow>
@@ -51,14 +54,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_conflict_resolution"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_gravity="center_vertical" />
 
             <Spinner
                 android:id="@+id/sprConflictResolution"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:entries="@array/spinner_conflict_resolution" />
+                android:entries="@array/spinner_conflict_resolution"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp" />
         </TableRow>
 
         <TableRow android:id="@+id/trPassword">

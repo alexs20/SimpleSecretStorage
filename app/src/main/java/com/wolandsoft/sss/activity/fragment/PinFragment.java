@@ -25,10 +25,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
@@ -98,6 +101,15 @@ public class PinFragment extends Fragment {
             mEdtPin2 = (TextInputEditText) view.findViewById(R.id.edtPin2);
             TextInputLayout lay = (TextInputLayout) view.findViewById(R.id.layPin);
             lay.setVisibility(View.GONE);
+            mEdtPin2.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        onOkClicked();
+                    }
+                    return false;
+                }
+            });
         } else {
             mEdtPin = (TextInputEditText) view.findViewById(R.id.edtPin);
             TextInputLayout lay = (TextInputLayout) view.findViewById(R.id.layNew);
@@ -106,6 +118,16 @@ public class PinFragment extends Fragment {
             lay.setVisibility(View.GONE);
             titleId = R.string.app_name;
         }
+
+        mEdtPin.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    onOkClicked();
+                }
+                return false;
+            }
+        });
 
         FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
         btnApply.setOnClickListener(new View.OnClickListener() {

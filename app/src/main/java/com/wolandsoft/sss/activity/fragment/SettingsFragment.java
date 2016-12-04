@@ -17,6 +17,7 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -25,6 +26,7 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.SwitchPreferenceCompat;
+import android.view.View;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
@@ -47,8 +49,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 return onPinSwitch((Boolean) newValue);
             }
         });
+    }
 
-
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
             actionBar.setTitle(R.string.label_settings);
