@@ -39,7 +39,7 @@ public class InputFilterMinMax implements InputFilter {
             int input = Integer.parseInt(dest.toString() + source.toString());
             if (isInRange(mMin, mMax, input))
                 return null;
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException ignored) {
         }
         return "";
     }

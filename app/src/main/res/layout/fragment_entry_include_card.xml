@@ -36,16 +36,16 @@
                 android:id="@+id/txtKey"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="?android:attr/colorPrimary" />
+                android:textColor="@color/colorPrimary" />
 
             <ImageView
                 android:id="@+id/imgMenu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                app:srcCompat="@mipmap/img24dp_3vdots" />
+                android:layout_gravity="end|center_vertical"
+                app:srcCompat="@mipmap/img24dp_3vdots"
+                android:contentDescription="@string/label_settings"/>
         </GridLayout>
 
         <GridLayout
@@ -60,7 +60,6 @@
                 android:id="@+id/txtValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textIsSelectable="true" />
 
@@ -68,8 +67,9 @@
                 android:id="@+id/imgProtected"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                app:srcCompat="@mipmap/img24dp_lock_g" />
+                android:layout_gravity="end|center_vertical"
+                app:srcCompat="@mipmap/img24dp_lock_g"
+                android:contentDescription="@string/label_encrypted"/>
         </GridLayout>
 
     </LinearLayout>

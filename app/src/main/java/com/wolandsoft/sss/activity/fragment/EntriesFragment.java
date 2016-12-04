@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
@@ -59,7 +59,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        AppCentral.init(context);
         SQLiteStorage sqltStorage = AppCentral.getInstance().getSQLiteStorage();
         LruCache<Integer, SecretEntry> entriesCache = AppCentral.getInstance().getEntriesCache();
 

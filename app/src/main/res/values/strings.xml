@@ -15,7 +15,6 @@
 -->
 <resources>
     <string name="app_name">Simple Secret Storage</string>
-    <string name="auth_service_label">Authentication Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
@@ -24,13 +23,8 @@
     <string name="enum_PASSWORD">Password</string>
 
     <string name="exception_internal">Internal error</string>
-    <string name="exception_record_not_found">Record %1$d not found</string>
-    <string name="exception_invalid_password">Invalid password</string>
-    <string name="exception_password_not_set">Password not set</string>
-    <string name="exception_storage_not_ready">Storage not ready</string>
     <string name="exception_no_storage_permission">No storage permission granted</string>
     <string name="exception_no_file_found">File not found %1$s</string>
-    <string name="exception_no_dir_found">Directory not found %1$s</string>
     <string name="exception_invalid_input_file">Invalid input file %1$s</string>
 
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
@@ -38,20 +32,20 @@
     <string name="title_secret_fields">Secret Fields</string>
     <string name="title_secret_field">Secret Field</string>
     <string name="title_generate_password">Generate Password</string>
+    <string name="title_master_pin" translatable="false">@string/label_master_pin</string>
+    <string name="title_export" translatable="false">@string/label_export</string>
+    <string name="title_import" translatable="false">@string/label_import</string>
 
-    <string name="label_created">Created</string>
-    <string name="label_updated">Updated</string>
     <string name="label_attribute_key">Field name</string>
     <string name="label_attribute_value">Field value</string>
-    <string name="label_attribute_protected">Encrypted</string>
+    <string name="label_encrypted">Encrypted</string>
     <string name="label_search">Search</string>
-    <string name="label_loading_ellipsis">Loading...</string>
+    <string name="label_loading_ellipsis">Loading&#8230;</string>
     <string name="label_delete_all">Delete The Secret Entry</string>
     <string name="label_delete_field">Delete The Field</string>
     <string name="label_delete">Delete</string>
     <string name="label_edit">Edit</string>
     <string name="label_copy">Copy</string>
-    <string name="label_generate">Generate</string>
     <string name="label_number_of_lowercase_chars">Number of Lowercase Characters</string>
     <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
     <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>
@@ -77,7 +71,13 @@
     <string name="label_conflict_resolution">Conflict Resolution</string>
     <string name="label_overwrite">Overwrite</string>
     <string name="label_merge">Merge</string>
-    <string name="label_license">License</string>
+    <string name="label_file">File</string>
+    <string name="label_directory">Directory</string>
+    <string name="label_logo">Logo</string>
+    <string name="label_master_pin">Master Pin</string>
+    <string name="label_enter_pin">Enter Pin</string>
+    <string name="label_enter_new_pin">Enter New Pin</string>
+    <string name="label_repeat_new_pin">Repeat New Pin</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -90,8 +90,11 @@
     <string name="message_no_password">No password defined.</string>
     <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
-    <string name="message_can_not_delete_before_protected_attribute">Top field before protected an not be deleted.</string>
+    <string name="message_can_not_delete_before_protected_attribute">Top field before protected can not be deleted.</string>
     <string name="message_import_process_completed">All data has been successfully imported.</string>
     <string name="message_export_process_completed">All data has been successfully exported.</string>
+    <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
+    <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
+    <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
 
 </resources>

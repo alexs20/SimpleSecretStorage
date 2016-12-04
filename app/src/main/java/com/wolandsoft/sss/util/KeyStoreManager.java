@@ -51,8 +51,9 @@ import javax.security.auth.x500.X500Principal;
 
 public class KeyStoreManager extends ContextWrapper {
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    private static final String KEY_ALIAS = "com_wolandsoft_sss0";
+    private static final String KEY_ALIAS = "ssspkey";
     private static final String CIPHER_MODE = "RSA/ECB/PKCS1Padding";
+    private static final String KEY_ALGORITHM_RSA = "RSA";
     private String alias;
     private KeyStore keystore;
     private Cipher encryptCipher;
@@ -68,12 +69,12 @@ public class KeyStoreManager extends ContextWrapper {
         keystore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keystore.load(null);
         if (!keystore.containsAlias(keyAlias)) {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
+            KeyPairGenerator generator = KeyPairGenerator.getInstance(KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
             X500Principal subj = new X500Principal("CN=" + keyAlias);
             Calendar start = Calendar.getInstance();
             Calendar end = Calendar.getInstance();
             end.add(Calendar.YEAR, 100);
-            if (android.os.Build.VERSION.SDK_INT >= 23) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
                         keyAlias, KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_ENCRYPT)
                         .setCertificateSubject(subj)
@@ -85,6 +86,7 @@ public class KeyStoreManager extends ContextWrapper {
                         .build();
                 generator.initialize(spec);
             } else {
+                //noinspection deprecation : it works only for android version blow 23
                 KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(this)
                         .setAlias(keyAlias)
                         .setSubject(subj)
@@ -96,9 +98,10 @@ public class KeyStoreManager extends ContextWrapper {
             }
             generator.generateKeyPair();
         }
+
         KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(keyAlias, null);
-        PublicKey publicKey = (PublicKey) privateKeyEntry.getCertificate().getPublicKey();
-        PrivateKey privateKey = (PrivateKey) privateKeyEntry.getPrivateKey();
+        PublicKey publicKey = privateKeyEntry.getCertificate().getPublicKey();
+        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
 
         encryptCipher = Cipher.getInstance(CIPHER_MODE);
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);

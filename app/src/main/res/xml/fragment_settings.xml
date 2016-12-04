@@ -13,7 +13,13 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<resources>
-    <item name="key_storage_id" translatable="false" type="string">storage_id</item>
-    <item name="value_storage_id_default" translatable="false" type="string">SQLiteStorage</item>
-</resources>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="@bool/pref_pin_enabled_value"
+        android:key="@string/pref_pin_enabled_key"
+        android:summary="@string/message_master_pin_validation"
+        android:title="@string/label_master_pin" />
+
+
+</PreferenceScreen>

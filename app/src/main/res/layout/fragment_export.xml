@@ -19,7 +19,6 @@
     android:layout_height="match_parent">
 
     <TableLayout
-        android:id="@+id/mainTable"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="5dip"
@@ -29,7 +28,6 @@
         android:shrinkColumns="1"
         android:stretchColumns="*">
 
-
         <TableRow>
 
             <TextView
@@ -37,13 +35,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_export_engine"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_gravity="center_vertical" />
 
             <Spinner
                 android:id="@+id/sprExtEngine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp" android:textAppearance="?android:attr/textAppearanceMedium"/>
         </TableRow>
 
         <TableRow android:id="@+id/trPassword">
@@ -52,6 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@+id/edtPassword"
                 android:text="@string/label_password"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -63,8 +65,6 @@
                 android:ems="10"
                 android:inputType="textPassword"
                 android:maxLines="1" />
-
-
         </TableRow>
 
         <TableRow android:id="@+id/trPasswordRepeat">
@@ -73,6 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@+id/edtPasswordRepeat"
                 android:text="@string/label_password_repeat"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -84,8 +85,6 @@
                 android:ems="10"
                 android:inputType="textPassword"
                 android:maxLines="1" />
-
-
         </TableRow>
 
         <TableRow android:id="@+id/trPasswordOpen">
@@ -94,6 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@+id/edtPasswordOpen"
                 android:text="@string/label_password"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -103,10 +103,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:inputType="text"
-                android:maxLines="1" />
-
-
+                android:maxLines="1"
+                android:inputType="textVisiblePassword" />
         </TableRow>
 
         <TableRow>
@@ -126,7 +124,7 @@
                     android:maxLines="1"
                     android:text="@string/label_select_destination"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="?android:attr/colorPrimary" />
+                    android:textColor="@color/colorPrimary" />
 
                 <Button
                     android:id="@+id/btnSelectDest"
@@ -138,8 +136,6 @@
                     android:minWidth="0dp"
                     android:text="@string/label_ellipsis" />
             </LinearLayout>
-
-
         </TableRow>
     </TableLayout>
 
@@ -157,7 +153,6 @@
             android:layout_centerHorizontal="false"
             android:layout_centerInParent="true"
             android:layout_centerVertical="false" />
-
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
@@ -169,6 +164,4 @@
         android:layout_margin="16dp"
         android:src="@mipmap/img24dp_ok"
         app:fabSize="normal" />
-
-
 </RelativeLayout>

@@ -28,14 +28,13 @@
             android:id="@+id/imgIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentTop="true"
             android:layout_marginBottom="5dp"
             android:layout_marginEnd="5dp"
             android:layout_marginStart="5dp"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            app:srcCompat="@mipmap/img48dp_lock_g" />
+            app:srcCompat="@mipmap/img48dp_lock_g"
+            android:contentDescription="@string/label_logo"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -46,8 +45,6 @@
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentTop="true"
                 android:layout_marginBottom="1dp"
                 android:layout_marginTop="5dp"
                 android:gravity="center_vertical"
@@ -57,8 +54,6 @@
                 android:id="@+id/txtTitleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentTop="true"
                 android:layout_marginBottom="5dp"
                 android:layout_marginTop="1dp"
                 android:gravity="center_vertical"

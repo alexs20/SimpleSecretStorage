@@ -38,6 +38,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
@@ -116,8 +117,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 if (mRVAdapter.getItemCount() == 1) {
                     //can not delete last element
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
-                            R.string.label_delete_field, R.string.message_can_not_delete_last_attribute, false, null);
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                            R.string.label_error, R.string.message_can_not_delete_last_attribute, false, null);
                     fragment.setCancelable(true);
                     fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE_CONFIRMATION_DIALOG);
                     transaction.addToBackStack(null);
@@ -125,8 +126,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 } else if (position == 0 && mRVAdapter.getSecretEntry().get(1).isProtected()) {
                     //can not perform delete operation when result leads to make a protected field be moved to the top
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
-                            R.string.label_delete_field, R.string.message_can_not_delete_before_protected_attribute, false, null);
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                            R.string.label_error, R.string.message_can_not_delete_before_protected_attribute, false, null);
                     fragment.setCancelable(true);
                     fragment.setTargetFragment(EntryFragment.this, DELETE_ATTRIBUTE_CONFIRMATION_DIALOG);
                     transaction.addToBackStack(null);
@@ -361,6 +362,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
+                        Toast.makeText(holder.mView.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             }

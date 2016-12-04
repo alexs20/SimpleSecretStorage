@@ -39,11 +39,11 @@ public interface IExternal {
      */
     String getID();
 
-    public enum ConflictResolution {
-        overwrite, merge;
+    enum ConflictResolution {
+        overwrite, merge
     }
 
-    public interface OnExternalInteract {
+    interface OnExternalInteract {
         void onPermissionRequest(String permission);
     }
 }
