@@ -160,12 +160,14 @@ public class MainActivity extends AppCompatActivity implements
             if (actionBar != null) {
                 actionBar.hide();
             }
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            Fragment fragment = PinFragment.newInstance(false);
-            transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
-            transaction.addToBackStack(PinFragment.class.getName());
-            transaction.commit();
-            controlDrawerAvailability();
+            if(getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = PinFragment.newInstance(false);
+                transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
+                transaction.addToBackStack(PinFragment.class.getName());
+                transaction.commit();
+                controlDrawerAvailability();
+            }
             return;
         }
     }
