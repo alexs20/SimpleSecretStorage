@@ -161,13 +161,9 @@ public class MainActivity extends AppCompatActivity implements
                 actionBar.hide();
             }
             if(getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                Fragment fragment = PinFragment.newInstance(false);
-                transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
-                transaction.addToBackStack(PinFragment.class.getName());
-                transaction.commit();
-                controlDrawerAvailability();
+                openPinValidationFragment();
             }
+            controlDrawerAvailability();
             return;
         }
     }
@@ -246,6 +242,14 @@ public class MainActivity extends AppCompatActivity implements
         transaction.commit();
     }
 
+    private void openPinValidationFragment(){
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment fragment = PinFragment.newInstance(false);
+        transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
+        transaction.addToBackStack(PinFragment.class.getName());
+        transaction.commit();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -295,6 +299,8 @@ public class MainActivity extends AppCompatActivity implements
                     actionBar.show();
                 }
                 controlDrawerAvailability();
+            } else {
+                openPinValidationFragment();
             }
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             LogEx.e(e.getMessage(), e);
