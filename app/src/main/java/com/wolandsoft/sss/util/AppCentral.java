@@ -55,7 +55,7 @@ public class AppCentral extends ContextWrapper {
         } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
                 | IOException | InvalidKeyException | InvalidAlgorithmParameterException
                 | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, e.getClass().getSimpleName() + " " + e.getMessage(), Toast.LENGTH_LONG).show();
             LogEx.e(e.getMessage(), e);
         }
         try {

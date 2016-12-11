@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements
     private void openPinValidationFragment(){
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = PinFragment.newInstance(false);
-        transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
+        transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(PinFragment.class.getName());
         transaction.commit();
     }
