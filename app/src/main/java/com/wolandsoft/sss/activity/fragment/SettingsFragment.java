@@ -18,6 +18,7 @@ package com.wolandsoft.sss.activity.fragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -30,6 +31,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
@@ -38,6 +40,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
+    private static final String KEY_PIN = "pin";
+    private String mPin = null;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.fragment_settings, rootKey);
@@ -49,6 +54,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 return onPinSwitch((Boolean) newValue);
             }
         });
+
+        if (savedInstanceState != null) {
+            mPin = savedInstanceState.getString(KEY_PIN);
+        }
     }
 
     @Override
@@ -59,14 +68,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             actionBar.setTitle(R.string.label_settings);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_PIN, mPin);
+    }
+
     private boolean onPinSwitch(boolean newState) {
         if (newState) {
-            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-            Fragment fragment = PinFragment.newInstance(true);
-            fragment.setTargetFragment(this, 0);
-            transaction.replace(R.id.content_fragment, fragment);
-            transaction.addToBackStack(PinFragment.class.getName());
-            transaction.commit();
+            mPin = null;
+            showPinFragment(R.string.label_enter_new_pin);
             return false;
         }
         return true;
@@ -83,19 +94,39 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
         }
     }
 
+    private void showPinFragment(int msgResId) {
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment = PinFragment.newInstance(msgResId);
+        fragment.setTargetFragment(this, 0);
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(PinFragment.class.getName());
+        transaction.commit();
+    }
+
     @Override
     public void onPinProvided(String pin) {
-        if (pin != null && pin.length() == 4) {
-            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-            try {
-                ksPref.edit()
-                        .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, AppCentral.getInstance().getKeyStoreManager().encrypt(pin))
-                        .apply();
-            } catch (BadPaddingException | IllegalBlockSizeException e) {
-                LogEx.e(e.getMessage(), e);
-                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        if (mPin == null) {
+            mPin = pin;
+            showPinFragment(R.string.label_repeat_new_pin);
+        } else {
+            if (mPin.equals(pin)) {
+                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+                try {
+                    ksPref.edit()
+                            .putBoolean(R.string.pref_pin_enabled_key, true)
+                            .putString(R.string.pref_pin_key, AppCentral.getInstance().getKeyStoreManager().encrypt(pin))
+                            .apply();
+                } catch (BadPaddingException | IllegalBlockSizeException e) {
+                    LogEx.e(e.getMessage(), e);
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            } else {
+                FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                        R.string.label_error, R.string.message_repeated_pin_no_the_same, false, null);
+                fragment.setCancelable(true);
+                fragment.show(transaction, null);
             }
         }
     }
