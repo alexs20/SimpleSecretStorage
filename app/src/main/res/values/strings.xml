@@ -15,6 +15,7 @@
 -->
 <resources>
     <string name="app_name">Simple Secret Storage</string>
+    <string name="screen_monitor_service_name">Screen Monitor Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>

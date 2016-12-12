@@ -17,6 +17,8 @@ package com.wolandsoft.sss.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -43,11 +45,10 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
+import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
-
-import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements
             Fragment fragment = new EntriesFragment();
             transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
             transaction.commit();
+            ScreenMonitorService.manageService(false, this);
         }
 
         //Listen for changes in the back stack
@@ -148,19 +150,24 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value);
+        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ScreenMonitorService.isServiceRunning(this);
         //pin protection enabled
         if (mIsLocked) {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.hide();
             }
-            if(getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
+            if (getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
                 openPinValidationFragment();
             }
             controlDrawerAvailability();
@@ -242,10 +249,10 @@ public class MainActivity extends AppCompatActivity implements
         transaction.commit();
     }
 
-    private void openPinValidationFragment(){
+    private void openPinValidationFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = PinFragment.newInstance(R.string.label_enter_pin);
-        transaction.replace(R.id.content_fragment, fragment);
+        transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
         transaction.addToBackStack(PinFragment.class.getName());
         transaction.commit();
     }
@@ -299,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements
                     actionBar.show();
                 }
                 controlDrawerAvailability();
+                ScreenMonitorService.manageService(true, this);
             } else {
                 openPinValidationFragment();
             }
@@ -310,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        if(!mIsLocked){
+        if (!mIsLocked) {
             super.onBackPressed();
         }
     }

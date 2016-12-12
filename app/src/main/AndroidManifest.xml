@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
 
+        <service
+            android:name=".service.ScreenMonitorService"
+            android:description="@string/screen_monitor_service_name"
+            android:label="@string/screen_monitor_service_name"
+            />
+
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"

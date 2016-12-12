@@ -38,4 +38,6 @@
     <item name="pref_pin_enabled_key" translatable="false" type="string">pin_enabled</item>
     <item name="pref_pin_enabled_value" translatable="false" type="bool">false</item>
     <item name="pref_pin_key" translatable="false" type="string">pin</item>
+    <item name="pref_pin_enabled_after_inactivity_sec_value" translatable="false" type="integer">3</item>
+
 </resources>

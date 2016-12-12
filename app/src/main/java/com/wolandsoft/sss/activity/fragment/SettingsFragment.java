@@ -32,6 +32,7 @@ import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
@@ -79,6 +80,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             mPin = null;
             showPinFragment(R.string.label_enter_new_pin);
             return false;
+        } else {
+            ScreenMonitorService.manageService(false, getContext());
         }
         return true;
     }
@@ -117,6 +120,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                             .putBoolean(R.string.pref_pin_enabled_key, true)
                             .putString(R.string.pref_pin_key, AppCentral.getInstance().getKeyStoreManager().encrypt(pin))
                             .apply();
+                    ScreenMonitorService.manageService(true, getContext());
                 } catch (BadPaddingException | IllegalBlockSizeException e) {
                     LogEx.e(e.getMessage(), e);
                     Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
