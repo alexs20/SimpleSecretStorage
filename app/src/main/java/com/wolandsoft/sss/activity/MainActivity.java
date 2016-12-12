@@ -30,6 +30,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.TimeUtils;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -49,6 +50,8 @@ import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
+
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -168,7 +171,8 @@ public class MainActivity extends AppCompatActivity implements
                 actionBar.hide();
             }
             if (getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
-                openPinValidationFragment();
+                int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+                openPinValidationFragment(delaySec);
             }
             controlDrawerAvailability();
             return;
@@ -249,9 +253,9 @@ public class MainActivity extends AppCompatActivity implements
         transaction.commit();
     }
 
-    private void openPinValidationFragment() {
+    private void openPinValidationFragment(int delaySec) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = PinFragment.newInstance(R.string.label_enter_pin);
+        Fragment fragment = PinFragment.newInstance(R.string.label_enter_pin, TimeUnit.SECONDS.toMillis(delaySec));
         transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
         transaction.addToBackStack(PinFragment.class.getName());
         transaction.commit();
@@ -301,6 +305,8 @@ public class MainActivity extends AppCompatActivity implements
             storedPin = AppCentral.getInstance().getKeyStoreManager().decrupt(storedPin);
             mIsLocked = !pin.equals(storedPin);
             if (!mIsLocked) {
+                //resetting pin response delay to zero.
+                ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
                 ActionBar actionBar = getSupportActionBar();
                 if (actionBar != null) {
                     actionBar.show();
@@ -308,7 +314,11 @@ public class MainActivity extends AppCompatActivity implements
                 controlDrawerAvailability();
                 ScreenMonitorService.manageService(true, this);
             } else {
-                openPinValidationFragment();
+                //incrementing pin response delay on each invalid pin provided.
+                int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+                delaySec++;
+                ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
+                openPinValidationFragment(delaySec);
             }
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             LogEx.e(e.getMessage(), e);

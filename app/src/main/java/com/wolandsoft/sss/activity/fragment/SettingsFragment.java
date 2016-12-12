@@ -99,7 +99,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
 
     private void showPinFragment(int msgResId) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = PinFragment.newInstance(msgResId);
+        Fragment fragment = PinFragment.newInstance(msgResId, 0);
         fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(PinFragment.class.getName());
