@@ -15,7 +15,9 @@
  */
 package com.wolandsoft.sss.entity;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.LinkedList;
 
 /**
@@ -24,7 +26,18 @@ import java.util.LinkedList;
  * @author Alexander Shulgin
  */
 
-public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Serializable {
+public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Parcelable {
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator<SecretEntry>() {
+        public SecretEntry createFromParcel(Parcel in) {
+            return new SecretEntry(in);
+        }
+
+        public SecretEntry[] newArray(int size) {
+            return new SecretEntry[size];
+        }
+    };
+
     private int id;
     private long created;
     private long updated;
@@ -39,6 +52,13 @@ public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Ser
         this.updated = updated;
     }
 
+    public SecretEntry(Parcel parcel) {
+        this.id = parcel.readInt();
+        this.created = parcel.readLong();
+        this.updated = parcel.readLong();
+        parcel.readList(this, getClass().getClassLoader());
+    }
+
     public int getID() {
         return id;
     }
@@ -49,5 +69,18 @@ public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Ser
 
     public long getUpdated() {
         return updated;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeInt(id);
+        parcel.writeLong(created);
+        parcel.writeLong(updated);
+        parcel.writeList(this);
     }
 }

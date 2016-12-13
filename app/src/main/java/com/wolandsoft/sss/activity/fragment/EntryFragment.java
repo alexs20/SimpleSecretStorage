@@ -49,7 +49,6 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Locale;
@@ -78,7 +77,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         EntryFragment fragment = new EntryFragment();
         if (entry != null) {
             Bundle args = new Bundle();
-            args.putSerializable(ARG_ENTRY, (Serializable) entry.clone());
+            args.putParcelable(ARG_ENTRY, entry);
             fragment.setArguments(args);
         }
         return fragment;
@@ -114,7 +113,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         SecretEntry entry;
         Bundle args = getArguments();
         if (args != null && !args.isEmpty()) {
-            entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+            entry = (SecretEntry) args.getParcelable(ARG_ENTRY);
         } else {
             entry = new SecretEntry();
             for (PredefinedAttribute attr : PredefinedAttribute.values()) {

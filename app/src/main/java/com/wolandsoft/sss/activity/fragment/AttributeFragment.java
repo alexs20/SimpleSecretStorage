@@ -68,7 +68,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             attr = new SecretEntryAttribute("", "", false);
         }
         Bundle args = new Bundle();
-        args.putSerializable(ARG_ATTR, attr);
+        args.putParcelable(ARG_ATTR, attr);
         args.putInt(ARG_ATTR_POS, attrPos);
         fragment.setArguments(args);
         return fragment;
@@ -79,7 +79,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         super.onAttach(context);
 
         Bundle args = getArguments();
-        mAttr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
+        mAttr = (SecretEntryAttribute) args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
 
         if (context instanceof ISharedObjects) {
