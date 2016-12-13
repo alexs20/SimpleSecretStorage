@@ -80,7 +80,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         Bundle args = getArguments();
         mAttr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
-        mKsMgr = AppCentral.getInstance().getKeyStoreManager();
+        mKsMgr = AppCentral.getInstance(context).getKeyStoreManager();
     }
 
     @Override
@@ -171,7 +171,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private void onOkClicked() {
         View currentFocus = getActivity().getCurrentFocus();
         if (currentFocus != null) {
-            //nide soft keyboard
+            //hide soft keyboard
             InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
@@ -179,7 +179,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
             try {
-                protectedStr = AppCentral.getInstance().getKeyStoreManager().encrypt(protectedStr);
+                protectedStr = AppCentral.getInstance(getContext()).getKeyStoreManager().encrypt(protectedStr);
             } catch (BadPaddingException | IllegalBlockSizeException e) {
                 LogEx.e(e.getMessage(), e);
             }

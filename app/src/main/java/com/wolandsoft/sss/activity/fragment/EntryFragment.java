@@ -46,6 +46,7 @@ import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.Serializable;
@@ -156,7 +157,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 transaction.addToBackStack(EntryFragment.class.getName());
                 transaction.commit();
             }
-        });
+        }, AppCentral.getInstance(getContext()).getKeyStoreManager());
     }
 
     @Override
@@ -309,10 +310,12 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder> implements ItemTouchHelperAdapter {
         private SecretEntry mEntry;
         private OnSecretEntryAttributeActionListener mListener;
+        private KeyStoreManager mKsMgr;
 
-        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener) {
+        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener, KeyStoreManager ksMgr) {
             mEntry = entry;
             mListener = listener;
+            mKsMgr = ksMgr;
         }
 
         @Override
@@ -358,7 +361,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     try {
-                        String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                        String plain = mKsMgr.decrupt(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
@@ -408,7 +411,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                             if (attr.isProtected()) {
                                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                                     try {
-                                        text = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                                        text = mKsMgr.decrupt(attr.getValue());
                                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                                         LogEx.e(e.getMessage(), e);
                                     }

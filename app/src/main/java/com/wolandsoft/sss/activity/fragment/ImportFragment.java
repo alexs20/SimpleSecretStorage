@@ -15,23 +15,31 @@
  */
 package com.wolandsoft.sss.activity.fragment;
 
+import android.Manifest;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -39,7 +47,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,7 +70,12 @@ import java.util.List;
  */
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
-    private final static int DONE_DIALOG = 1;
+    private static final int DONE_DIALOG = 1;
+    private static final String[] REQ_PERMISSIONS = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
@@ -71,15 +83,19 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     private TextView mTxtSourcePath;
     private EditText mEdtPassword;
     private EditText mEdtPasswordOpen;
-    private RelativeLayout mLayWait;
-    private boolean mIsShowPwd;
     private FloatingActionButton mBtnApply;
+    private TextView mTxtExtEngineLabel;
+    private TextView mTxtConflictResLabel;
+    private Button mBtnPermissions;
+    private RelativeLayout mLayoutWait;
+    private RelativeLayout mLayoutForm;
+    private RelativeLayout mLayoutPermissions;
+    private boolean mIsShowPwd;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         ExternalFactory extFactory = ExternalFactory.getInstance(context);
-
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -90,21 +106,87 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_import, container, false);
+        int[] attrs = new int[]{android.R.attr.colorControlActivated, android.R.attr.textColorSecondary};
+        TypedArray a = getActivity().getTheme().obtainStyledAttributes(R.style.AppTheme, attrs);
+        final int colorActive = a.getColor(0, Color.RED);
+        final int colorPassive = a.getColor(1, Color.BLACK);
+        a.recycle();
 
+        View view = inflater.inflate(R.layout.fragment_import, container, false);
+        mTxtExtEngineLabel = (TextView) view.findViewById(R.id.txtExtEngineLabel);
+        mTxtExtEngineLabel.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                mTxtExtEngineLabel.setTextColor(b ? colorActive : colorPassive);
+            }
+        });
+        mTxtExtEngineLabel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mTxtExtEngineLabel.setFocusable(false);
+                mTxtExtEngineLabel.setFocusableInTouchMode(false);
+                return false;
+            }
+        });
         mSprExtEngine = (Spinner) view.findViewById(R.id.sprExtEngine);
+        mSprExtEngine.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mTxtExtEngineLabel.setFocusable(true);
+                mTxtExtEngineLabel.setFocusableInTouchMode(true);
+                mTxtExtEngineLabel.requestFocus();
+                return false;
+            }
+        });
+
+        mTxtConflictResLabel = (TextView) view.findViewById(R.id.txtConflictResLabel);
+        mTxtConflictResLabel.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                mTxtConflictResLabel.setTextColor(b ? colorActive : colorPassive);
+            }
+        });
+        mTxtConflictResLabel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mTxtConflictResLabel.setFocusable(false);
+                mTxtConflictResLabel.setFocusableInTouchMode(false);
+                return false;
+            }
+        });
         mSprConflictResolution = (Spinner) view.findViewById(R.id.sprConflictResolution);
+        mSprConflictResolution.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mTxtConflictResLabel.setFocusable(true);
+                mTxtConflictResLabel.setFocusableInTouchMode(true);
+                mTxtConflictResLabel.requestFocus();
+                return false;
+            }
+        });
+
         mEdtPassword = (EditText) view.findViewById(R.id.edtPassword);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
         mTxtSourcePath = (TextView) view.findViewById(R.id.txtSourcePath);
-        Button btnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
-        btnSelectDest.setOnClickListener(new View.OnClickListener() {
+        Button btnSelectSource = (Button) view.findViewById(R.id.btnSelectSource);
+        btnSelectSource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onDestinationSelectClicked();
+                onSourceSelectClicked();
             }
         });
-        mLayWait = (RelativeLayout) view.findViewById(R.id.layWait);
+
+        mBtnPermissions = (Button) view.findViewById(R.id.btnPermissions);
+        mBtnPermissions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPermissionsRequested();
+            }
+        });
+
+        mLayoutWait = (RelativeLayout) view.findViewById(R.id.layoutWait);
+        mLayoutForm = (RelativeLayout) view.findViewById(R.id.layoutForm);
+        mLayoutPermissions = (RelativeLayout) view.findViewById(R.id.layoutPermissions);
 
         if (savedInstanceState == null) {
 
@@ -130,14 +212,51 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         return view;
     }
 
-    private void setOpenPasswordView(View view) {
-        TableRow tr = (TableRow) view.findViewById(R.id.trPasswordOpen);
-        tr.setVisibility(mIsShowPwd ? View.VISIBLE : View.GONE);
-        tr = (TableRow) view.findViewById(R.id.trPassword);
-        tr.setVisibility(mIsShowPwd ? View.GONE : View.VISIBLE);
+    private void onPermissionsRequested() {
+        boolean askForPermissionsDirect = false;
+        for (String permission : REQ_PERMISSIONS) {
+            int permissionGranted = ContextCompat.checkSelfPermission(getContext(), permission);
+            if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
+                askForPermissionsDirect = askForPermissionsDirect || shouldShowRequestPermissionRationale(permission);
+            }
+        }
+        if (askForPermissionsDirect) {
+            requestPermissions(REQ_PERMISSIONS, 0);
+        } else {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
+            intent.setData(uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            startActivityForResult(intent, 0);
+        }
     }
 
-    private void onDestinationSelectClicked() {
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        boolean askForPermissions = false;
+        for (String permission : REQ_PERMISSIONS) {
+            int permissionGranted = ContextCompat.checkSelfPermission(getContext(), permission);
+            if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
+                askForPermissions = true;
+                break;
+            }
+        }
+        mLayoutForm.setVisibility(askForPermissions ? View.GONE : View.VISIBLE);
+        mLayoutPermissions.setVisibility(askForPermissions ? View.VISIBLE : View.GONE);
+    }
+
+    private void setOpenPasswordView(View view) {
+        TextInputLayout til = (TextInputLayout) view.findViewById(R.id.tilPasswordOpen);
+        til.setVisibility(mIsShowPwd ? View.VISIBLE : View.GONE);
+        til = (TextInputLayout) view.findViewById(R.id.tilPassword);
+        til.setVisibility(mIsShowPwd ? View.GONE : View.VISIBLE);
+    }
+
+    private void onSourceSelectClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         DialogFragment fragment = FileDialogFragment.newInstance(true);
         fragment.setCancelable(true);
@@ -193,14 +312,14 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                mLayWait.setVisibility(View.VISIBLE);
+                mLayoutWait.setVisibility(View.VISIBLE);
                 mBtnApply.setEnabled(false);
             }
 
             @Override
             protected void onPostExecute(Boolean aBoolean) {
                 super.onPostExecute(aBoolean);
-                mLayWait.setVisibility(View.GONE);
+                mLayoutWait.setVisibility(View.GONE);
                 if (aBoolean) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
@@ -215,8 +334,8 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             @Override
             protected Boolean doInBackground(ExportArgs... params) {
                 try {
-                    params[0].engine.doImport(AppCentral.getInstance().getSQLiteStorage(),
-                            AppCentral.getInstance().getKeyStoreManager(), params[0].conflictResolution,
+                    params[0].engine.doImport(AppCentral.getInstance(getContext()).getSQLiteStorage(),
+                            AppCentral.getInstance(getContext()).getKeyStoreManager(), params[0].conflictResolution,
                             params[0].source.toURI(), params[0].password);
                 } catch (ExternalException e) {
                     LogEx.e(e.getMessage(), e);

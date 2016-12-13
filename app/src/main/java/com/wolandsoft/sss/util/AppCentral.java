@@ -67,13 +67,10 @@ public class AppCentral extends ContextWrapper {
         mEntryCache = new LruCache<>(ENTRIES_CACHE_SIZE);
     }
 
-    public static void init(Context context) {
+    public static AppCentral getInstance(Context context) {
         if (mThisInstance == null) {
-            mThisInstance = new AppCentral(context);
+            mThisInstance = new AppCentral(context.getApplicationContext());
         }
-    }
-
-    public static AppCentral getInstance() {
         return mThisInstance;
     }
 

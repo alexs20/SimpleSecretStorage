@@ -118,7 +118,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 try {
                     ksPref.edit()
                             .putBoolean(R.string.pref_pin_enabled_key, true)
-                            .putString(R.string.pref_pin_key, AppCentral.getInstance().getKeyStoreManager().encrypt(pin))
+                            .putString(R.string.pref_pin_key, AppCentral.getInstance(getContext()).getKeyStoreManager().encrypt(pin))
                             .apply();
                     ScreenMonitorService.manageService(true, getContext());
                 } catch (BadPaddingException | IllegalBlockSizeException e) {

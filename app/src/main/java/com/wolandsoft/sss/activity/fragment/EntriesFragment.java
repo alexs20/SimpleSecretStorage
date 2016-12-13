@@ -59,8 +59,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        SQLiteStorage sqltStorage = AppCentral.getInstance().getSQLiteStorage();
-        LruCache<Integer, SecretEntry> entriesCache = AppCentral.getInstance().getEntriesCache();
+        SQLiteStorage sqltStorage = AppCentral.getInstance(context).getSQLiteStorage();
+        LruCache<Integer, SecretEntry> entriesCache = AppCentral.getInstance(context).getEntriesCache();
 
         SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
             @Override

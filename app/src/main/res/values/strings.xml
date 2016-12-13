@@ -79,6 +79,7 @@
     <string name="label_enter_pin">Enter Pin</string>
     <string name="label_enter_new_pin">Enter New Pin</string>
     <string name="label_repeat_new_pin">Repeat New Pin</string>
+    <string name="label_request_permissions">Request Permissions</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -97,5 +98,7 @@
     <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
     <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
+
+    <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
 
 </resources>

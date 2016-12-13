@@ -15,12 +15,8 @@
  */
 package com.wolandsoft.sss.activity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,8 +25,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.util.TimeUtils;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -65,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
         PinFragment.OnFragmentToFragmentInteract {
-    private static final int REQUEST_IMPORT = 1;
-    private static final int REQUEST_EXPORT = 2;
     private DrawerLayout mDrawerLayout;
     private NavigationView mDrawerView;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -76,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        AppCentral.init(getApplicationContext());
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new EntriesFragment();
@@ -194,35 +185,25 @@ public class MainActivity extends AppCompatActivity implements
         mDrawerLayout.closeDrawers();
 
         switch (menuItem.getItemId()) {
-            case R.id.navExport:
-            case R.id.navImport:
-                String[] requiredPermissions = new String[]{
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                };
-                boolean askForPermissions = false;
-                for (String permission : requiredPermissions) {
-                    int permissionGranted = ContextCompat.checkSelfPermission(this, permission);
-                    if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
-                        askForPermissions = true;
-                        break;
-                    }
-                }
-                if (askForPermissions) {
-                    ActivityCompat.requestPermissions(this, requiredPermissions,
-                            menuItem.getItemId() == R.id.navExport ? REQUEST_EXPORT : REQUEST_IMPORT);
-                } else {
-                    switch (menuItem.getItemId()) {
-                        case R.id.navExport:
-                            openExportFragment();
-                            break;
-                        case R.id.navImport:
-                            openImportFragment();
-                            break;
-                    }
-                }
+            case R.id.navExport: {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new ExportFragment();
+                transaction.replace(R.id.content_fragment, fragment, ExportFragment.class.getName());
+                transaction.addToBackStack(ExportFragment.class.getName());
+                transaction.commit();
                 break;
-            case R.id.navSettings:
+            }
+            case R.id.navImport: {
+                Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new ImportFragment();
+                fragment.setTargetFragment(target, 0);
+                transaction.replace(R.id.content_fragment, fragment, ImportFragment.class.getName());
+                transaction.addToBackStack(ImportFragment.class.getName());
+                transaction.commit();
+                break;
+            }
+            case R.id.navSettings: {
                 Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 Fragment fragment = new SettingsFragment();
@@ -231,26 +212,9 @@ public class MainActivity extends AppCompatActivity implements
                 transaction.addToBackStack(SettingsFragment.class.getName());
                 transaction.commit();
                 break;
+            }
         }
 
-    }
-
-    private void openImportFragment() {
-        Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new ImportFragment();
-        fragment.setTargetFragment(target, 0);
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(ImportFragment.class.getName());
-        transaction.commit();
-    }
-
-    private void openExportFragment() {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new ExportFragment();
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(ExportFragment.class.getName());
-        transaction.commit();
     }
 
     private void openPinValidationFragment(int delaySec) {
@@ -284,17 +248,6 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        switch (requestCode) {
-            case REQUEST_EXPORT:
-            case REQUEST_IMPORT:
-                break;
-        }
-    }
-
     @SuppressLint("StringFormatInvalid")
     @Override
     public void onPinProvided(String pin) {
@@ -302,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements
             SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
             String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-            storedPin = AppCentral.getInstance().getKeyStoreManager().decrupt(storedPin);
+            storedPin = AppCentral.getInstance(this).getKeyStoreManager().decrupt(storedPin);
             mIsLocked = !pin.equals(storedPin);
             if (!mIsLocked) {
                 //resetting pin response delay to zero.
