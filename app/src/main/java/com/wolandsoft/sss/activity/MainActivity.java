@@ -30,6 +30,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.LruCache;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -40,15 +41,27 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
+import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.service.ScreenMonitorService;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Main UI class of the app.
@@ -58,15 +71,41 @@ import javax.crypto.IllegalBlockSizeException;
 public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        PinFragment.OnFragmentToFragmentInteract {
+        PinFragment.OnFragmentToFragmentInteract,
+        ISharedObjects {
+    //some shared objects
+    private static final int ENTRIES_CACHE_SIZE = 100;
     private DrawerLayout mDrawerLayout;
     private NavigationView mDrawerView;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
+    private KeyStoreManager mKSManager;
+    private SQLiteStorage mSQLtStorage;
+    private LruCache<Integer, SecretEntry> mEntryCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //security keystore initialization
+        try {
+            mKSManager = new KeyStoreManager(getApplicationContext());
+        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
+                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
+                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //db initialization
+        try {
+            mSQLtStorage = new SQLiteStorage(getApplicationContext());
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //entries cache
+        mEntryCache = new LruCache<>(ENTRIES_CACHE_SIZE);
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -255,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements
             SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
             String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-            storedPin = AppCentral.getInstance(this).getKeyStoreManager().decrupt(storedPin);
+            storedPin = mKSManager.decrupt(storedPin);
             mIsLocked = !pin.equals(storedPin);
             if (!mIsLocked) {
                 //resetting pin response delay to zero.
@@ -284,5 +323,20 @@ public class MainActivity extends AppCompatActivity implements
         if (!mIsLocked) {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public KeyStoreManager getKeyStoreManager() {
+        return mKSManager;
+    }
+
+    @Override
+    public SQLiteStorage getSQLiteStorage() {
+        return mSQLtStorage;
+    }
+
+    @Override
+    public LruCache<Integer, SecretEntry> getSecretEntriesCache() {
+        return mEntryCache;
     }
 }

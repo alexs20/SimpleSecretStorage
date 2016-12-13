@@ -15,6 +15,7 @@
 */
 package com.wolandsoft.sss.activity.fragment;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,10 +32,11 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.service.ScreenMonitorService;
-import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 import javax.crypto.BadPaddingException;
@@ -43,6 +45,23 @@ import javax.crypto.IllegalBlockSizeException;
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
     private String mPin = null;
+    private KeyStoreManager mKSManager;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        ISharedObjects sharedObj;
+        if (context instanceof ISharedObjects) {
+            sharedObj = (ISharedObjects) context;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
+        mKSManager = sharedObj.getKeyStoreManager();
+    }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -118,7 +137,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 try {
                     ksPref.edit()
                             .putBoolean(R.string.pref_pin_enabled_key, true)
-                            .putString(R.string.pref_pin_key, AppCentral.getInstance(getContext()).getKeyStoreManager().encrypt(pin))
+                            .putString(R.string.pref_pin_key, mKSManager.encrypt(pin))
                             .apply();
                     ScreenMonitorService.manageService(true, getContext());
                 } catch (BadPaddingException | IllegalBlockSizeException e) {

@@ -41,11 +41,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -87,6 +87,17 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        ISharedObjects sharedObj;
+        if (context instanceof ISharedObjects) {
+            sharedObj = (ISharedObjects) context;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
+
         Fragment parent = getTargetFragment();
         if (parent instanceof OnFragmentToFragmentInteract) {
             mListener = (OnFragmentToFragmentInteract) parent;
@@ -157,7 +168,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 transaction.addToBackStack(EntryFragment.class.getName());
                 transaction.commit();
             }
-        }, AppCentral.getInstance(getContext()).getKeyStoreManager());
+        }, sharedObj.getKeyStoreManager());
     }
 
     @Override

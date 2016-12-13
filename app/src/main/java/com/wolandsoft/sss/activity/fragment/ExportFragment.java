@@ -51,12 +51,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.File;
@@ -96,9 +98,25 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private RelativeLayout mLayoutPermissions;
     private boolean mIsShowPwd;
 
+    private KeyStoreManager mKSManager;
+    private SQLiteStorage mSQLtStorage;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        ISharedObjects sharedObj;
+        if (context instanceof ISharedObjects) {
+            sharedObj = (ISharedObjects) context;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
+        mKSManager = sharedObj.getKeyStoreManager();
+        mSQLtStorage = sharedObj.getSQLiteStorage();
+
         ExternalFactory extFactory = ExternalFactory.getInstance(context);
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
@@ -323,8 +341,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             @Override
             protected Boolean doInBackground(ExportArgs... params) {
                 try {
-                    params[0].engine.doExport(AppCentral.getInstance(getContext()).getSQLiteStorage(),
-                            AppCentral.getInstance(getContext()).getKeyStoreManager(),
+                    params[0].engine.doExport(mSQLtStorage, mKSManager,
                             params[0].destination.toURI(), params[0].password);
                 } catch (ExternalException e) {
                     LogEx.e(e.getMessage(), e);

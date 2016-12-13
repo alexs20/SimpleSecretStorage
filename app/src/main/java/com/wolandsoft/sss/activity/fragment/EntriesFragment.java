@@ -40,10 +40,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.LogEx;
 
 
@@ -59,16 +59,23 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        SQLiteStorage sqltStorage = AppCentral.getInstance(context).getSQLiteStorage();
-        LruCache<Integer, SecretEntry> entriesCache = AppCentral.getInstance(context).getEntriesCache();
 
+        ISharedObjects sharedObj;
+        if (context instanceof ISharedObjects) {
+            sharedObj = (ISharedObjects) context;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
         SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
             @Override
             public void onSecretEntryClick(SecretEntry entry) {
                 EntriesFragment.this.onSecretEntryClick(entry);
             }
         };
-        mRVAdapter = new SecretEntriesAdapter(icl, sqltStorage, entriesCache);
+        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(), sharedObj.getSecretEntriesCache());
     }
 
     @Override
