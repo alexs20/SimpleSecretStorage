@@ -33,6 +33,7 @@ import android.support.v7.preference.PreferenceManager;
 import android.util.LruCache;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
@@ -105,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements
         mEntryCache = new LruCache<>(ENTRIES_CACHE_SIZE);
 
         super.onCreate(savedInstanceState);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
 
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
