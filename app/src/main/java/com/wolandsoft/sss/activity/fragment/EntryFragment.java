@@ -256,13 +256,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 }
                 break;
             case DELETE_ATTRIBUTE_CONFIRMATION_DIALOG:
+                int position = args.getInt(ARG_POSITION);
                 if (resultCode == Activity.RESULT_OK) {
-                    int position = args.getInt(ARG_POSITION);
                     mRVAdapter.getSecretEntry().remove(position);
                     mRVAdapter.notifyItemRemoved(position);
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     //restoring presence of deleted attribute
-                    mRVAdapter.notifyDataSetChanged();
+                    mRVAdapter.notifyItemChanged(position);
                 }
                 break;
         }
