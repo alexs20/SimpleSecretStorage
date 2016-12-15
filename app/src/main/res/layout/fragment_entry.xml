@@ -49,14 +49,4 @@
 
     </GridLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btnDelete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_margin="16dp"
-        android:src="@mipmap/img24dp_delete"
-        app:fabSize="normal" />
-
 </RelativeLayout>

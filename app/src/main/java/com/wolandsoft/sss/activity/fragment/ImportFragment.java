@@ -366,7 +366,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //enabling search icon
+        //enabling show pwd icon
         setHasOptionsMenu(true);
     }
 
