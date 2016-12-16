@@ -21,7 +21,8 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.util.LogEx;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -29,6 +30,17 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+
+import javax.crypto.NoSuchPaddingException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -47,18 +59,33 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
     private static final int ENTRIES_COUNT = 100;
     private static SQLiteStorage storage;
+    private static KeyStoreManager keystore;
 
     @BeforeClass
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        AppCentral.init(context);
-        storage = AppCentral.getInstance().getSQLiteStorage();
+        //security keystore initialization
+        try {
+            keystore = new KeyStoreManager(context);
+        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
+                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
+                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //db initialization
+        try {
+            storage = new SQLiteStorage(context);
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = AppCentral.getInstance().getKeyStoreManager().encrypt(String.format(TEMPLATE_PASSWORD, i));
+            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             storage.put(entry);
         }

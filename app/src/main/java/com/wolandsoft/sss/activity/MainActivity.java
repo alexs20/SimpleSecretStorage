@@ -15,10 +15,8 @@
  */
 package com.wolandsoft.sss.activity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -27,14 +25,15 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.LruCache;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
@@ -43,14 +42,27 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.entity.SecretEntry;
+import com.wolandsoft.sss.service.ScreenMonitorService;
+import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.util.List;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Main UI class of the app.
@@ -60,24 +72,50 @@ import javax.crypto.IllegalBlockSizeException;
 public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        PinFragment.OnFragmentToFragmentInteract {
-    private static final int REQUEST_IMPORT = 1;
-    private static final int REQUEST_EXPORT = 2;
+        PinFragment.OnFragmentToFragmentInteract,
+        ISharedObjects {
+    //some shared objects
+    private static final int ENTRIES_CACHE_SIZE = 100;
     private DrawerLayout mDrawerLayout;
     private NavigationView mDrawerView;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
+    private KeyStoreManager mKSManager;
+    private SQLiteStorage mSQLtStorage;
+    private LruCache<Integer, SecretEntry> mEntryCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //security keystore initialization
+        try {
+            mKSManager = new KeyStoreManager(getApplicationContext());
+        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
+                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
+                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //db initialization
+        try {
+            mSQLtStorage = new SQLiteStorage(getApplicationContext());
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //entries cache
+        mEntryCache = new LruCache<>(ENTRIES_CACHE_SIZE);
+
         super.onCreate(savedInstanceState);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+
         setContentView(R.layout.activity_main);
-        AppCentral.init(getApplicationContext());
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new EntriesFragment();
             transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
             transaction.commit();
+            ScreenMonitorService.manageService(false, this);
         }
 
         //Listen for changes in the back stack
@@ -148,20 +186,26 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value);
+        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ScreenMonitorService.isServiceRunning(this);
         //pin protection enabled
         if (mIsLocked) {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.hide();
             }
-            if(getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
-                openPinValidationFragment();
+            if (getSupportFragmentManager().findFragmentByTag(PinFragment.class.getName()) == null) {
+                int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+                openPinValidationFragment(delaySec);
             }
             controlDrawerAvailability();
             return;
@@ -183,35 +227,25 @@ public class MainActivity extends AppCompatActivity implements
         mDrawerLayout.closeDrawers();
 
         switch (menuItem.getItemId()) {
-            case R.id.navExport:
-            case R.id.navImport:
-                String[] requiredPermissions = new String[]{
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                };
-                boolean askForPermissions = false;
-                for (String permission : requiredPermissions) {
-                    int permissionGranted = ContextCompat.checkSelfPermission(this, permission);
-                    if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
-                        askForPermissions = true;
-                        break;
-                    }
-                }
-                if (askForPermissions) {
-                    ActivityCompat.requestPermissions(this, requiredPermissions,
-                            menuItem.getItemId() == R.id.navExport ? REQUEST_EXPORT : REQUEST_IMPORT);
-                } else {
-                    switch (menuItem.getItemId()) {
-                        case R.id.navExport:
-                            openExportFragment();
-                            break;
-                        case R.id.navImport:
-                            openImportFragment();
-                            break;
-                    }
-                }
+            case R.id.navExport: {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new ExportFragment();
+                transaction.replace(R.id.content_fragment, fragment, ExportFragment.class.getName());
+                transaction.addToBackStack(ExportFragment.class.getName());
+                transaction.commit();
                 break;
-            case R.id.navSettings:
+            }
+            case R.id.navImport: {
+                Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Fragment fragment = new ImportFragment();
+                fragment.setTargetFragment(target, 0);
+                transaction.replace(R.id.content_fragment, fragment, ImportFragment.class.getName());
+                transaction.addToBackStack(ImportFragment.class.getName());
+                transaction.commit();
+                break;
+            }
+            case R.id.navSettings: {
                 Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 Fragment fragment = new SettingsFragment();
@@ -220,31 +254,14 @@ public class MainActivity extends AppCompatActivity implements
                 transaction.addToBackStack(SettingsFragment.class.getName());
                 transaction.commit();
                 break;
+            }
         }
 
     }
 
-    private void openImportFragment() {
-        Fragment target = getSupportFragmentManager().findFragmentByTag(EntriesFragment.class.getName());
+    private void openPinValidationFragment(int delaySec) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new ImportFragment();
-        fragment.setTargetFragment(target, 0);
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(ImportFragment.class.getName());
-        transaction.commit();
-    }
-
-    private void openExportFragment() {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = new ExportFragment();
-        transaction.replace(R.id.content_fragment, fragment);
-        transaction.addToBackStack(ExportFragment.class.getName());
-        transaction.commit();
-    }
-
-    private void openPinValidationFragment(){
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment fragment = PinFragment.newInstance(false);
+        Fragment fragment = PinFragment.newInstance(R.string.label_enter_pin, TimeUnit.SECONDS.toMillis(delaySec));
         transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
         transaction.addToBackStack(PinFragment.class.getName());
         transaction.commit();
@@ -273,17 +290,6 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        switch (requestCode) {
-            case REQUEST_EXPORT:
-            case REQUEST_IMPORT:
-                break;
-        }
-    }
-
     @SuppressLint("StringFormatInvalid")
     @Override
     public void onPinProvided(String pin) {
@@ -291,16 +297,23 @@ public class MainActivity extends AppCompatActivity implements
             SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
             String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-            storedPin = AppCentral.getInstance().getKeyStoreManager().decrupt(storedPin);
+            storedPin = mKSManager.decrupt(storedPin);
             mIsLocked = !pin.equals(storedPin);
             if (!mIsLocked) {
+                //resetting pin response delay to zero.
+                ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
                 ActionBar actionBar = getSupportActionBar();
                 if (actionBar != null) {
                     actionBar.show();
                 }
                 controlDrawerAvailability();
+                ScreenMonitorService.manageService(true, this);
             } else {
-                openPinValidationFragment();
+                //incrementing pin response delay on each invalid pin provided.
+                int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+                delaySec++;
+                ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
+                openPinValidationFragment(delaySec);
             }
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             LogEx.e(e.getMessage(), e);
@@ -310,8 +323,23 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        if(!mIsLocked){
+        if (!mIsLocked) {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public KeyStoreManager getKeyStoreManager() {
+        return mKSManager;
+    }
+
+    @Override
+    public SQLiteStorage getSQLiteStorage() {
+        return mSQLtStorage;
+    }
+
+    @Override
+    public LruCache<Integer, SecretEntry> getSecretEntriesCache() {
+        return mEntryCache;
     }
 }

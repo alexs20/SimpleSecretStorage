@@ -61,7 +61,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="false" />
 
             <ImageView
                 android:id="@+id/imgProtected"

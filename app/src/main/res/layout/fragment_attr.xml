@@ -48,7 +48,10 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/label_attribute_value"
                 android:maxLines="1"
-                android:singleLine="true"/>
+                android:singleLine="true">
+
+                <requestFocus />
+            </android.support.design.widget.TextInputEditText>
         </android.support.design.widget.TextInputLayout>
 
         <LinearLayout
@@ -94,7 +97,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:src="@mipmap/img24dp_key"
-            app:fabSize="normal" />
+            app:fabSize="normal"
+            android:layout_marginBottom="0dp" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btnApply"

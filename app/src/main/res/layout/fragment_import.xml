@@ -16,99 +16,84 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/fragment_padding"
+    android:paddingEnd="@dimen/fragment_padding"
+    android:paddingStart="@dimen/fragment_padding"
+    android:paddingTop="@dimen/fragment_padding">
 
-    <TableLayout
+    <RelativeLayout
+        android:id="@+id/layoutForm"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="5dip"
-        android:layout_marginRight="5dip"
-        android:paddingLeft="3dip"
-        android:paddingRight="3dip"
-        android:shrinkColumns="1"
-        android:stretchColumns="*">
+        android:visibility="gone">
 
-        <TableRow>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/txtExtEngineLabel"
+                style="@style/InputLabel"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_import_engine"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:layout_gravity="center_vertical" />
+                android:text="@string/label_import_engine" />
 
             <Spinner
                 android:id="@+id/sprExtEngine"
-                android:layout_width="wrap_content"
+                style="@style/SpinnerMedium"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp" />
-        </TableRow>
-
-        <TableRow>
+                android:layout_weight="1" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/txtConflictResLabel"
+                style="@style/InputLabel"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_conflict_resolution"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:layout_gravity="center_vertical" />
+                android:text="@string/label_conflict_resolution" />
 
             <Spinner
                 android:id="@+id/sprConflictResolution"
-                android:layout_width="wrap_content"
+                style="@style/SpinnerMedium"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:entries="@array/spinner_conflict_resolution"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp" />
-        </TableRow>
+                android:entries="@array/spinner_conflict_resolution" />
 
-        <TableRow android:id="@+id/trPassword">
-
-            <TextView
-                android:layout_width="wrap_content"
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/tilPassword"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:labelFor="@id/edtPassword"
-                android:text="@string/label_password"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                app:hintTextAppearance="@style/TextInputHint">
 
-            <EditText
-                android:id="@+id/edtPassword"
-                android:layout_width="wrap_content"
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/edtPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/label_password"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/tilPasswordOpen"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="textPassword"
-                android:maxLines="1" />
-        </TableRow>
+                app:hintTextAppearance="@style/TextInputHint">
 
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/edtPasswordOpen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/label_password"
+                    android:inputType="textVisiblePassword"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+            </android.support.design.widget.TextInputLayout>
 
-        <TableRow android:id="@+id/trPasswordOpen">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:labelFor="@id/edtPasswordOpen"
-                android:text="@string/label_password"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
-
-            <EditText
-                android:id="@+id/edtPasswordOpen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="textVisiblePassword"
-                android:maxLines="1" />
-        </TableRow>
-
-        <TableRow>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -128,7 +113,7 @@
                     android:textColor="@color/colorPrimary" />
 
                 <Button
-                    android:id="@+id/btnSelectDest"
+                    android:id="@+id/btnSelectSource"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.1"
@@ -137,14 +122,56 @@
                     android:minWidth="0dp"
                     android:text="@string/label_ellipsis" />
             </LinearLayout>
-        </TableRow>
-    </TableLayout>
+
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btnApply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="16dp"
+            android:src="@mipmap/img24dp_ok"
+            app:fabSize="normal" />
+
+    </RelativeLayout>
+
 
     <RelativeLayout
-        android:id="@+id/layWait"
+        android:id="@+id/layoutPermissions"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#88000000"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/message_permissions_required"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <Button
+                android:id="@+id/btnPermissions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="21dp"
+                android:text="@string/label_request_permissions" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layoutWait"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorSemiTransparent"
         android:visibility="gone">
 
         <ProgressBar
@@ -156,13 +183,4 @@
             android:layout_centerVertical="false" />
     </RelativeLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btnApply"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:src="@mipmap/img24dp_ok"
-        app:fabSize="normal" />
 </RelativeLayout>

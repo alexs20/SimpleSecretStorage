@@ -33,6 +33,8 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,14 +43,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Locale;
@@ -77,7 +79,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         EntryFragment fragment = new EntryFragment();
         if (entry != null) {
             Bundle args = new Bundle();
-            args.putSerializable(ARG_ENTRY, (Serializable) entry.clone());
+            args.putParcelable(ARG_ENTRY, entry);
             fragment.setArguments(args);
         }
         return fragment;
@@ -86,6 +88,17 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        ISharedObjects sharedObj;
+        if (context instanceof ISharedObjects) {
+            sharedObj = (ISharedObjects) context;
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
+
         Fragment parent = getTargetFragment();
         if (parent instanceof OnFragmentToFragmentInteract) {
             mListener = (OnFragmentToFragmentInteract) parent;
@@ -102,7 +115,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         SecretEntry entry;
         Bundle args = getArguments();
         if (args != null && !args.isEmpty()) {
-            entry = (SecretEntry) args.getSerializable(ARG_ENTRY);
+            entry = (SecretEntry) args.getParcelable(ARG_ENTRY);
         } else {
             entry = new SecretEntry();
             for (PredefinedAttribute attr : PredefinedAttribute.values()) {
@@ -156,7 +169,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 transaction.addToBackStack(EntryFragment.class.getName());
                 transaction.commit();
             }
-        });
+        }, sharedObj.getKeyStoreManager());
     }
 
     @Override
@@ -181,18 +194,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 onAddClicked();
             }
         });
-
-        FloatingActionButton btnDelete = (FloatingActionButton) view.findViewById(R.id.btnDelete);
-        if (mRVAdapter.getSecretEntry().getCreated() == 0) {
-            btnDelete.setVisibility(View.GONE);
-        } else {
-            btnDelete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onDeleteClicked();
-                }
-            });
-        }
 
         FloatingActionButton btnApply = (FloatingActionButton) view.findViewById(R.id.btnApply);
         btnApply.setOnClickListener(new View.OnClickListener() {
@@ -232,7 +233,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private void onDeleteClicked() {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
-                R.string.label_delete_all, R.string.message_are_you_sure, true, null);
+                R.string.label_delete_entry, R.string.message_are_you_sure, true, null);
         fragment.setCancelable(true);
         fragment.setTargetFragment(this, DELETE_ENTRY_CONFIRMATION_DIALOG);
         transaction.addToBackStack(null);
@@ -255,13 +256,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 }
                 break;
             case DELETE_ATTRIBUTE_CONFIRMATION_DIALOG:
+                int position = args.getInt(ARG_POSITION);
                 if (resultCode == Activity.RESULT_OK) {
-                    int position = args.getInt(ARG_POSITION);
                     mRVAdapter.getSecretEntry().remove(position);
                     mRVAdapter.notifyItemRemoved(position);
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     //restoring presence of deleted attribute
-                    mRVAdapter.notifyDataSetChanged();
+                    mRVAdapter.notifyItemChanged(position);
                 }
                 break;
         }
@@ -282,6 +283,30 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             se.add(attr);
             mRVAdapter.notifyItemInserted(pos);
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_entry_options_menu, menu);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (mRVAdapter.getSecretEntry().getID() > 0) {
+            //enabling delete icon
+            setHasOptionsMenu(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.mnuDeleteEntry) {
+            onDeleteClicked();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -309,10 +334,12 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     static class SecretEntryAdapter extends RecyclerView.Adapter<SecretEntryAdapter.ViewHolder> implements ItemTouchHelperAdapter {
         private SecretEntry mEntry;
         private OnSecretEntryAttributeActionListener mListener;
+        private KeyStoreManager mKsMgr;
 
-        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener) {
+        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener, KeyStoreManager ksMgr) {
             mEntry = entry;
             mListener = listener;
+            mKsMgr = ksMgr;
         }
 
         @Override
@@ -358,7 +385,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     try {
-                        String plain = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                        String plain = mKsMgr.decrupt(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
@@ -408,7 +435,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                             if (attr.isProtected()) {
                                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                                     try {
-                                        text = AppCentral.getInstance().getKeyStoreManager().decrupt(attr.getValue());
+                                        text = mKsMgr.decrupt(attr.getValue());
                                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                                         LogEx.e(e.getMessage(), e);
                                     }

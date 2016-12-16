@@ -15,6 +15,7 @@
 -->
 <resources>
     <string name="app_name">Simple Secret Storage</string>
+    <string name="screen_monitor_service_name">Screen Monitor Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
@@ -41,8 +42,8 @@
     <string name="label_encrypted">Encrypted</string>
     <string name="label_search">Search</string>
     <string name="label_loading_ellipsis">Loading&#8230;</string>
-    <string name="label_delete_all">Delete The Secret Entry</string>
-    <string name="label_delete_field">Delete The Field</string>
+    <string name="label_delete_entry">Delete Secret Entry</string>
+    <string name="label_delete_field">Delete Field</string>
     <string name="label_delete">Delete</string>
     <string name="label_edit">Edit</string>
     <string name="label_copy">Copy</string>
@@ -78,6 +79,7 @@
     <string name="label_enter_pin">Enter Pin</string>
     <string name="label_enter_new_pin">Enter New Pin</string>
     <string name="label_repeat_new_pin">Repeat New Pin</string>
+    <string name="label_request_permissions">Request Permissions</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -96,5 +98,7 @@
     <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
     <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
+
+    <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
 
 </resources>

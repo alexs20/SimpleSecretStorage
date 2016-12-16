@@ -13,10 +13,11 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<resources>
-    <dimen name="input_label_vertical_spacing">8dp</dimen>
-    <dimen name="input_label_horizontal_spacing">4dp</dimen>
-    <dimen name="input_label_font_size">16sp</dimen>
-
-    <dimen name="fragment_padding">4sp</dimen>
-</resources>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mnuDeleteEntry"
+        android:icon="@mipmap/img24dp_remove_w"
+        android:title="@string/label_delete"
+        app:showAsAction="collapseActionView|ifRoom" />
+</menu>

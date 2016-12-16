@@ -32,8 +32,8 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.AppCentral;
 import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -68,7 +68,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             attr = new SecretEntryAttribute("", "", false);
         }
         Bundle args = new Bundle();
-        args.putSerializable(ARG_ATTR, attr);
+        args.putParcelable(ARG_ATTR, attr);
         args.putInt(ARG_ATTR_POS, attrPos);
         fragment.setArguments(args);
         return fragment;
@@ -77,10 +77,19 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         Bundle args = getArguments();
-        mAttr = (SecretEntryAttribute) args.getSerializable(ARG_ATTR);
+        mAttr = (SecretEntryAttribute) args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
-        mKsMgr = AppCentral.getInstance().getKeyStoreManager();
+
+        if (context instanceof ISharedObjects) {
+            mKsMgr = ((ISharedObjects) context).getKeyStoreManager();
+        } else {
+            throw new ClassCastException(
+                    String.format(
+                            getString(R.string.internal_exception_must_implement),
+                            context.toString(), ISharedObjects.class.getName()));
+        }
     }
 
     @Override
@@ -171,7 +180,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private void onOkClicked() {
         View currentFocus = getActivity().getCurrentFocus();
         if (currentFocus != null) {
-            //nide soft keyboard
+            //hide soft keyboard
             InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
@@ -179,7 +188,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
             try {
-                protectedStr = AppCentral.getInstance().getKeyStoreManager().encrypt(protectedStr);
+                protectedStr = mKsMgr.encrypt(protectedStr);
             } catch (BadPaddingException | IllegalBlockSizeException e) {
                 LogEx.e(e.getMessage(), e);
             }

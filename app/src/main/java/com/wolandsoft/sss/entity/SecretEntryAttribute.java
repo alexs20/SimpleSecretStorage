@@ -15,14 +15,26 @@
  */
 package com.wolandsoft.sss.entity;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * Attribute entity of secret entry.
+ *
  * @author Alexander Shulgin
  */
 
-public class SecretEntryAttribute  implements Serializable {
+public class SecretEntryAttribute implements Parcelable {
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator<SecretEntryAttribute>() {
+        public SecretEntryAttribute createFromParcel(Parcel in) {
+            return new SecretEntryAttribute(in);
+        }
+
+        public SecretEntryAttribute[] newArray(int size) {
+            return new SecretEntryAttribute[size];
+        }
+    };
 
     private String key;
     private String value;
@@ -32,6 +44,12 @@ public class SecretEntryAttribute  implements Serializable {
         this.key = key;
         this.value = value;
         this.isProtected = isProtected;
+    }
+
+    public SecretEntryAttribute(Parcel parcel) {
+        this.key = parcel.readString();
+        this.value = parcel.readString();
+        this.isProtected = parcel.readByte() != 0;
     }
 
     public String getKey() {
@@ -52,5 +70,17 @@ public class SecretEntryAttribute  implements Serializable {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeString(key);
+        parcel.writeString(value);
+        parcel.writeByte((byte) (isProtected ? 1 : 0));
     }
 }

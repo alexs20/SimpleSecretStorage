@@ -28,7 +28,8 @@ import com.wolandsoft.sss.external.IExternal;
 import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.util.AppCentral;
+import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.util.LogEx;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -38,6 +39,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+
+import javax.crypto.NoSuchPaddingException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -62,19 +73,34 @@ public class JsonAes256ZipTest {
     private static final int ENTRIES_COUNT = 1;
 
     private static SQLiteStorage storage;
+    private static KeyStoreManager keystore;
     private static IExternal external;
 
     @BeforeClass
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        AppCentral.init(context);
-        storage = AppCentral.getInstance().getSQLiteStorage();
+        //security keystore initialization
+        try {
+            keystore = new KeyStoreManager(context);
+        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
+                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
+                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        //db initialization
+        try {
+            storage = new SQLiteStorage(context);
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = AppCentral.getInstance().getKeyStoreManager().encrypt(String.format(TEMPLATE_PASSWORD, i));
+            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             storage.put(entry);
         }
@@ -94,7 +120,7 @@ public class JsonAes256ZipTest {
             location.delete();
         }
         assertFalse(location.exists());
-        external.doExport(storage, AppCentral.getInstance().getKeyStoreManager(), location.toURI(), FILE_PASSWORD);
+        external.doExport(storage, keystore, location.toURI(), FILE_PASSWORD);
         assertTrue(location.exists());
 
         int[] entries = storage.find(null, true);
@@ -105,7 +131,7 @@ public class JsonAes256ZipTest {
         attr.setValue("CHANGED");
         storage.put(se);
 
-        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
+        external.doImport(storage, keystore, IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
         assertEquals(ENTRIES_COUNT, entries.length);
 
@@ -120,7 +146,7 @@ public class JsonAes256ZipTest {
         attr.setValue("CHANGED");
         storage.put(se);
 
-        external.doImport(storage, AppCentral.getInstance().getKeyStoreManager(), IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
+        external.doImport(storage, keystore, IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
         assertEquals(ENTRIES_COUNT, entries.length);
 

@@ -1,2 +1,3 @@
-Open Source Passwords Manager
-TBD
+Open Source Passwords Manager is a very simple passwords storage with flexible data structure where user can define and store passwords or even credit cards using its own fields. Implementation of this application follows minimalistic approach keeping the app simple easy.
+
+Please visit GitHub website https://github.com/alexs20/SimpleSecretStorage
