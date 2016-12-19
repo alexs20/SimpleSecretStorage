@@ -3,5 +3,6 @@ Open Source Passwords Manager is a very simple passwords storage with flexible d
 Please visit GitHub website https://github.com/alexs20/SimpleSecretStorage
 
 The main question - how does it work?
-For any record created in this application, the raised protection flag will indicate that the data provided should be encrypted. The encryption is done using a generated key, which is stored in the system's keystore. The advantage of this approach is that the encrypted data can be decrypted only on the device where it was encrypted and only with the application which owns the particular key. It is impossible to export or extract the key from the systems’ keystore and re-use it in order steal encrypted passwords. This is why a master password is not needed anymore and the application protection pin is really optional. 
+
+For any record created in this application, the raised protection flag will indicate that the data provided should be encrypted. The encryption is done using a generated key, which is stored in the system's keystore. The advantage of this approach is that the encrypted data can be decrypted only on the device where it was encrypted and only with the application which owns the particular key. It is impossible to export or extract the key from the system's keystore and re-use it in order steal encrypted passwords. This is why a master password is not needed anymore and the application protection pin is really optional. 
 All this is true for unrooted devices only.
