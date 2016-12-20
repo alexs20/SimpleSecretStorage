@@ -77,6 +77,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private View mView;
     private int mClickedPosition;
     private KeyStoreManager mKSManager;
+    private boolean mIsShowPwd = false;
 
     public static EntryFragment newInstance(SecretEntry entry) {
         EntryFragment fragment = new EntryFragment();
@@ -149,12 +150,16 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         registerForContextMenu(mRecyclerView);
-
         mRecyclerView.setAdapter(mRVAdapter);
 
         ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(mRVAdapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(mRecyclerView);
+
+        if (savedInstanceState != null) {
+            mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.showPwd));
+        }
+        mRVAdapter.setProtectedVisible(mIsShowPwd);
 
         FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -188,6 +193,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(ARG_ENTRY, mRVAdapter.getSecretEntry());
+        outState.putBoolean(String.valueOf(R.id.showPwd), mIsShowPwd);
     }
 
     private void onAddClicked() {
@@ -302,15 +308,20 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entry_options_menu, menu);
+        if (mRVAdapter.getSecretEntry().getID() == 0) {
+            MenuItem deleteMenuItem = menu.findItem(R.id.mnuDeleteEntry);
+            deleteMenuItem.setVisible(false);
+        }
+        MenuItem showPwdMenuItem = menu.findItem(R.id.showPwd);
+        showPwdMenuItem.setChecked(mIsShowPwd);
+        showPwdMenuItem.setIcon(mIsShowPwd ? R.mipmap.img24dp_no_eye_w : R.mipmap.img24dp_eye_w);
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (mRVAdapter.getSecretEntry().getID() > 0) {
-            //enabling delete icon
-            setHasOptionsMenu(true);
-        }
+        //enabling delete icon
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -318,6 +329,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         int id = item.getItemId();
         if (id == R.id.mnuDeleteEntry) {
             onDeleteClicked();
+            return true;
+        }
+        if (id == R.id.showPwd) {
+            item.setChecked(!item.isChecked());
+            item.setIcon(item.isChecked() ? R.mipmap.img24dp_no_eye_w : R.mipmap.img24dp_eye_w);
+            mIsShowPwd = item.isChecked();
+            mRVAdapter.setProtectedVisible(mIsShowPwd);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -389,8 +407,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         private SecretEntry mEntry;
         private OnSecretEntryAttributeActionListener mListener;
         private KeyStoreManager mKsMgr;
+        private boolean mIsProtectedVisible = false;
 
-        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener, KeyStoreManager ksMgr) {
+        SecretEntryAdapter(SecretEntry entry, OnSecretEntryAttributeActionListener listener,
+                           KeyStoreManager ksMgr) {
             mEntry = entry;
             mListener = listener;
             mKsMgr = ksMgr;
@@ -438,12 +458,15 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             } else {
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
+                    if(mIsProtectedVisible){
                     try {
                         String plain = mKsMgr.decrupt(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
                         throw new RuntimeException(e.getMessage(), e);
+                    } } else {
+                        holder.mTxtValue.setText(R.string.label_hidden_password);
                     }
                 }
             }
@@ -463,6 +486,15 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
         SecretEntry getSecretEntry() {
             return mEntry;
+        }
+
+        void setProtectedVisible(boolean isProtectedVisible){
+            mIsProtectedVisible = isProtectedVisible;
+            for(int i = 0; i < mEntry.size(); i++){
+                if(mEntry.get(i).isProtected()){
+                    notifyItemChanged(i);
+                }
+            }
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

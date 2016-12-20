@@ -20,4 +20,10 @@
         android:icon="@mipmap/img24dp_remove_w"
         android:title="@string/label_delete"
         app:showAsAction="collapseActionView|ifRoom" />
+    <item
+        android:id="@+id/showPwd"
+        android:checkable="true"
+        android:icon="@mipmap/img24dp_eye_w"
+        android:title="@string/label_show_password"
+        app:showAsAction="collapseActionView|ifRoom" />
 </menu>

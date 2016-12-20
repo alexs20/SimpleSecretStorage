@@ -69,6 +69,7 @@
     <string name="label_back">Back</string>
     <string name="label_error">Error</string>
     <string name="label_ellipsis" translatable="false">&#8230;</string>
+    <string name="label_hidden_password" translatable="false">********</string>
     <string name="label_conflict_resolution">Conflict Resolution</string>
     <string name="label_overwrite">Overwrite</string>
     <string name="label_merge">Merge</string>

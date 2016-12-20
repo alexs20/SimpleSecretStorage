@@ -184,9 +184,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         mLayoutForm = (RelativeLayout) view.findViewById(R.id.layoutForm);
         mLayoutPermissions = (RelativeLayout) view.findViewById(R.id.layoutPermissions);
 
-        if (savedInstanceState == null) {
-
-        } else {
+        if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.showPwd));
         }
 
