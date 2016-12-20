@@ -40,12 +40,12 @@
                 android:textColor="@color/colorPrimary" />
 
             <ImageView
-                android:id="@+id/imgMenu"
+                android:id="@+id/imgProtected"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|center_vertical"
-                app:srcCompat="@mipmap/img24dp_3vdots"
-                android:contentDescription="@string/label_settings"/>
+                android:contentDescription="@string/label_encrypted"
+                app:srcCompat="@mipmap/img24dp_lock_g" />
         </GridLayout>
 
         <GridLayout
@@ -63,13 +63,6 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textIsSelectable="false" />
 
-            <ImageView
-                android:id="@+id/imgProtected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                app:srcCompat="@mipmap/img24dp_lock_g"
-                android:contentDescription="@string/label_encrypted"/>
         </GridLayout>
 
     </LinearLayout>
