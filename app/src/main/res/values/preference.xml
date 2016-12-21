@@ -14,6 +14,9 @@
     limitations under the License.
 -->
 <resources>
+
+    <item name="pref_entries_cache_size" translatable="false" type="integer">100</item>
+
     <item name="pref_pwdgen_lowercase_chars_key" translatable="false" type="string">pwdgen_lowercase_chars</item>
     <item name="pref_pwdgen_lowercase_chars_value" translatable="false" type="integer">3</item>
     <item name="pref_pwdgen_lowercase_chars_value_min" translatable="false" type="integer">0</item>

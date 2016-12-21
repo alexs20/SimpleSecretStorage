@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.activity;
 
 import android.annotation.SuppressLint;
@@ -30,7 +30,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.LruCache;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -42,7 +41,6 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
-import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
@@ -75,14 +73,12 @@ public class MainActivity extends AppCompatActivity implements
         PinFragment.OnFragmentToFragmentInteract,
         ISharedObjects {
     //some shared objects
-    private static final int ENTRIES_CACHE_SIZE = 100;
     private DrawerLayout mDrawerLayout;
     private NavigationView mDrawerView;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
     private KeyStoreManager mKSManager;
     private SQLiteStorage mSQLtStorage;
-    private LruCache<Integer, SecretEntry> mEntryCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,8 +98,6 @@ public class MainActivity extends AppCompatActivity implements
             LogEx.e(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
-        //entries cache
-        mEntryCache = new LruCache<>(ENTRIES_CACHE_SIZE);
 
         super.onCreate(savedInstanceState);
 
@@ -269,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onDestroy() {
+        mSQLtStorage.close();
         super.onDestroy();
     }
 
@@ -336,10 +331,5 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public SQLiteStorage getSQLiteStorage() {
         return mSQLtStorage;
-    }
-
-    @Override
-    public LruCache<Integer, SecretEntry> getSecretEntriesCache() {
-        return mEntryCache;
     }
 }

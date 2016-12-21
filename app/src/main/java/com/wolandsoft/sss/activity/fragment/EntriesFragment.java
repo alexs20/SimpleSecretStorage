@@ -16,7 +16,6 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -29,7 +28,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -75,7 +73,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 EntriesFragment.this.onSecretEntryClick(entry);
             }
         };
-        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(), sharedObj.getSecretEntriesCache());
+        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage());
     }
 
     @Override
@@ -176,13 +174,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private Handler mHandler;
         private Runnable mSearchUpdate;
         private SQLiteStorage mSQLtStorage;
-        private LruCache<Integer, SecretEntry> mEntriesCache;
 
-        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage, LruCache<Integer, SecretEntry> entriesCache) {
+        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage) {
             mOnClickListener = onClickListener;
             mHandler = new Handler();
             mSQLtStorage = sqltStorage;
-            mEntriesCache = entriesCache;
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
@@ -244,7 +240,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         void deleteItem(int id) {
             try {
                 mSQLtStorage.delete(id);
-                mEntriesCache.remove(id);
                 refresh();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
@@ -263,7 +258,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         void updateItem(SecretEntry se) {
             try {
                 se = mSQLtStorage.put(se);
-                mEntriesCache.put(se.getID(), se);
                 refresh();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
@@ -271,36 +265,20 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         @Nullable
-        SecretEntry getItem(int position) {
+        SecretEntry getItem(final int position) {
             int id = mSeIds[position];
-            SecretEntry entry = mEntriesCache.get(id);
-            //on-demand loading items if not available
-            if (entry == null) {
-                new AsyncTask<Integer, Void, Integer>() {
+            try {
+                SecretEntry entry = mSQLtStorage.get(id, new SQLiteStorage.OnSecretEntryRetrieveListener() {
                     @Override
-                    protected Integer doInBackground(Integer... params) {
-                        try {
-                            int id = mSeIds[params[0]];
-                            SecretEntry entry = mSQLtStorage.get(id);
-                            if (entry != null) {
-                                mEntriesCache.put(id, entry);
-                                return params[0];
-                            }
-                        } catch (StorageException e) {
-                            LogEx.e(e.getMessage(), e);
-                        }
-                        return -1;
+                    public void onSecretEntryRetrieved(SecretEntry entry) {
+                        notifyItemChanged(position);
                     }
-
-                    @Override
-                    protected void onPostExecute(Integer position) {
-                        if (position > -1) {
-                            SecretEntriesAdapter.this.notifyItemChanged(position);
-                        }
-                    }
-                }.execute(position);
+                });
+                return entry;
+            } catch (StorageException e) {
+                LogEx.e(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
-            return entry;
         }
 
         interface OnSecretEntryClickListener {

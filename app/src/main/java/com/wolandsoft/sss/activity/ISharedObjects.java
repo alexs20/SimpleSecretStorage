@@ -15,9 +15,6 @@
 */
 package com.wolandsoft.sss.activity;
 
-import android.util.LruCache;
-
-import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
@@ -28,6 +25,6 @@ import com.wolandsoft.sss.util.KeyStoreManager;
 public interface ISharedObjects {
 
     KeyStoreManager getKeyStoreManager();
+
     SQLiteStorage getSQLiteStorage();
-    LruCache<Integer, SecretEntry> getSecretEntriesCache();
 }
