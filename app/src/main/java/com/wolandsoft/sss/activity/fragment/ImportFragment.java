@@ -341,7 +341,15 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
                 if (aBoolean) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
-                            R.string.label_export, R.string.message_import_process_completed, false, null);
+                            R.string.label_import, R.string.message_import_process_completed, false, null);
+                    fragment.setCancelable(true);
+                    fragment.setTargetFragment(ImportFragment.this, DONE_DIALOG);
+                    transaction.addToBackStack(null);
+                    fragment.show(transaction, DialogFragment.class.getName());
+                } else {
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                            R.string.label_import, R.string.message_import_process_failed, false, null);
                     fragment.setCancelable(true);
                     fragment.setTargetFragment(ImportFragment.this, DONE_DIALOG);
                     transaction.addToBackStack(null);

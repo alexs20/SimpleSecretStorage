@@ -333,6 +333,14 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
                     fragment.setTargetFragment(ExportFragment.this, DONE_DIALOG);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
+                } else {
+                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                            R.string.label_export, R.string.message_export_process_failed, false, null);
+                    fragment.setCancelable(true);
+                    fragment.setTargetFragment(ExportFragment.this, DONE_DIALOG);
+                    transaction.addToBackStack(null);
+                    fragment.show(transaction, DialogFragment.class.getName());
                 }
             }
 

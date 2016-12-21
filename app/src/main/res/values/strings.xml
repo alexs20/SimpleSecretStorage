@@ -97,6 +97,8 @@
     <string name="message_can_not_delete_before_protected_attribute">Top field before protected can not be deleted.</string>
     <string name="message_import_process_completed">All data has been successfully imported.</string>
     <string name="message_export_process_completed">All data has been successfully exported.</string>
+    <string name="message_import_process_failed">Error processing input file.</string>
+    <string name="message_export_process_failed">Error processing output file.</string>
     <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
     <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
