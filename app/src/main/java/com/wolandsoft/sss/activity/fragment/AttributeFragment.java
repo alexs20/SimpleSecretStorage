@@ -111,6 +111,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
                         mTxtValue.setText(plain);
                     } catch (BadPaddingException | IllegalBlockSizeException e) {
                         LogEx.e(e.getMessage(), e);
+                        throw new RuntimeException(e.getMessage(), e);
                     }
                 }
             } else {

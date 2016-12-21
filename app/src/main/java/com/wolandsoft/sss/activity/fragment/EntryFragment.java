@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +29,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -47,6 +49,7 @@ import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -139,6 +142,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 EntryFragment.this.onSecretEntryAttributeClick(view, position);
             }
         }, mKSManager);
+
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+        mIsShowPwd = ksPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
+                R.bool.pref_protected_field_default_visibility_value);
     }
 
     @Override
@@ -458,14 +466,15 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             } else {
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
-                    if(mIsProtectedVisible){
-                    try {
-                        String plain = mKsMgr.decrupt(attr.getValue());
-                        holder.mTxtValue.setText(plain);
-                    } catch (BadPaddingException | IllegalBlockSizeException e) {
-                        LogEx.e(e.getMessage(), e);
-                        throw new RuntimeException(e.getMessage(), e);
-                    } } else {
+                    if (mIsProtectedVisible) {
+                        try {
+                            String plain = mKsMgr.decrupt(attr.getValue());
+                            holder.mTxtValue.setText(plain);
+                        } catch (BadPaddingException | IllegalBlockSizeException e) {
+                            LogEx.e(e.getMessage(), e);
+                            throw new RuntimeException(e.getMessage(), e);
+                        }
+                    } else {
                         holder.mTxtValue.setText(R.string.label_hidden_password);
                     }
                 }
@@ -488,10 +497,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             return mEntry;
         }
 
-        void setProtectedVisible(boolean isProtectedVisible){
+        void setProtectedVisible(boolean isProtectedVisible) {
             mIsProtectedVisible = isProtectedVisible;
-            for(int i = 0; i < mEntry.size(); i++){
-                if(mEntry.get(i).isProtected()){
+            for (int i = 0; i < mEntry.size(); i++) {
+                if (mEntry.get(i).isProtected()) {
                     notifyItemChanged(i);
                 }
             }
