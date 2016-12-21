@@ -63,24 +63,20 @@
                 android:id="@+id/lblProtected"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="2dp"
+                android:paddingEnd="10dp"
                 android:paddingStart="2dp"
                 android:text="@string/label_encrypted"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
-            <ToggleButton
+            <android.support.v7.widget.SwitchCompat
                 android:id="@+id/chkProtected"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawablePadding="0dp"
-                android:drawableTop="@drawable/toggle_locked"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:textOff=""
-                android:textOn=""
-                android:textSize="0sp" />
+                android:layout_height="wrap_content" />
+
 
         </LinearLayout>
+
+
 
     </LinearLayout>
 

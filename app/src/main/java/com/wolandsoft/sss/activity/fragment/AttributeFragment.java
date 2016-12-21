@@ -23,6 +23,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +53,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     //ui elements
     private TextView mTxtKey;
     private TextView mTxtValue;
-    private ToggleButton mChkProtected;
+    private SwitchCompat mChkProtected;
     private FloatingActionButton mBtnGenerate;
     //model objects
     private int mAttrPos;
@@ -98,7 +99,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         View view = inflater.inflate(R.layout.fragment_attr, container, false);
         mTxtKey = (TextView) view.findViewById(R.id.txtKey);
         mTxtValue = (TextView) view.findViewById(R.id.txtValue);
-        mChkProtected = (ToggleButton) view.findViewById(R.id.chkProtected);
+        mChkProtected = (SwitchCompat) view.findViewById(R.id.chkProtected);
         mBtnGenerate = (FloatingActionButton) view.findViewById(R.id.btnGenerate);
 
         if (savedInstanceState == null) {
