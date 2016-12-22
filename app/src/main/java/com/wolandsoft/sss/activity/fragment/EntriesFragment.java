@@ -16,6 +16,7 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -46,6 +48,7 @@ import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.favicon.URLIconResolver;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
+import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
 
@@ -77,7 +80,13 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 EntriesFragment.this.onSecretEntryClick(entry);
             }
         };
-        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(), sharedObj.getURLIconResolver());
+
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+        boolean resolveFavicon = ksPref.getBoolean(R.string.pref_resolve_favicon_key,
+                R.bool.pref_resolve_favicon_value);
+        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(),
+                resolveFavicon ? sharedObj.getURLIconResolver() : null);
     }
 
     @Override
@@ -246,24 +255,26 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
                 holder.mImgIcon.setImageDrawable(drawable);
                 //process favicon
-                final int fPos = position;
-                Bitmap image =
-                        mUrlIconResolver.resolve(entry, new URLIconResolver.OnURLIconResolveListener() {
-                            @Override
-                            public void onURLIconResolved(Bitmap image) {
-                                h.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        notifyItemChanged(fPos);
-                                    }
-                                });
+                if(mUrlIconResolver != null) {
+                    final int fPos = position;
+                    Bitmap image =
+                            mUrlIconResolver.resolve(entry, new URLIconResolver.OnURLIconResolveListener() {
+                                @Override
+                                public void onURLIconResolved(Bitmap image) {
+                                    h.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            notifyItemChanged(fPos);
+                                        }
+                                    });
 
-                            }
-                        });
-                if (image != null) {
-                    holder.mImgIconWhite.setVisibility(View.VISIBLE);
-                    holder.mImgFavicon.setImageBitmap(image);
-                    holder.mImgFavicon.setVisibility(View.VISIBLE);
+                                }
+                            });
+                    if (image != null) {
+                        holder.mImgIconWhite.setVisibility(View.VISIBLE);
+                        holder.mImgFavicon.setImageBitmap(image);
+                        holder.mImgFavicon.setVisibility(View.VISIBLE);
+                    }
                 }
             } else {
                 holder.mTxtTitle.setText(R.string.label_loading_ellipsis);

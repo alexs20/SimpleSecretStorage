@@ -82,6 +82,7 @@
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Visible Protected Fields</string>
+    <string name="label_resolve_favicon">Resolve Favicon</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -103,7 +104,7 @@
     <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
     <string name="message_protected_fields_visible_by_default">Protected fields are visible by default.</string>
-
+    <string name="message_resolve_favicon">Try to fetch and present a favicon for URLs. (App restart required)</string>
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
 
 </resources>
