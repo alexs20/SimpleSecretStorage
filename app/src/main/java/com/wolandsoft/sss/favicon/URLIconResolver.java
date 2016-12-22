@@ -50,6 +50,9 @@ public class URLIconResolver extends ContextWrapper {
     private static final int APP_VERSION = 1;
     private static final int VALUE_COUNT = 1;
     private static final int SIZE_MEGABYTE = 1024 * 1024;
+    private static final int SIZE_GIGABYTE = SIZE_MEGABYTE * 1024;
+    private static final int CONNECT_TIMEOUT_MSEC = 15000;
+    private static final int READ_TIMEOUT_MSEC = 10000;
     Bitmap bmp;
 
     private DiskLruCache mCache;
@@ -69,7 +72,7 @@ public class URLIconResolver extends ContextWrapper {
             }
         }
         File cachePath = canUseExternalStorage ? getExternalCacheDir() : getCacheDir();
-        int cacheSize = canUseExternalStorage ? Integer.MAX_VALUE : SIZE_MEGABYTE;
+        int cacheSize = canUseExternalStorage ? SIZE_GIGABYTE : SIZE_MEGABYTE;
         try {
             mCache = DiskLruCache.open(new File(cachePath, FAVICONS_DIRECTORY), APP_VERSION, VALUE_COUNT, cacheSize);
         } catch (IOException e) {
@@ -123,8 +126,8 @@ public class URLIconResolver extends ContextWrapper {
                     try {
                         URL favUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), "favicon.ico");
                         HttpURLConnection conn = (HttpURLConnection) favUrl.openConnection();
-                        conn.setReadTimeout(10000 /* milliseconds */);
-                        conn.setConnectTimeout(15000 /* milliseconds */);
+                        conn.setReadTimeout(READ_TIMEOUT_MSEC);
+                        conn.setConnectTimeout(CONNECT_TIMEOUT_MSEC);
                         conn.setRequestMethod("GET");
                         conn.setDoInput(true);
                         // Starts the query
@@ -137,8 +140,8 @@ public class URLIconResolver extends ContextWrapper {
                                     || status == HttpURLConnection.HTTP_SEE_OTHER) {
                                 url = new URL(conn.getHeaderField("Location"));
                                 conn = (HttpURLConnection) url.openConnection();
-                                conn.setReadTimeout(10000 /* milliseconds */);
-                                conn.setConnectTimeout(15000 /* milliseconds */);
+                                conn.setReadTimeout(READ_TIMEOUT_MSEC);
+                                conn.setConnectTimeout(CONNECT_TIMEOUT_MSEC);
                                 conn.setRequestMethod("GET");
                                 conn.setDoInput(true);
                                 // Starts the query
@@ -149,10 +152,8 @@ public class URLIconResolver extends ContextWrapper {
                         }
                         if (status == HttpURLConnection.HTTP_OK) {
                             is = conn.getInputStream();
-                            LogEx.d("InputStream ", is);
                             if (is != null) {
                                 result.bitmap = BitmapFactory.decodeStream(is);
-                                LogEx.d("Result bitmap ", result.bitmap);
                                 if (result.bitmap != null) {
                                     return result;
                                 }
@@ -179,14 +180,12 @@ public class URLIconResolver extends ContextWrapper {
                     DiskLruCache.Editor editor = null;
                     try {
                         editor = mCache.edit(result.key);
-                        LogEx.d("result.key ", result.key, " DiskLruCache.Editor ", editor);
                         if (editor == null) {
                             return;
                         }
                         OutputStream out = null;
                         try {
                             out = new BufferedOutputStream(editor.newOutputStream(0));
-                            LogEx.d("BufferedOutputStream ", out);
                             if (result.bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)) {
                                 mCache.flush();
                                 editor.commit();
@@ -203,7 +202,6 @@ public class URLIconResolver extends ContextWrapper {
                         LogEx.w(e.getMessage(), e);
                     }
                     if (async != null) {
-                        LogEx.d("CALLBACK ");
                         async.onURLIconResolved(result.bitmap);
                     }
                 }

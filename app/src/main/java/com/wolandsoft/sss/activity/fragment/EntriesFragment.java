@@ -38,6 +38,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntry;
@@ -179,6 +181,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private URLIconResolver mUrlIconResolver;
         private Handler h;
 
+
         SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage, URLIconResolver urlIconResolver) {
             mOnClickListener = onClickListener;
             mHandler = new Handler();
@@ -216,7 +219,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, int position) {
             final SecretEntry entry = getItem(position);
             if (entry != null) {
-                holder.mTxtTitle.setText(entry.get(0).getValue());
+                String capitalTitle = entry.get(0).getValue();
+                holder.mTxtTitle.setText(capitalTitle);
                 int next = 0;
                 while (++next < entry.size() && entry.get(next).isProtected()) ;
                 if (next < entry.size() && !entry.get(next).isProtected()) {
@@ -231,7 +235,17 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                         mOnClickListener.onSecretEntryClick(entry);
                     }
                 });
-                //process image
+                //make colored capital character
+                String capChar = "?";
+                capitalTitle = capitalTitle.trim();
+                if (capitalTitle.length() > 0) {
+                    capChar = capitalTitle.substring(0, 1).toUpperCase();
+                }
+                ColorGenerator generator = ColorGenerator.DEFAULT;
+                int color = generator.getColor(capitalTitle);
+                TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
+                holder.mImgIcon.setImageDrawable(drawable);
+                //process favicon
                 final int fPos = position;
                 Bitmap image =
                         mUrlIconResolver.resolve(entry, new URLIconResolver.OnURLIconResolveListener() {
@@ -246,10 +260,10 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
                             }
                         });
-                if (image == null) {
-                    holder.mImgIcon.setImageResource(R.mipmap.img48dp_lock_g);
-                } else {
-                    holder.mImgIcon.setImageBitmap(image);
+                if (image != null) {
+                    holder.mImgIconWhite.setVisibility(View.VISIBLE);
+                    holder.mImgFavicon.setImageBitmap(image);
+                    holder.mImgFavicon.setVisibility(View.VISIBLE);
                 }
             } else {
                 holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
@@ -315,6 +329,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             TextView mTxtTitle;
             TextView mTxtTitleSmall;
             ImageView mImgIcon;
+            ImageView mImgIconWhite;
+            ImageView mImgFavicon;
 
             ViewHolder(View view) {
                 super(view);
@@ -322,6 +338,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
+                mImgIconWhite = (ImageView) view.findViewById(R.id.imgIconWhite);
+                mImgFavicon = (ImageView) view.findViewById(R.id.imgFavicon);
             }
         }
     }
