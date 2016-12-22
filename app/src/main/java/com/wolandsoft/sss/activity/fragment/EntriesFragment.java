@@ -16,6 +16,7 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -40,6 +41,7 @@ import android.widget.TextView;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntry;
+import com.wolandsoft.sss.favicon.URLIconResolver;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
@@ -73,7 +75,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 EntriesFragment.this.onSecretEntryClick(entry);
             }
         };
-        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage());
+        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(), sharedObj.getURLIconResolver());
     }
 
     @Override
@@ -174,16 +176,20 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private Handler mHandler;
         private Runnable mSearchUpdate;
         private SQLiteStorage mSQLtStorage;
+        private URLIconResolver mUrlIconResolver;
+        private Handler h;
 
-        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage) {
+        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage, URLIconResolver urlIconResolver) {
             mOnClickListener = onClickListener;
             mHandler = new Handler();
             mSQLtStorage = sqltStorage;
+            mUrlIconResolver = urlIconResolver;
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }
+            h = new Handler();
         }
 
         void updateSearchCriteria(final String criteria) {
@@ -219,13 +225,32 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 } else {
                     holder.mTxtTitleSmall.setVisibility(View.GONE);
                 }
-                holder.mImgIcon.setImageResource(R.mipmap.img48dp_lock_g);
                 holder.mView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mOnClickListener.onSecretEntryClick(entry);
                     }
                 });
+                //process image
+                final int fPos = position;
+                Bitmap image =
+                        mUrlIconResolver.resolve(entry, new URLIconResolver.OnURLIconResolveListener() {
+                            @Override
+                            public void onURLIconResolved(Bitmap image) {
+                                h.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        notifyItemChanged(fPos);
+                                    }
+                                });
+
+                            }
+                        });
+                if (image == null) {
+                    holder.mImgIcon.setImageResource(R.mipmap.img48dp_lock_g);
+                } else {
+                    holder.mImgIcon.setImageBitmap(image);
+                }
             } else {
                 holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
                 holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);

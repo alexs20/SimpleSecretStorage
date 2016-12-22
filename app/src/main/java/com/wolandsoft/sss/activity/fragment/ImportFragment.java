@@ -15,7 +15,6 @@
  */
 package com.wolandsoft.sss.activity.fragment;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -50,6 +49,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
@@ -73,10 +73,6 @@ import java.util.List;
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DONE_DIALOG = 1;
-    private static final String[] REQ_PERMISSIONS = new String[]{
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-    };
 
     private ArrayAdapter<String> mExtEngAdapter;
 
@@ -232,14 +228,14 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
     private void onPermissionsRequested() {
         boolean askForPermissionsDirect = false;
-        for (String permission : REQ_PERMISSIONS) {
+        for (String permission : AppConstants.EXTERNAL_STORAGE_PERMISSIONS) {
             int permissionGranted = ContextCompat.checkSelfPermission(getContext(), permission);
             if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
                 askForPermissionsDirect = askForPermissionsDirect || shouldShowRequestPermissionRationale(permission);
             }
         }
         if (askForPermissionsDirect) {
-            requestPermissions(REQ_PERMISSIONS, 0);
+            requestPermissions(AppConstants.EXTERNAL_STORAGE_PERMISSIONS, 0);
         } else {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
@@ -256,7 +252,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         super.onResume();
 
         boolean askForPermissions = false;
-        for (String permission : REQ_PERMISSIONS) {
+        for (String permission : AppConstants.EXTERNAL_STORAGE_PERMISSIONS) {
             int permissionGranted = ContextCompat.checkSelfPermission(getContext(), permission);
             if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
                 askForPermissions = true;

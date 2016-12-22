@@ -15,6 +15,8 @@
  */
 package com.wolandsoft.sss;
 
+import android.Manifest;
+
 /**
  * Commonly used constants.
  *
@@ -24,4 +26,9 @@ package com.wolandsoft.sss;
 public final class AppConstants {
     public static final String APP_TAG = "SSS";
     public static final String APP_SHORT_NAME = "SimpleSecretStorage";
+
+    public static final String[] EXTERNAL_STORAGE_PERMISSIONS = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
 }
