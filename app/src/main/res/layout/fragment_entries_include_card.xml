@@ -24,10 +24,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center">
             <ImageView
                 android:id="@+id/imgIcon"
                 android:layout_width="48dp"
@@ -36,24 +32,9 @@
                 android:layout_marginEnd="5dp"
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="5dp"
-                app:srcCompat="@mipmap/img48dp_lock_g"
-                android:contentDescription="@string/label_logo"/>
-            <ImageView
-                android:id="@+id/imgIconWhite"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                app:srcCompat="@mipmap/img24dp_circle_w"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:visibility="gone"/>
-            <ImageView
-                android:id="@+id/imgFavicon"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:visibility="gone"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"/>
-        </RelativeLayout>
+                app:srcCompat="@mipmap/img24dp_wait_g"
+                android:contentDescription="@string/label_logo"
+                android:layout_gravity="center"/>
 
         <LinearLayout
             android:layout_width="match_parent"

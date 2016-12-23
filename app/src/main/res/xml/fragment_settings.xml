@@ -27,10 +27,4 @@
         android:summary="@string/message_protected_fields_visible_by_default"
         android:title="@string/label_protected_field_visible" />
 
-    <android.support.v7.preference.SwitchPreferenceCompat
-        android:defaultValue="@bool/pref_resolve_favicon_value"
-        android:key="@string/pref_resolve_favicon_key"
-        android:summary="@string/message_resolve_favicon"
-        android:title="@string/label_resolve_favicon" />
-
 </PreferenceScreen>

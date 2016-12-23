@@ -46,7 +46,6 @@ import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntry;
-import com.wolandsoft.sss.favicon.URLIconResolver;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeySharedPreferences;
@@ -82,12 +81,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         };
 
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-        boolean resolveFavicon = ksPref.getBoolean(R.string.pref_resolve_favicon_key,
-                R.bool.pref_resolve_favicon_value);
-        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage(),
-                resolveFavicon ? sharedObj.getURLIconResolver() : null);
+        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage());
     }
 
     @Override
@@ -188,21 +182,16 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private Handler mHandler;
         private Runnable mSearchUpdate;
         private SQLiteStorage mSQLtStorage;
-        private URLIconResolver mUrlIconResolver;
-        private Handler h;
 
-
-        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage, URLIconResolver urlIconResolver) {
+        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage) {
             mOnClickListener = onClickListener;
             mHandler = new Handler();
             mSQLtStorage = sqltStorage;
-            mUrlIconResolver = urlIconResolver;
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
             }
-            h = new Handler();
         }
 
         void updateSearchCriteria(final String criteria) {
@@ -227,9 +216,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         @Override
         public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, int position) {
-            holder.itemView.setLongClickable(true);
-            holder.mImgIconWhite.setVisibility(View.GONE);
-            holder.mImgFavicon.setVisibility(View.GONE);
+            //holder.itemView.setLongClickable(true);
 
             final SecretEntry entry = getItem(position);
             if (entry != null) {
@@ -243,20 +230,19 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 } else {
                     holder.mTxtTitleSmall.setVisibility(View.GONE);
                 }
-                holder.mView.setOnClickListener(new View.OnClickListener() {
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mOnClickListener.onSecretEntryClick(entry);
                     }
                 });
 
-                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        Toast.makeText(v.getContext(), "TEST", Toast.LENGTH_LONG).show();
-                        return true;
-                    }
-                });
+//                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+//                    @Override
+//                    public boolean onLongClick(View v) {
+//                        return true;
+//                    }
+//                });
 
                 //make colored capital character
                 String capChar = "?";
@@ -268,28 +254,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 int color = generator.getColor(capitalTitle);
                 TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
                 holder.mImgIcon.setImageDrawable(drawable);
-                //process favicon
-                if(mUrlIconResolver != null) {
-                    final int fPos = position;
-                    Bitmap image =
-                            mUrlIconResolver.resolve(entry, new URLIconResolver.OnURLIconResolveListener() {
-                                @Override
-                                public void onURLIconResolved(Bitmap image) {
-                                    h.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyItemChanged(fPos);
-                                        }
-                                    });
-
-                                }
-                            });
-                    if (image != null) {
-                        holder.mImgIconWhite.setVisibility(View.VISIBLE);
-                        holder.mImgFavicon.setImageBitmap(image);
-                        holder.mImgFavicon.setVisibility(View.VISIBLE);
-                    }
-                }
             } else {
                 holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
                 holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);
@@ -350,21 +314,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            View mView;
             TextView mTxtTitle;
             TextView mTxtTitleSmall;
             ImageView mImgIcon;
-            ImageView mImgIconWhite;
-            ImageView mImgFavicon;
 
             ViewHolder(View view) {
                 super(view);
-                mView = view;
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
-                mImgIconWhite = (ImageView) view.findViewById(R.id.imgIconWhite);
-                mImgFavicon = (ImageView) view.findViewById(R.id.imgFavicon);
             }
         }
     }

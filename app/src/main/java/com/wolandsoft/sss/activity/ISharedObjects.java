@@ -15,7 +15,6 @@
 */
 package com.wolandsoft.sss.activity;
 
-import com.wolandsoft.sss.favicon.URLIconResolver;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
@@ -28,6 +27,4 @@ public interface ISharedObjects {
     KeyStoreManager getKeyStoreManager();
 
     SQLiteStorage getSQLiteStorage();
-
-    URLIconResolver getURLIconResolver();
 }

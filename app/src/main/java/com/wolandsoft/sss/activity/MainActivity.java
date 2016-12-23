@@ -41,7 +41,6 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
-import com.wolandsoft.sss.favicon.URLIconResolver;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
@@ -80,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mIsLocked = false;
     private KeyStoreManager mKSManager;
     private SQLiteStorage mSQLtStorage;
-    private URLIconResolver mUrlIconResolver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +98,6 @@ public class MainActivity extends AppCompatActivity implements
             LogEx.e(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
-        //favicons resolver
-        mUrlIconResolver = new URLIconResolver(getApplicationContext());
 
         super.onCreate(savedInstanceState);
 
@@ -335,10 +331,5 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public SQLiteStorage getSQLiteStorage() {
         return mSQLtStorage;
-    }
-
-    @Override
-    public URLIconResolver getURLIconResolver() {
-        return mUrlIconResolver;
     }
 }
