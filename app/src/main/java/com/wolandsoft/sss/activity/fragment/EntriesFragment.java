@@ -39,6 +39,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
@@ -226,6 +227,10 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         @Override
         public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, int position) {
+            holder.itemView.setLongClickable(true);
+            holder.mImgIconWhite.setVisibility(View.GONE);
+            holder.mImgFavicon.setVisibility(View.GONE);
+
             final SecretEntry entry = getItem(position);
             if (entry != null) {
                 String capitalTitle = entry.get(0).getValue();
@@ -244,6 +249,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                         mOnClickListener.onSecretEntryClick(entry);
                     }
                 });
+
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(v.getContext(), "TEST", Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+
                 //make colored capital character
                 String capChar = "?";
                 capitalTitle = capitalTitle.trim();
