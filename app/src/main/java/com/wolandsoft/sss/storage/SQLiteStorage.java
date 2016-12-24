@@ -58,9 +58,9 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         }
     }
 
-    public synchronized int[] find(String criteria, boolean isASC) throws StorageException {
+    public synchronized List<Integer> find(String criteria, boolean isASC) throws StorageException {
         if (dbHelper == null) {
-            return new int[0];
+            return new ArrayList<>();
         }
         SQLiteDatabase db = null;
         Cursor cursor = null;
@@ -96,9 +96,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             sb.append(" WHERE R.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0");
             sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE).append(isASC ? " ASC" : " DESC");
             cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]));
-            int[] result = new int[cursor.getCount()];
+            ArrayList<Integer> result = new ArrayList<>();
+            result.ensureCapacity(cursor.getCount());
             while (cursor.moveToNext()) {
-                result[cursor.getPosition()] = cursor.getInt(0);
+                result.add(cursor.getInt(0));
             }
             return result;
         } finally {

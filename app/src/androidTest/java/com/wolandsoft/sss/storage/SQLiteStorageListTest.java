@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -98,19 +99,19 @@ public class SQLiteStorageListTest {
 
     @Test
     public void test_s0_get_id_all() throws StorageException {
-        int[] seIds = storage.find(null, true);
+        List<Integer> seIds = storage.find(null, true);
         assertNotNull(seIds);
-        assertEquals(ENTRIES_COUNT, seIds.length);
+        assertEquals(ENTRIES_COUNT, seIds.size());
     }
 
     @Test
     public void test_s1_get_id_by_name() throws StorageException {
         String name = String.format(TEMPLATE_NAME, 0);
-        int[] seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);
-        assertEquals(1, seIds.length);
+        assertEquals(1, seIds.size());
 
-        SecretEntry se = storage.get(seIds[0]);
+        SecretEntry se = storage.get(seIds.get(0));
         assertNotNull(se);
         assertEquals(3, se.size());
         assertEquals(KEY_NAME, se.get(0).getKey());
@@ -120,11 +121,11 @@ public class SQLiteStorageListTest {
     @Test
     public void test_s1_get_id_by_url() throws StorageException {
         String name = String.format(TEMPLATE_URL, 0);
-        int[] seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);
-        assertEquals(1, seIds.length);
+        assertEquals(1, seIds.size());
 
-        SecretEntry se = storage.get(seIds[0]);
+        SecretEntry se = storage.get(seIds.get(0));
         assertNotNull(se);
         assertEquals(3, se.size());
         assertEquals(KEY_URL, se.get(1).getKey());
@@ -134,8 +135,8 @@ public class SQLiteStorageListTest {
     @Test
     public void test_s1_get_id_by_name_many() throws StorageException {
         String name = String.format(TEMPLATE_NAME, 7);
-        int[] seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);
-        assertEquals(11, seIds.length);
+        assertEquals(11, seIds.size());
     }
 }

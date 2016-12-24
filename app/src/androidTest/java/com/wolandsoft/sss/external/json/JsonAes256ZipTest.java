@@ -47,6 +47,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -123,9 +124,9 @@ public class JsonAes256ZipTest {
         external.doExport(storage, keystore, location.toURI(), FILE_PASSWORD);
         assertTrue(location.exists());
 
-        int[] entries = storage.find(null, true);
-        assertEquals(ENTRIES_COUNT, entries.length);
-        SecretEntry se = storage.get(entries[0]);
+        List<Integer> entries = storage.find(null, true);
+        assertEquals(ENTRIES_COUNT, entries.size());
+        SecretEntry se = storage.get(entries.get(0));
         assertNotNull(se);
         SecretEntryAttribute attr = se.get(0);
         attr.setValue("CHANGED");
@@ -133,14 +134,14 @@ public class JsonAes256ZipTest {
 
         external.doImport(storage, keystore, IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
-        assertEquals(ENTRIES_COUNT, entries.length);
+        assertEquals(ENTRIES_COUNT, entries.size());
 
-        se = storage.get(entries[0]);
+        se = storage.get(entries.get(0));
         assertNotNull(se);
         attr = se.get(0);
         assertNotSame("CHANGED", attr.getValue());
 
-        se = storage.get(entries[0]);
+        se = storage.get(entries.get(0));
         assertNotNull(se);
         attr = se.get(0);
         attr.setValue("CHANGED");
@@ -148,9 +149,9 @@ public class JsonAes256ZipTest {
 
         external.doImport(storage, keystore, IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
         entries = storage.find(null, true);
-        assertEquals(ENTRIES_COUNT, entries.length);
+        assertEquals(ENTRIES_COUNT, entries.size());
 
-        se = storage.get(entries[0]);
+        se = storage.get(entries.get(0));
         assertNotNull(se);
         int count = 0;
         for (SecretEntryAttribute attrNext : se) {

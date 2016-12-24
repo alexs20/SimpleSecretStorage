@@ -17,15 +17,13 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Color;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -34,7 +32,6 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,8 +51,7 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -65,7 +61,7 @@ import java.util.Arrays;
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
         EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract,
-        AlertDialogFragment.OnDialogToFragmentInteract{
+        AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
     private static final String KEY_ID = "id";
     private RVAdapter mRVAdapter;
@@ -150,7 +146,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     private void onSecretEntrySelect(SecretEntry entry) {
-        if(entry == null){
+        if (entry == null) {
             mMnuSearch.setVisible(true);
             mMnuDelete.setVisible(false);
         } else {
@@ -158,6 +154,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             mMnuDelete.setVisible(true);
         }
     }
+
     @Override
     public void onDetach() {
         super.onDetach();
@@ -196,9 +193,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         return true;
     }
 
-    private void onDeleteItemClicked(){
+    private void onDeleteItemClicked() {
         SecretEntry se = mRVAdapter.getSelectedItem();
-        if(se != null) {
+        if (se != null) {
             Bundle data = new Bundle();
             data.putInt(KEY_ID, se.getID());
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
@@ -240,7 +237,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
-        private int[] mSeIds = null;
+        private List<Integer> mSeIds = null;
         private OnRVAdapterActionListener mOnActionListener;
         private String mSearchCriteria = "";
         private Handler mHandler;
@@ -248,18 +245,12 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private SQLiteStorage mSQLtStorage;
         private int mSelectedItemPosition = -1;
         private int mActiveColor;
-        private int mBackgroundColor;
 
         RVAdapter(OnRVAdapterActionListener onActionListener, SQLiteStorage sqltStorage) {
             mOnActionListener = onActionListener;
             mHandler = new Handler();
             mSQLtStorage = sqltStorage;
-            TypedValue typedValue = new TypedValue();
-            TypedArray ta =  ((Context)sqltStorage).obtainStyledAttributes(typedValue.data,
-                    new int[] { android.R.attr.colorControlActivated, android.R.attr.colorBackground });
-            mActiveColor = ta.getColor(0, Color.BLUE);
-            mBackgroundColor = ta.getColor(1, Color.WHITE);
-            ta.recycle();
+
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
@@ -314,7 +305,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     @Override
                     public boolean onLongClick(View v) {
                         int oldPosition = -1;
-                        if(mSelectedItemPosition == fPosition){
+                        if (mSelectedItemPosition == fPosition) {
                             mSelectedItemPosition = -1;
                             mOnActionListener.onRVItemSelect(null);
                         } else {
@@ -323,7 +314,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                             mOnActionListener.onRVItemSelect(entry);
                         }
                         notifyItemChanged(fPosition);
-                        if(oldPosition > -1){
+                        if (oldPosition > -1) {
                             notifyItemChanged(oldPosition);
                         }
                         return true;
@@ -345,21 +336,23 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);
             }
             if (mSelectedItemPosition == position) {
-                ((CardView)holder.itemView).setCardBackgroundColor(mActiveColor);
+                ((CardView) holder.itemView).setCardBackgroundColor(mSQLtStorage.getResources().getColor(R.color.colorAccent));
             } else {
-                ((CardView)holder.itemView).setCardBackgroundColor(mBackgroundColor);
+                ((CardView) holder.itemView).setCardBackgroundColor(holder.mBackgroundColor);
             }
         }
 
         @Override
         public int getItemCount() {
-            return mSeIds == null ? 0 : mSeIds.length;
+            return mSeIds.size();
         }
 
         void deleteItem(int id) {
-            int idx = Arrays.asList(mSeIds).indexOf(id);
+            mSelectedItemPosition = -1;
+            int idx = mSeIds.indexOf(id);
             try {
                 mSQLtStorage.delete(id);
+                mSeIds.remove(idx);
                 notifyItemRemoved(idx);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
@@ -368,7 +361,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void refresh() {
-            if(mSelectedItemPosition > -1){
+            if (mSelectedItemPosition > -1) {
                 mOnActionListener.onRVItemSelect(null);
             }
             mSelectedItemPosition = -1;
@@ -392,13 +385,13 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         @Nullable
-        SecretEntry getItem(final int position) {
-            int id = mSeIds[position];
+        SecretEntry getItem(final int idx) {
+            int id = mSeIds.get(idx);
             try {
                 SecretEntry entry = mSQLtStorage.get(id, new SQLiteStorage.OnSecretEntryRetrieveListener() {
                     @Override
                     public void onSecretEntryRetrieved(SecretEntry entry) {
-                        notifyItemChanged(position);
+                        notifyItemChanged(idx);
                     }
                 });
                 return entry;
@@ -408,8 +401,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         }
 
-        SecretEntry getSelectedItem(){
-            if(mSelectedItemPosition > -1){
+        SecretEntry getSelectedItem() {
+            if (mSelectedItemPosition > -1) {
                 return getItem(mSelectedItemPosition);
             }
             return null;
@@ -417,6 +410,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         interface OnRVAdapterActionListener {
             void onRVItemClick(SecretEntry entry);
+
             void onRVItemSelect(SecretEntry entry);
         }
 
@@ -424,11 +418,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             TextView mTxtTitle;
             TextView mTxtTitleSmall;
             ImageView mImgIcon;
+            ColorStateList mBackgroundColor;
+
             ViewHolder(View view) {
                 super(view);
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
+                mBackgroundColor = ((CardView) itemView).getCardBackgroundColor();
             }
         }
     }
