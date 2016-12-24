@@ -127,7 +127,17 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         } else {
             entry = new SecretEntry();
             for (PredefinedAttribute attr : PredefinedAttribute.values()) {
-                entry.add(new SecretEntryAttribute(getString(attr.getKeyResID()), "", attr.isProtected()));
+                String key = getString(attr.getKeyResID());
+                String value = "";
+                if (attr.isProtected()) {
+                    try {
+                        value = mKSManager.encrypt(value);
+                    } catch (BadPaddingException | IllegalBlockSizeException e) {
+                        LogEx.e(e.getMessage(), e);
+                        throw new RuntimeException(e.getMessage(), e);
+                    }
+                }
+                entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
             }
         }
 
