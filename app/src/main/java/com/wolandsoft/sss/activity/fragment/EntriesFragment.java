@@ -15,22 +15,26 @@
 */
 package com.wolandsoft.sss.activity.fragment;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,17 +43,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
+import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 
 /**
@@ -58,8 +64,13 @@ import com.wolandsoft.sss.util.LogEx;
  * @author Alexander Shulgin
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
-        EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract {
-    private SecretEntriesAdapter mRVAdapter;
+        EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract,
+        AlertDialogFragment.OnDialogToFragmentInteract{
+    private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
+    private static final String KEY_ID = "id";
+    private RVAdapter mRVAdapter;
+    private MenuItem mMnuSearch;
+    private MenuItem mMnuDelete;
 
     @Override
     public void onAttach(Context context) {
@@ -74,14 +85,19 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                             getString(R.string.internal_exception_must_implement),
                             context.toString(), ISharedObjects.class.getName()));
         }
-        SecretEntriesAdapter.OnSecretEntryClickListener icl = new SecretEntriesAdapter.OnSecretEntryClickListener() {
+        RVAdapter.OnRVAdapterActionListener icl = new RVAdapter.OnRVAdapterActionListener() {
             @Override
-            public void onSecretEntryClick(SecretEntry entry) {
+            public void onRVItemClick(SecretEntry entry) {
                 EntriesFragment.this.onSecretEntryClick(entry);
+            }
+
+            @Override
+            public void onRVItemSelect(SecretEntry entry) {
+                EntriesFragment.this.onSecretEntrySelect(entry);
             }
         };
 
-        mRVAdapter = new SecretEntriesAdapter(icl, sharedObj.getSQLiteStorage());
+        mRVAdapter = new RVAdapter(icl, sharedObj.getSQLiteStorage());
     }
 
     @Override
@@ -124,7 +140,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         transaction.commit();
     }
 
-    public void onSecretEntryClick(SecretEntry entry) {
+    private void onSecretEntryClick(SecretEntry entry) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry);
         fragment.setTargetFragment(this, 0);
@@ -133,6 +149,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         transaction.commit();
     }
 
+    private void onSecretEntrySelect(SecretEntry entry) {
+        if(entry == null){
+            mMnuSearch.setVisible(true);
+            mMnuDelete.setVisible(false);
+        } else {
+            mMnuSearch.setVisible(false);
+            mMnuDelete.setVisible(true);
+        }
+    }
     @Override
     public void onDetach() {
         super.onDetach();
@@ -142,9 +167,21 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
         //attaching search view
-        MenuItem searchItem = menu.findItem(R.id.search);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        mMnuSearch = menu.findItem(R.id.mnuSearch);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(mMnuSearch);
         searchView.setOnQueryTextListener(this);
+
+        mMnuDelete = menu.findItem(R.id.mnuDelete);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.mnuDelete) {
+            onDeleteItemClicked();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -157,6 +194,33 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         //searching
         mRVAdapter.updateSearchCriteria(newText);
         return true;
+    }
+
+    private void onDeleteItemClicked(){
+        SecretEntry se = mRVAdapter.getSelectedItem();
+        if(se != null) {
+            Bundle data = new Bundle();
+            data.putInt(KEY_ID, se.getID());
+            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
+                    R.string.label_delete_entry, R.string.message_item_confirmation, true, data);
+            fragment.setCancelable(true);
+            fragment.setTargetFragment(this, DELETE_ITEM_CONFIRMATION_DIALOG);
+            transaction.addToBackStack(null);
+            fragment.show(transaction, DialogFragment.class.getName());
+        }
+    }
+
+    @Override
+    public void onDialogResult(int requestCode, int resultCode, Bundle args) {
+        switch (requestCode) {
+            case DELETE_ITEM_CONFIRMATION_DIALOG:
+                if (resultCode == Activity.RESULT_OK) {
+                    int id = args.getInt(KEY_ID);
+                    mRVAdapter.deleteItem(id);
+                }
+                break;
+        }
     }
 
     @Override
@@ -174,23 +238,33 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         mRVAdapter.refresh();
     }
 
-    static class SecretEntriesAdapter extends RecyclerView.Adapter<SecretEntriesAdapter.ViewHolder> {
+    static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
         private int[] mSeIds = null;
-        private OnSecretEntryClickListener mOnClickListener;
+        private OnRVAdapterActionListener mOnActionListener;
         private String mSearchCriteria = "";
         private Handler mHandler;
         private Runnable mSearchUpdate;
         private SQLiteStorage mSQLtStorage;
+        private int mSelectedItemPosition = -1;
+        private int mActiveColor;
+        private int mBackgroundColor;
 
-        SecretEntriesAdapter(OnSecretEntryClickListener onClickListener, SQLiteStorage sqltStorage) {
-            mOnClickListener = onClickListener;
+        RVAdapter(OnRVAdapterActionListener onActionListener, SQLiteStorage sqltStorage) {
+            mOnActionListener = onActionListener;
             mHandler = new Handler();
             mSQLtStorage = sqltStorage;
+            TypedValue typedValue = new TypedValue();
+            TypedArray ta =  ((Context)sqltStorage).obtainStyledAttributes(typedValue.data,
+                    new int[] { android.R.attr.colorControlActivated, android.R.attr.colorBackground });
+            mActiveColor = ta.getColor(0, Color.BLUE);
+            mBackgroundColor = ta.getColor(1, Color.WHITE);
+            ta.recycle();
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 
@@ -209,15 +283,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         @Override
-        public SecretEntriesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public RVAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View card = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_entries_include_card, parent, false);
             return new ViewHolder(card);
         }
 
         @Override
-        public void onBindViewHolder(SecretEntriesAdapter.ViewHolder holder, int position) {
-            //holder.itemView.setLongClickable(true);
-
+        public void onBindViewHolder(RVAdapter.ViewHolder holder, int position) {
+            holder.itemView.setLongClickable(true);
             final SecretEntry entry = getItem(position);
             if (entry != null) {
                 String capitalTitle = entry.get(0).getValue();
@@ -233,16 +306,29 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mOnClickListener.onSecretEntryClick(entry);
+                        mOnActionListener.onRVItemClick(entry);
                     }
                 });
-
-//                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-//                    @Override
-//                    public boolean onLongClick(View v) {
-//                        return true;
-//                    }
-//                });
+                final int fPosition = position;
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        int oldPosition = -1;
+                        if(mSelectedItemPosition == fPosition){
+                            mSelectedItemPosition = -1;
+                            mOnActionListener.onRVItemSelect(null);
+                        } else {
+                            oldPosition = mSelectedItemPosition;
+                            mSelectedItemPosition = fPosition;
+                            mOnActionListener.onRVItemSelect(entry);
+                        }
+                        notifyItemChanged(fPosition);
+                        if(oldPosition > -1){
+                            notifyItemChanged(oldPosition);
+                        }
+                        return true;
+                    }
+                });
 
                 //make colored capital character
                 String capChar = "?";
@@ -258,6 +344,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
                 holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);
             }
+            if (mSelectedItemPosition == position) {
+                ((CardView)holder.itemView).setCardBackgroundColor(mActiveColor);
+            } else {
+                ((CardView)holder.itemView).setCardBackgroundColor(mBackgroundColor);
+            }
         }
 
         @Override
@@ -266,20 +357,27 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void deleteItem(int id) {
+            int idx = Arrays.asList(mSeIds).indexOf(id);
             try {
                 mSQLtStorage.delete(id);
-                refresh();
+                notifyItemRemoved(idx);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 
         void refresh() {
+            if(mSelectedItemPosition > -1){
+                mOnActionListener.onRVItemSelect(null);
+            }
+            mSelectedItemPosition = -1;
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
                 notifyDataSetChanged();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 
@@ -289,6 +387,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 refresh();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 
@@ -309,15 +408,22 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         }
 
-        interface OnSecretEntryClickListener {
-            void onSecretEntryClick(SecretEntry entry);
+        SecretEntry getSelectedItem(){
+            if(mSelectedItemPosition > -1){
+                return getItem(mSelectedItemPosition);
+            }
+            return null;
+        }
+
+        interface OnRVAdapterActionListener {
+            void onRVItemClick(SecretEntry entry);
+            void onRVItemSelect(SecretEntry entry);
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView mTxtTitle;
             TextView mTxtTitleSmall;
             ImageView mImgIcon;
-
             ViewHolder(View view) {
                 super(view);
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
