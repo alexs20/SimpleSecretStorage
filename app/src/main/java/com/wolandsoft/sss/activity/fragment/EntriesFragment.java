@@ -347,8 +347,19 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             return mSeIds.size();
         }
 
+        void clearSelection(){
+            if (mSelectedItemPosition > -1) {
+                int idx = mSelectedItemPosition;
+                mSelectedItemPosition = -1;
+                //notify the listener that selected item in not selected anymore
+                notifyItemChanged(idx);
+                mOnActionListener.onRVItemSelect(null);
+            }
+        }
+
         void deleteItem(int id) {
-            mSelectedItemPosition = -1;
+            clearSelection();
+            //get position of the item
             int idx = mSeIds.indexOf(id);
             try {
                 mSQLtStorage.delete(id);
@@ -361,10 +372,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void refresh() {
-            if (mSelectedItemPosition > -1) {
-                mOnActionListener.onRVItemSelect(null);
-            }
-            mSelectedItemPosition = -1;
+            clearSelection();
             try {
                 mSeIds = mSQLtStorage.find(mSearchCriteria, true);
                 notifyDataSetChanged();
