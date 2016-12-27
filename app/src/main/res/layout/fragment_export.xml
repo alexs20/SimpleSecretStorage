@@ -95,33 +95,16 @@
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
-            <LinearLayout
+            <Button
+                android:id="@+id/btnSelectDest"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_span="2"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content"
+                android:ellipsize="start"
+                android:singleLine="true"
+                android:text="@string/label_select_destination"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                style="@style/Widget.AppCompat.Button.Colored"/>
 
-                <TextView
-                    android:id="@+id/txtDestinationPath"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.9"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/label_select_destination"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/colorPrimary" />
-
-                <Button
-                    android:id="@+id/btnSelectDest"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.1"
-                    android:drawablePadding="0dp"
-                    android:minHeight="0dp"
-                    android:minWidth="0dp"
-                    android:text="@string/label_ellipsis" />
-            </LinearLayout>
 
         </LinearLayout>
 
@@ -155,12 +138,13 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <Button
-                android:text="@string/label_request_permissions"
+                android:id="@+id/btnPermissions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="21dp"
-                android:id="@+id/btnPermissions" />
+                android:text="@string/label_request_permissions"
+                style="@style/Widget.AppCompat.Button.Colored" />
         </LinearLayout>
 
     </RelativeLayout>

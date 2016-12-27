@@ -29,7 +29,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -78,17 +77,18 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
     private Spinner mSprExtEngine;
     private Spinner mSprConflictResolution;
-    private TextView mTxtSourcePath;
     private EditText mEdtPassword;
     private EditText mEdtPasswordOpen;
     private FloatingActionButton mBtnApply;
     private TextView mTxtExtEngineLabel;
     private TextView mTxtConflictResLabel;
     private Button mBtnPermissions;
+    private Button mBtnSource;
     private RelativeLayout mLayoutWait;
     private RelativeLayout mLayoutForm;
     private RelativeLayout mLayoutPermissions;
     private boolean mIsShowPwd;
+    private File mSourcePath;
 
     private KeyStoreManager mKSManager;
     private SQLiteStorage mSQLtStorage;
@@ -181,9 +181,8 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
         mEdtPassword = (EditText) view.findViewById(R.id.edtPassword);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
-        mTxtSourcePath = (TextView) view.findViewById(R.id.txtSourcePath);
-        Button btnSelectSource = (Button) view.findViewById(R.id.btnSelectSource);
-        btnSelectSource.setOnClickListener(new View.OnClickListener() {
+        mBtnSource = (Button) view.findViewById(R.id.btnSelectSource);
+        mBtnSource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onSourceSelectClicked();
@@ -294,8 +293,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         } else {
             args.password = mEdtPassword.getText().toString();
         }
-        String source = mTxtSourcePath.getText().toString();
-        if (!source.startsWith("/")) {
+        if (mSourcePath == null) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_source_file_selected, false, null);
@@ -305,7 +303,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        args.source = new File(source);
+        args.source = mSourcePath;
         if (args.password.length() == 0) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
@@ -334,20 +332,34 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             protected void onPostExecute(Boolean aBoolean) {
                 super.onPostExecute(aBoolean);
                 mLayoutWait.setVisibility(View.GONE);
+                mBtnApply.setEnabled(true);
                 if (aBoolean) {
-                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    Fragment parent = getTargetFragment();
+                    if (parent instanceof OnFragmentToFragmentInteract) {
+                        ((OnFragmentToFragmentInteract) parent).onImportCompleted();
+                    } else {
+                        throw new ClassCastException(
+                                String.format(
+                                        getString(R.string.internal_exception_must_implement),
+                                        parent.toString(),
+                                        OnFragmentToFragmentInteract.class.getName()
+                                )
+                        );
+                    }
+                    getFragmentManager().popBackStack();
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
                             R.string.label_import, R.string.message_import_process_completed, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(ImportFragment.this, DONE_DIALOG);
+                    fragment.setTargetFragment(ImportFragment.this, 0);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 } else {
-                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                             R.string.label_import, R.string.message_import_process_failed, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(ImportFragment.this, DONE_DIALOG);
+                    fragment.setTargetFragment(ImportFragment.this, 0);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 }
@@ -415,26 +427,13 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
     @Override
     public void onFileSelected(File path, String uiPath) {
-        mTxtSourcePath.setText(path.toString());
+        mBtnSource.setText(uiPath);
+        mSourcePath = path;
     }
 
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
-        if (requestCode == DONE_DIALOG) {
-            Fragment parent = getTargetFragment();
-            if (parent instanceof OnFragmentToFragmentInteract) {
-                ((OnFragmentToFragmentInteract) parent).onImportCompleted();
-            } else {
-                throw new ClassCastException(
-                        String.format(
-                                getString(R.string.internal_exception_must_implement),
-                                parent.toString(),
-                                OnFragmentToFragmentInteract.class.getName()
-                        )
-                );
-            }
-            getFragmentManager().popBackStack(ImportFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        }
+
     }
 
     interface OnFragmentToFragmentInteract {

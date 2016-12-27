@@ -75,24 +75,24 @@ import java.util.Locale;
  */
 public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
-    private static final int DONE_DIALOG = 1;
     private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
 
     private ArrayAdapter<String> mExtEngAdapter;
 
     private Spinner mSprExtEngine;
-    private TextView mTxtDestinationPath;
     private EditText mEdtPassword1;
     private EditText mEdtPassword2;
     private EditText mEdtPasswordOpen;
     private FloatingActionButton mBtnApply;
     private TextView mTxtExtEngineLabel;
     private Button mBtnPermissions;
+    private Button mBtnDestination;
     private RelativeLayout mLayoutWait;
     private RelativeLayout mLayoutForm;
     private RelativeLayout mLayoutPermissions;
     private boolean mIsShowPwd;
+    private File mDestinationPath;
 
     private KeyStoreManager mKSManager;
     private SQLiteStorage mSQLtStorage;
@@ -159,9 +159,9 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         mEdtPassword1 = (EditText) view.findViewById(R.id.edtPassword);
         mEdtPassword2 = (EditText) view.findViewById(R.id.edtPasswordRepeat);
         mEdtPasswordOpen = (EditText) view.findViewById(R.id.edtPasswordOpen);
-        mTxtDestinationPath = (TextView) view.findViewById(R.id.txtDestinationPath);
-        Button btnSelectDest = (Button) view.findViewById(R.id.btnSelectDest);
-        btnSelectDest.setOnClickListener(new View.OnClickListener() {
+
+        mBtnDestination = (Button) view.findViewById(R.id.btnSelectDest);
+        mBtnDestination.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDestinationSelectClicked();
@@ -293,8 +293,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        String destination = mTxtDestinationPath.getText().toString();
-        if (!destination.startsWith("/")) {
+        if (mDestinationPath == null) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_destination_directory_selected, false, null);
@@ -304,9 +303,9 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        args.destination = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        args.destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
         while (args.destination.exists()) {
-            args.destination = new File(destination, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+            args.destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
         }
 
         new AsyncTask<ExportArgs, Void, Boolean>() {
@@ -321,20 +320,22 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             protected void onPostExecute(Boolean aBoolean) {
                 super.onPostExecute(aBoolean);
                 mLayoutWait.setVisibility(View.GONE);
+                mBtnApply.setEnabled(false);
                 if (aBoolean) {
-                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    getFragmentManager().popBackStack();
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
                             R.string.label_export, R.string.message_export_process_completed, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(ExportFragment.this, DONE_DIALOG);
+                    fragment.setTargetFragment(ExportFragment.this, 0);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 } else {
-                    FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                             R.string.label_export, R.string.message_export_process_failed, false, null);
                     fragment.setCancelable(true);
-                    fragment.setTargetFragment(ExportFragment.this, DONE_DIALOG);
+                    fragment.setTargetFragment(ExportFragment.this, 0);
                     transaction.addToBackStack(null);
                     fragment.show(transaction, DialogFragment.class.getName());
                 }
@@ -403,14 +404,13 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
     @Override
     public void onFileSelected(File path, String uiPath) {
-        mTxtDestinationPath.setText(path.toString());
+        mBtnDestination.setText(uiPath);
+        mDestinationPath = path;
     }
 
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
-        if (requestCode == DONE_DIALOG) {
-            getFragmentManager().popBackStack(ExportFragment.class.getName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        }
+
     }
 
     class ExportArgs {
