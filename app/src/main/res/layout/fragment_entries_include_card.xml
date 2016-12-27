@@ -19,22 +19,23 @@
     android:layout_height="wrap_content"
     app:cardUseCompatPadding="true">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/imgIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginBottom="5dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="5dp"
-                app:srcCompat="@mipmap/img24dp_wait_g"
-                android:contentDescription="@string/label_logo"
-                android:layout_gravity="center"/>
+        <ImageView
+            android:id="@+id/imgIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:contentDescription="@string/label_logo"
+            app:srcCompat="@mipmap/img24dp_wait_g" />
 
         <LinearLayout
             android:layout_width="match_parent"

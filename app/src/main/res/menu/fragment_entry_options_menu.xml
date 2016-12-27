@@ -16,12 +16,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/mnuDeleteEntry"
-        android:icon="@mipmap/img24dp_remove_w"
-        android:title="@string/label_delete"
-        app:showAsAction="collapseActionView|ifRoom" />
-    <item
-        android:id="@+id/showPwd"
+        android:id="@+id/mnuShowPwd"
         android:checkable="true"
         android:icon="@mipmap/img24dp_eye_w"
         android:title="@string/label_show_password"

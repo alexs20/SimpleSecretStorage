@@ -17,7 +17,6 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -28,10 +27,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,12 +45,17 @@ import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
+import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 
 /**
@@ -60,27 +64,29 @@ import java.util.List;
  * @author Alexander Shulgin
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
-        EntryFragment.OnFragmentToFragmentInteract, ImportFragment.OnFragmentToFragmentInteract,
+        EntryFragment.OnFragmentToFragmentInteract,
+        ImportFragment.OnFragmentToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
     private static final String KEY_ID = "id";
+    private static final String KEY_SEARCH_PHRASE = "search_phrase";
+    private ISharedObjects mHost;
     private RVAdapter mRVAdapter;
-    private MenuItem mMnuSearch;
-    private MenuItem mMnuDelete;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
-        ISharedObjects sharedObj;
         if (context instanceof ISharedObjects) {
-            sharedObj = (ISharedObjects) context;
+            mHost = (ISharedObjects) context;
         } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
+            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
+                    context.toString(), ISharedObjects.class.getName()));
         }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         RVAdapter.OnRVAdapterActionListener icl = new RVAdapter.OnRVAdapterActionListener() {
             @Override
             public void onRVItemClick(SecretEntry entry) {
@@ -88,12 +94,19 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
 
             @Override
-            public void onRVItemSelect(SecretEntry entry) {
-                EntriesFragment.this.onSecretEntrySelect(entry);
+            public void onRVItemDismiss(SecretEntry entry) {
+                EntriesFragment.this.onSecretEntryDelete(entry);
             }
         };
-
-        mRVAdapter = new RVAdapter(icl, sharedObj.getSQLiteStorage());
+        String searchCriteria = "";
+        int selectedItemId = 0;
+        if (savedInstanceState != null) {
+            searchCriteria = savedInstanceState.getString(KEY_SEARCH_PHRASE, searchCriteria);
+        }
+        //Recycler view adapter
+        mRVAdapter = new RVAdapter(icl, mHost.getSQLiteStorage(), searchCriteria);
+        //enabling action bar menu items
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -121,15 +134,35 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //enabling search icon
-        setHasOptionsMenu(true);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_SEARCH_PHRASE, mRVAdapter.getSearchCriteria());
     }
 
     private void onAddClicked() {
+        //create new entry
+        SecretEntry entry = new SecretEntry();
+        for (PredefinedAttribute attr : PredefinedAttribute.values()) {
+            String key = getString(attr.getKeyResID());
+            String value = "";
+            if (attr.isProtected()) {
+                try {
+                    value = mHost.getKeyStoreManager().encrypt(value);
+                } catch (BadPaddingException | IllegalBlockSizeException e) {
+                    LogEx.e(e.getMessage(), e);
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+            entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
+        }
+        try {
+            entry = mHost.getSQLiteStorage().put(entry);
+        } catch (StorageException e) {
+            LogEx.e(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = EntryFragment.newInstance(null);
+        Fragment fragment = EntryFragment.newInstance(entry.getID());
         fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(EntryFragment.class.getName());
@@ -138,47 +171,39 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     private void onSecretEntryClick(SecretEntry entry) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment = EntryFragment.newInstance(entry);
+        Fragment fragment = EntryFragment.newInstance(entry.getID());
         fragment.setTargetFragment(this, 0);
         transaction.replace(R.id.content_fragment, fragment);
         transaction.addToBackStack(EntryFragment.class.getName());
         transaction.commit();
     }
 
-    private void onSecretEntrySelect(SecretEntry entry) {
-        if (entry == null) {
-            mMnuSearch.setVisible(true);
-            mMnuDelete.setVisible(false);
-        } else {
-            mMnuSearch.setVisible(false);
-            mMnuDelete.setVisible(true);
-        }
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
+    private void onSecretEntryDelete(SecretEntry item) {
+        Bundle data = new Bundle();
+        data.putInt(KEY_ID, item.getID());
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
+                R.string.label_delete_entry, R.string.message_entry_confirmation, true, data);
+        fragment.setCancelable(true);
+        fragment.setTargetFragment(this, DELETE_ITEM_CONFIRMATION_DIALOG);
+        transaction.addToBackStack(null);
+        fragment.show(transaction, DialogFragment.class.getName());
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
         //attaching search view
-        mMnuSearch = menu.findItem(R.id.mnuSearch);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(mMnuSearch);
+        MenuItem mnuSearch = menu.findItem(R.id.mnuSearch);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(mnuSearch);
         searchView.setOnQueryTextListener(this);
-
-        mMnuDelete = menu.findItem(R.id.mnuDelete);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.mnuDelete) {
-            onDeleteItemClicked();
-            return true;
+        if (!mRVAdapter.getSearchCriteria().isEmpty()) {
+            mnuSearch.expandActionView();
+            searchView.setQuery(mRVAdapter.getSearchCriteria(), true);
+            searchView.clearFocus();
         }
-        return super.onOptionsItemSelected(item);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -193,28 +218,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         return true;
     }
 
-    private void onDeleteItemClicked() {
-        SecretEntry se = mRVAdapter.getSelectedItem();
-        if (se != null) {
-            Bundle data = new Bundle();
-            data.putInt(KEY_ID, se.getID());
-            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-            DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
-                    R.string.label_delete_entry, R.string.message_item_confirmation, true, data);
-            fragment.setCancelable(true);
-            fragment.setTargetFragment(this, DELETE_ITEM_CONFIRMATION_DIALOG);
-            transaction.addToBackStack(null);
-            fragment.show(transaction, DialogFragment.class.getName());
-        }
-    }
-
     @Override
     public void onDialogResult(int requestCode, int resultCode, Bundle args) {
         switch (requestCode) {
             case DELETE_ITEM_CONFIRMATION_DIALOG:
+                int id = args.getInt(KEY_ID);
                 if (resultCode == Activity.RESULT_OK) {
-                    int id = args.getInt(KEY_ID);
                     mRVAdapter.deleteItem(id);
+                } else {
+                    mRVAdapter.reloadItem(id);
                 }
                 break;
         }
@@ -226,33 +238,28 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     @Override
-    public void onEntryDelete(int id) {
-        mRVAdapter.deleteItem(id);
-    }
-
-    @Override
     public void onImportCompleted() {
-        mRVAdapter.refresh();
+        mRVAdapter.reload();
     }
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
-        private List<Integer> mSeIds = null;
+        private List<Integer> mItemIds = null;
         private OnRVAdapterActionListener mOnActionListener;
-        private String mSearchCriteria = "";
+        private String mSearchCriteria;
         private Handler mHandler;
         private Runnable mSearchUpdate;
-        private SQLiteStorage mSQLtStorage;
-        private int mSelectedItemPosition = -1;
-        private int mActiveColor;
+        private SQLiteStorage mSqLtStorage;
 
-        RVAdapter(OnRVAdapterActionListener onActionListener, SQLiteStorage sqltStorage) {
+        RVAdapter(OnRVAdapterActionListener onActionListener,
+                  SQLiteStorage sqLtStorage,
+                  String searchCriteria) {
             mOnActionListener = onActionListener;
+            mSqLtStorage = sqLtStorage;
+            mSearchCriteria = searchCriteria;
             mHandler = new Handler();
-            mSQLtStorage = sqltStorage;
-
             try {
-                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
+                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage(), e);
@@ -260,13 +267,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void updateSearchCriteria(final String criteria) {
-            mHandler.removeCallbacks(mSearchUpdate);
+            if (mSearchUpdate != null)
+                mHandler.removeCallbacks(mSearchUpdate);
             mSearchUpdate = new Runnable() {
                 @Override
                 public void run() {
                     if (!criteria.equals(mSearchCriteria)) {
                         mSearchCriteria = criteria;
-                        refresh();
+                        reload();
                     }
                 }
             };
@@ -283,87 +291,56 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         public void onBindViewHolder(RVAdapter.ViewHolder holder, int position) {
             holder.itemView.setLongClickable(true);
             final SecretEntry entry = getItem(position);
-            if (entry != null) {
-                String capitalTitle = entry.get(0).getValue();
-                holder.mTxtTitle.setText(capitalTitle);
-                int next = 0;
-                while (++next < entry.size() && entry.get(next).isProtected()) ;
-                if (next < entry.size() && !entry.get(next).isProtected()) {
-                    holder.mTxtTitleSmall.setText(entry.get(next).getValue());
-                    holder.mTxtTitleSmall.setVisibility(View.VISIBLE);
-                } else {
-                    holder.mTxtTitleSmall.setVisibility(View.GONE);
-                }
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mOnActionListener.onRVItemClick(entry);
-                    }
-                });
-                final int fPosition = position;
-                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        int oldPosition = -1;
-                        if (mSelectedItemPosition == fPosition) {
-                            mSelectedItemPosition = -1;
-                            mOnActionListener.onRVItemSelect(null);
-                        } else {
-                            oldPosition = mSelectedItemPosition;
-                            mSelectedItemPosition = fPosition;
-                            mOnActionListener.onRVItemSelect(entry);
-                        }
-                        notifyItemChanged(fPosition);
-                        if (oldPosition > -1) {
-                            notifyItemChanged(oldPosition);
-                        }
-                        return true;
-                    }
-                });
 
-                //make colored capital character
-                String capChar = "?";
-                capitalTitle = capitalTitle.trim();
-                if (capitalTitle.length() > 0) {
-                    capChar = capitalTitle.substring(0, 1).toUpperCase();
+            String capitalTitle = entry.get(0).getValue();
+            holder.mTxtTitle.setText(capitalTitle);
+            int next = 0;
+            while (++next < entry.size() && entry.get(next).isProtected()) ;
+            if (next < entry.size() && !entry.get(next).isProtected()) {
+                holder.mTxtTitleSmall.setText(entry.get(next).getValue());
+                holder.mTxtTitleSmall.setVisibility(View.VISIBLE);
+            } else {
+                holder.mTxtTitleSmall.setVisibility(View.GONE);
+            }
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnActionListener.onRVItemClick(entry);
                 }
-                ColorGenerator generator = ColorGenerator.DEFAULT;
-                int color = generator.getColor(capitalTitle);
-                TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
-                holder.mImgIcon.setImageDrawable(drawable);
-            } else {
-                holder.mTxtTitle.setText(R.string.label_loading_ellipsis);
-                holder.mImgIcon.setImageResource(R.mipmap.img24dp_wait_g);
+            });
+
+            //make colored capital character
+            String capChar = "?";
+            capitalTitle = capitalTitle.trim();
+            if (capitalTitle.length() > 0) {
+                capChar = capitalTitle.substring(0, 1).toUpperCase();
             }
-            if (mSelectedItemPosition == position) {
-                ((CardView) holder.itemView).setCardBackgroundColor(mSQLtStorage.getResources().getColor(R.color.colorAccent));
-            } else {
-                ((CardView) holder.itemView).setCardBackgroundColor(holder.mBackgroundColor);
-            }
+            ColorGenerator generator = ColorGenerator.DEFAULT;
+            int color = generator.getColor(capitalTitle);
+            TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
+            holder.mImgIcon.setImageDrawable(drawable);
         }
 
         @Override
         public int getItemCount() {
-            return mSeIds.size();
+            return mItemIds.size();
         }
 
-        void clearSelection(){
-            if (mSelectedItemPosition > -1) {
-                int idx = mSelectedItemPosition;
-                mSelectedItemPosition = -1;
-                //notify the listener that selected item in not selected anymore
-                notifyItemChanged(idx);
-                mOnActionListener.onRVItemSelect(null);
-            }
+        private void onItemDismiss(int position) {
+            SecretEntry item = getItem(position);
+            mOnActionListener.onRVItemDismiss(item);
+        }
+
+        String getSearchCriteria() {
+            return mSearchCriteria;
         }
 
         void deleteItem(int id) {
-            clearSelection();
             //get position of the item
-            int idx = mSeIds.indexOf(id);
+            int idx = mItemIds.indexOf(id);
             try {
-                mSQLtStorage.delete(id);
-                mSeIds.remove(idx);
+                mSqLtStorage.delete(id);
+                mItemIds.remove(idx);
                 notifyItemRemoved(idx);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
@@ -371,10 +348,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         }
 
-        void refresh() {
-            clearSelection();
+        void reload() {
             try {
-                mSeIds = mSQLtStorage.find(mSearchCriteria, true);
+                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
                 notifyDataSetChanged();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
@@ -382,10 +358,17 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         }
 
-        void updateItem(SecretEntry se) {
+        void reloadItem(int id) {
+            //get position of the item
+            int idx = mItemIds.indexOf(id);
+            notifyItemChanged(idx);
+        }
+
+        void updateItem(SecretEntry item) {
             try {
-                se = mSQLtStorage.put(se);
-                refresh();
+                mSqLtStorage.put(item);
+                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+                notifyDataSetChanged();
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage(), e);
@@ -394,46 +377,56 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
         @Nullable
         SecretEntry getItem(final int idx) {
-            int id = mSeIds.get(idx);
+            int id = mItemIds.get(idx);
             try {
-                SecretEntry entry = mSQLtStorage.get(id, new SQLiteStorage.OnSecretEntryRetrieveListener() {
-                    @Override
-                    public void onSecretEntryRetrieved(SecretEntry entry) {
-                        notifyItemChanged(idx);
-                    }
-                });
-                return entry;
+                return mSqLtStorage.get(id);
             } catch (StorageException e) {
                 LogEx.e(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage(), e);
             }
         }
 
-        SecretEntry getSelectedItem() {
-            if (mSelectedItemPosition > -1) {
-                return getItem(mSelectedItemPosition);
-            }
-            return null;
+        //ItemTouchHelper extension
+        @Override
+        public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+            super.onAttachedToRecyclerView(recyclerView);
+            ItemTouchHelper.Callback callback = new ItemTouchHelper.Callback() {
+                @Override
+                public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                    int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+                    return makeMovementFlags(0, swipeFlags);
+                }
+
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    onItemDismiss(viewHolder.getAdapterPosition());
+                }
+            };
+            ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+            touchHelper.attachToRecyclerView(recyclerView);
         }
 
         interface OnRVAdapterActionListener {
             void onRVItemClick(SecretEntry entry);
 
-            void onRVItemSelect(SecretEntry entry);
+            void onRVItemDismiss(SecretEntry entry);
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView mTxtTitle;
             TextView mTxtTitleSmall;
             ImageView mImgIcon;
-            ColorStateList mBackgroundColor;
 
             ViewHolder(View view) {
                 super(view);
                 mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
                 mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
                 mImgIcon = (ImageView) view.findViewById(R.id.imgIcon);
-                mBackgroundColor = ((CardView) itemView).getCardBackgroundColor();
             }
         }
     }

@@ -19,7 +19,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.util.LruCache;
 
 import com.wolandsoft.sss.R;
@@ -42,13 +41,15 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
 
     public SQLiteStorage(Context base) throws StorageException {
         super(base);
+        LogEx.d("SQLiteStorage() ", this);
         dbHelper = new DatabaseHelper(this);
-        int cacheSize = getResources().getInteger(R.integer.pref_entries_cache_size);
+        int cacheSize = getResources().getInteger(R.integer.pref_db_cache_size);
         mCache = new LruCache<>(cacheSize);
     }
 
     @Override
     public synchronized void close() {
+        LogEx.d("close() ", this);
         if (dbHelper != null) {
             dbHelper.close();
             dbHelper = null;
@@ -59,6 +60,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     public synchronized List<Integer> find(String criteria, boolean isASC) throws StorageException {
+        LogEx.d("find( ", criteria, ", ", isASC, " )");
         if (dbHelper == null) {
             return new ArrayList<>();
         }
@@ -110,59 +112,24 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         }
     }
 
-    public SecretEntry get(int id) throws StorageException {
-        return get(id, null);
-    }
-
     /**
      * Get {@link SecretEntry} by ID.</br>
-     * Two modes:
-     * 1) async is {@code null} - {@link SecretEntry} instance will be fetched in blocking mode.
-     * 2) async in not {@code null} - {@link SecretEntry} instance will be returned from the cache
-     * and if not found then {@code null} returned and later {@link OnSecretEntryRetrieveListener} invoked.
      *
      * @param id
-     * @param async
      * @return instance of {@link SecretEntry} or {@code null}
      * @throws StorageException
      */
-    public SecretEntry get(int id, final OnSecretEntryRetrieveListener async) throws StorageException {
+    public SecretEntry get(int id) throws StorageException {
+        LogEx.d("get( ", id, " )");
         SecretEntry entry = mCache.get(id);
         if (entry != null) {
             return entry;
         }
-        if (async == null) {
-            entry = getFromDb(id);
-            if (entry != null) {
-                mCache.put(id, entry);
-            }
-            return entry;
-        } else {
-            new AsyncTask<Integer, Void, SecretEntry>() {
-                @Override
-                protected SecretEntry doInBackground(Integer... params) {
-                    try {
-                        int id = params[0];
-                        SecretEntry entry = getFromDb(id);
-                        if (entry != null) {
-                            mCache.put(id, entry);
-                            return entry;
-                        }
-                    } catch (StorageException e) {
-                        LogEx.e(e.getMessage(), e);
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(SecretEntry entry) {
-                    if (entry != null) {
-                        async.onSecretEntryRetrieved(entry);
-                    }
-                }
-            }.execute(id);
-            return null;
+        entry = getFromDb(id);
+        if (entry != null) {
+            mCache.put(id, entry);
         }
+        return entry;
     }
 
     private SecretEntry getFromDb(int id) throws StorageException {
@@ -177,6 +144,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     public void delete(int id) throws StorageException {
+        LogEx.d("delete( ", id, " )");
         SQLiteDatabase db = null;
         try {
             db = dbHelper.getWritableDatabase();
@@ -214,6 +182,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
      * @throws StorageException
      */
     public SecretEntry put(SecretEntry entry) throws StorageException {
+        LogEx.d("put( ", entry, " )");
         SecretEntry result = null;
         int id = entry.getID();
         SQLiteDatabase db = null;
@@ -347,9 +316,5 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             }
         }
         return entry;
-    }
-
-    public interface OnSecretEntryRetrieveListener {
-        void onSecretEntryRetrieved(SecretEntry entry);
     }
 }

@@ -104,6 +104,7 @@
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
     <string name="message_protected_fields_visible_by_default">Protected fields are visible by default.</string>
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
-    <string name="message_item_confirmation">You are going to delete the selected Secret Entry. This action cannot be undone. Are you sure?</string>
+    <string name="message_entry_confirmation">You are going to delete the swiped Secret Entry. This action cannot be undone. Are you sure?</string>
+    <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
 
 </resources>
