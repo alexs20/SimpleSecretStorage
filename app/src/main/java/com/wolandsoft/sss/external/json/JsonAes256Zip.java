@@ -74,14 +74,6 @@ public class JsonAes256Zip extends AExternal {
         super(base);
     }
 
-    private static <T> T convertInstanceOfObject(Object o, Class<T> clazz) {
-        try {
-            return clazz.cast(o);
-        } catch (ClassCastException e) {
-            return null;
-        }
-    }
-
     @Override
     public void doExport(SQLiteStorage storage, KeyStoreManager keystore,
                          URI destination, String password, Object... extra) throws ExternalException {
@@ -91,7 +83,9 @@ public class JsonAes256Zip extends AExternal {
         }
         File jsonFile = new File(destination);
         if (jsonFile.exists()) {
-            jsonFile.delete();
+            if (!jsonFile.delete()) {
+                throw new ExternalException(getString(R.string.exception_no_storage_permission));
+            }
         }
         try {
             ZipFile zip = new ZipFile(jsonFile);

@@ -22,12 +22,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.support.v7.preference.PreferenceManager;
-
-import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.util.KeySharedPreferences;
+import android.support.annotation.Nullable;
 
 public class ScreenMonitorService extends Service {
 
@@ -54,11 +50,6 @@ public class ScreenMonitorService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
         mReceiver = new BroadcastReceiver() {
@@ -82,7 +73,13 @@ public class ScreenMonitorService extends Service {
         super.onDestroy();
     }
 
-    private void onScreenStateChange(Context context, Intent intent) {
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    private void onScreenStateChange(@SuppressWarnings("UnusedParameters") Context context, Intent intent) {
         String strAction = intent.getAction();
         if (strAction.equals(Intent.ACTION_SCREEN_OFF)) {
             stopSelf();

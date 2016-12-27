@@ -94,7 +94,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             }
         };
         String searchCriteria = "";
-        int selectedItemId = 0;
         if (savedInstanceState != null) {
             searchCriteria = savedInstanceState.getString(KEY_SEARCH_PHRASE, searchCriteria);
         }
@@ -272,10 +271,13 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             holder.itemView.setLongClickable(true);
             final SecretEntry entry = getItem(position);
 
+            @SuppressWarnings("ConstantConditions")
             String capitalTitle = entry.get(0).getValue();
             holder.mTxtTitle.setText(capitalTitle);
-            int next = 0;
-            while (++next < entry.size() && entry.get(next).isProtected()) ;
+            int next = 1;
+            while (next < entry.size() && entry.get(next).isProtected()) {
+                next++;
+            }
             if (next < entry.size() && !entry.get(next).isProtected()) {
                 holder.mTxtTitleSmall.setText(entry.get(next).getValue());
                 holder.mTxtTitleSmall.setVisibility(View.VISIBLE);

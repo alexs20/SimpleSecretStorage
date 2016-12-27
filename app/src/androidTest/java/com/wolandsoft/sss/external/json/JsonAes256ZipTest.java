@@ -20,6 +20,7 @@ import android.os.Environment;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.ExternalException;
@@ -94,7 +95,9 @@ public class JsonAes256ZipTest {
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File location = new File(dir, FILE_NAME);
         if (location.exists()) {
-            location.delete();
+            if (!location.delete()) {
+                throw new ExternalException(InstrumentationRegistry.getTargetContext().getString(R.string.exception_no_storage_permission));
+            }
         }
         assertFalse(location.exists());
         external.doExport(storage, keystore, location.toURI(), FILE_PASSWORD);

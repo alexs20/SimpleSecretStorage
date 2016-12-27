@@ -23,7 +23,6 @@
     <string name="enum_USER">User</string>
     <string name="enum_PASSWORD">Password</string>
 
-    <string name="exception_internal">Internal error</string>
     <string name="exception_no_storage_permission">No storage permission granted</string>
     <string name="exception_no_file_found">File not found %1$s</string>
     <string name="exception_invalid_input_file">Invalid input file %1$s</string>

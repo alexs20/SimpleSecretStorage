@@ -70,7 +70,6 @@ import java.util.List;
  */
 public class ImportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
-    private static final int DONE_DIALOG = 1;
 
     private ArrayAdapter<String> mExtEngAdapter;
 
@@ -109,7 +108,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
 
         ExternalFactory extFactory = ExternalFactory.getInstance(context);
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());
-        mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
+        mExtEngAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
     }
@@ -199,9 +198,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
         mLayoutForm = (RelativeLayout) view.findViewById(R.id.layoutForm);
         mLayoutPermissions = (RelativeLayout) view.findViewById(R.id.layoutPermissions);
 
-        if (savedInstanceState == null) {
-
-        } else {
+        if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.showPwd));
         }
 

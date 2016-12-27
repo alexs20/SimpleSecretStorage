@@ -75,7 +75,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         super.onAttach(context);
 
         Bundle args = getArguments();
-        mAttr = (SecretEntryAttribute) args.getParcelable(ARG_ATTR);
+        mAttr = args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
 
         if (context instanceof ISharedObjects) {

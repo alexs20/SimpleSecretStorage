@@ -26,6 +26,7 @@ import com.wolandsoft.sss.BuildConfig;
  *
  * @author Alexander Shulgin
  */
+@SuppressWarnings("unused")
 public class LogEx {
     private static final boolean msIsDebug = BuildConfig.DEBUG;
     private static final boolean msIsSource = BuildConfig.SHOW_SRC_IN_LOG;

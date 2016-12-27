@@ -28,9 +28,9 @@ import java.net.URI;
 
 public interface IExternal {
 
-    void doExport(SQLiteStorage fromStorage, KeyStoreManager keystore, URI destination, String password, Object... extra) throws ExternalException;
+    void doExport(SQLiteStorage fromStorage, KeyStoreManager keystore, URI destination, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
-    void doImport(SQLiteStorage toStorage, KeyStoreManager keystore, ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException;
+    void doImport(SQLiteStorage toStorage, KeyStoreManager keystore, ConflictResolution conflictRes, URI source, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
     /**
      * External identifier.
@@ -43,7 +43,4 @@ public interface IExternal {
         overwrite, merge
     }
 
-    interface OnExternalInteract {
-        void onPermissionRequest(String permission);
-    }
 }

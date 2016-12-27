@@ -89,6 +89,7 @@ public class FileDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        @SuppressWarnings("RedundantCast")
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, (ViewGroup) null);
         ListView listView = (ListView) v.findViewById(R.id.lstItems);
         mTxtSelectedFile = (TextView) v.findViewById(R.id.txtTitle);
@@ -251,7 +252,7 @@ public class FileDialogFragment extends DialogFragment {
         int iconDescId = R.string.label_directory;
 
         @Override
-        public int compareTo(ListItem o) {
+        public int compareTo(@NonNull ListItem o) {
             if (o.isBackButton)
                 return 1;
 

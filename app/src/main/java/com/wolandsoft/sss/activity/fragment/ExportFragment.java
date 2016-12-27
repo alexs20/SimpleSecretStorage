@@ -112,7 +112,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
 
         ExternalFactory extFactory = ExternalFactory.getInstance(context);
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());
-        mExtEngAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, engines);
+        mExtEngAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 

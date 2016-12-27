@@ -108,7 +108,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     /**
      * Get {@link SecretEntry} by ID.</br>
      *
-     * @param id
+     * @param id Entry id.
      * @return instance of {@link SecretEntry} or {@code null}
      */
     public SecretEntry get(int id) {
@@ -200,9 +200,8 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                 String[] args = {String.valueOf(updated), String.valueOf(updated)};
                 db.execSQL(sb.toString(), args);
                 Cursor cursor = db.rawQuery("SELECT last_insert_rowid()", null);
-                if (cursor.moveToFirst()) {
-                    result = new SecretEntry(cursor.getInt(0), updated, updated);
-                }
+                cursor.moveToFirst();
+                result = new SecretEntry(cursor.getInt(0), updated, updated);
                 cursor.close();
             }
             sb.setLength(0);
@@ -237,7 +236,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
 
     private SecretEntry readEntry(int id, SQLiteDatabase db) {
         SecretEntry entry = null;
-        StringBuilder sb = new StringBuilder();
+        @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM ").append(SecretEntryTable.TBL_NAME).append(" WHERE ")
                 .append(SecretEntryTable.FLD_ID).append("=?");
         String[] args = {String.valueOf(id)};
@@ -254,7 +253,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
 
     private SecretEntry readEntryAttributes(SecretEntry entry, SQLiteDatabase db) {
         if (entry != null) {
-            StringBuilder sb = new StringBuilder();
+            @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
             sb.append("SELECT * FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
                     .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=? ")
                     .append(" ORDER BY ").append(SecretEntryAttributeTable.FLD_ORDER_ID);

@@ -51,9 +51,7 @@ import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Locale;
 
 /**
  * Single secret entry edit.
@@ -65,13 +63,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private final static String ARG_ITEM_ID = "item_id";
     private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 1;
 
-    private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
     private final static String ARG_POSITION = "position";
     private OnFragmentToFragmentInteract mListener;
     private ISharedObjects mHost;
     private RVAdapter mRVAdapter;
     private View mView;
-    private int mClickedPosition;
     private boolean mIsShowPwd = false;
 
     public static EntryFragment newInstance(int entryId) {
@@ -279,7 +275,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         private final OnRVAdapterActionListener mOnActionListener;
         private final KeyStoreManager mKs;
         private final SQLiteStorage mDb;
-        private SecretEntry mEntry;
+        private final SecretEntry mEntry;
         private boolean mIsProtectedVisible = false;
 
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
