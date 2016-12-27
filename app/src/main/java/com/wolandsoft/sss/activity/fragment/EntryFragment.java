@@ -19,7 +19,9 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -113,6 +115,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             @Override
             public void onEntryAttributeEdit(int position) {
                 EntryFragment.this.onEntryAttributeEdit(position);
+            }
+
+            @Override
+            public void onEntryAttributeNavigate(SecretEntryAttribute attr) {
+                EntryFragment.this.onEntryAttributeNavigate(attr);
             }
 
             @Override
@@ -240,6 +247,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         mView.showContextMenu();
     }
 
+    private void onEntryAttributeNavigate(SecretEntryAttribute attr) {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(attr.getValue()));
+        startActivity(browserIntent);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entry_options_menu, menu);
@@ -358,10 +370,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
-                        case R.id.menuEdit:
+                        case R.id.mnuEdit:
                             mOnActionListener.onEntryAttributeEdit(position);
                             return true;
-                        case R.id.menuCopy:
+                        case R.id.mnuCopy:
                             ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                             String text = attr.getValue();
                             if (attr.isProtected()) {
@@ -372,11 +384,17 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                             ClipData clip = ClipData.newPlainText(attr.getKey(), text);
                             clipboard.setPrimaryClip(clip);
                             break;
+                        case R.id.mnuNavigate:
+                            mOnActionListener.onEntryAttributeNavigate(attr);
+                            break;
                     }
                     return false;
                 }
             });
-
+            if (attr.getValue().startsWith("http://") || attr.getValue().startsWith("https://")) {
+                MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuNavigate);
+                mnuNavigate.setVisible(true);
+            }
             popup.show();
         }
 
@@ -451,6 +469,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             void onEntryAttributeDelete(int idx);
 
             void onEntryAttributeEdit(int idx);
+
+            void onEntryAttributeNavigate(SecretEntryAttribute attr);
 
             void onEntryUpdated(SecretEntry entry);
         }

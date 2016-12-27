@@ -82,6 +82,7 @@
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Expose Protected Fields</string>
     <string name="label_clear">Clear</string>
+    <string name="label_navigate">Navigate</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
