@@ -252,7 +252,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         DialogFragment fragment = FileDialogFragment.newInstance(false);
         fragment.setCancelable(true);
-        fragment.setTargetFragment(this, 9);
+        fragment.setTargetFragment(this, 0);
         transaction.addToBackStack(null);
         fragment.show(transaction, DialogFragment.class.getName());
     }
@@ -402,7 +402,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     }
 
     @Override
-    public void onFileSelected(File path) {
+    public void onFileSelected(File path, String uiPath) {
         mTxtDestinationPath.setText(path.toString());
     }
 

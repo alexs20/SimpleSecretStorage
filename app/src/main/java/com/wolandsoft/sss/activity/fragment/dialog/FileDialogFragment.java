@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
@@ -49,7 +50,7 @@ public class FileDialogFragment extends DialogFragment {
     private static final String KEY_IS_FILE_CHOOSER = "file_chooser";
     private static final String KEY_CURRENT_PATH = "current_path";
     private OnDialogToFragmentInteract mListener;
-
+    private TextView mTxtSelectedFile;
     private FolderListAdapter mAdapter;
 
     private File mBasePath = Environment.getExternalStorageDirectory();
@@ -93,14 +94,20 @@ public class FileDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, null);
+        ListView listView = (ListView)v.findViewById(R.id.lstItems);
+        mTxtSelectedFile = (TextView) v.findViewById(R.id.txtTitle);
         if (savedInstanceState != null) {
             mCurrentPath = (File) savedInstanceState.getSerializable(KEY_CURRENT_PATH);
         }
+        //mTxtSelectedFile.setText(getResources().getString(R.string.label_path_prefix) + mCurrentPath.getName());
         List<ListItem> list = loadFileList(mCurrentPath);
         mAdapter = new FolderListAdapter(list);
+        listView.setAdapter(mAdapter);
+        mTxtSelectedFile.setText(mIsFileChooser ? R.string.label_select_file : R.string.label_select_directory);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(mIsFileChooser ? R.string.label_select_file : R.string.label_select_directory));
-        builder.setAdapter(mAdapter, null);
+        //builder.setTitle(getString(mIsFileChooser ? R.string.label_select_file : R.string.label_select_directory));
+        builder.setView(v);
         if (!mIsFileChooser) {
             builder.setPositiveButton(android.R.string.ok,
                     new DialogInterface.OnClickListener() {
@@ -108,7 +115,8 @@ public class FileDialogFragment extends DialogFragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    mListener.onFileSelected(mCurrentPath);
+                                    String selectedPath = mCurrentPath.getPath().substring(mBasePath.getPath().length());
+                                    mListener.onFileSelected(mCurrentPath, selectedPath);
                                 }
                             });
                             dialog.dismiss();
@@ -117,7 +125,7 @@ public class FileDialogFragment extends DialogFragment {
             );
         }
         final AlertDialog dialog = builder.create();
-        dialog.getListView().setOnItemClickListener(
+        listView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         ListItem li = (ListItem) mAdapter.getItem(position);
@@ -125,17 +133,19 @@ public class FileDialogFragment extends DialogFragment {
                             mCurrentPath = mCurrentPath.getParentFile();
                         } else {
                             mCurrentPath = new File(mCurrentPath, li.label);
-                            if (li.isFile) {
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mListener.onFileSelected(mCurrentPath);
-                                    }
-                                });
-                                dialog.dismiss();
-                                return;
-                            }
                         }
+                        final String selectedPath = mCurrentPath.getPath().substring(mBasePath.getPath().length());
+                        if (li.isFile) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mListener.onFileSelected(mCurrentPath, selectedPath);
+                                }
+                            });
+                            dialog.dismiss();
+                            return;
+                        }
+                        mTxtSelectedFile.setText(selectedPath);
                         List<ListItem> list = loadFileList(mCurrentPath);
                         mAdapter.updateModel(list);
                     }
@@ -195,7 +205,7 @@ public class FileDialogFragment extends DialogFragment {
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
     public interface OnDialogToFragmentInteract {
-        void onFileSelected(File path);
+        void onFileSelected(File path, String uiPath);
     }
 
     public static class FolderListAdapter extends BaseAdapter {
