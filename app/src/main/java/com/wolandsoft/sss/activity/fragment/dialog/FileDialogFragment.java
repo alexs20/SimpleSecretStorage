@@ -39,6 +39,7 @@ import com.wolandsoft.sss.R;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -95,7 +96,7 @@ public class FileDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, null);
-        ListView listView = (ListView)v.findViewById(R.id.lstItems);
+        ListView listView = (ListView) v.findViewById(R.id.lstItems);
         mTxtSelectedFile = (TextView) v.findViewById(R.id.txtTitle);
         if (savedInstanceState != null) {
             mCurrentPath = (File) savedInstanceState.getSerializable(KEY_CURRENT_PATH);
@@ -192,6 +193,7 @@ public class FileDialogFragment extends DialogFragment {
             }
             list.add(li);
         }
+        Collections.sort(list);
         return list;
     }
 
@@ -251,11 +253,22 @@ public class FileDialogFragment extends DialogFragment {
         }
     }
 
-    private static class ListItem {
+    private static class ListItem implements Comparable<ListItem> {
         boolean isFile = false;
         boolean isBackButton = false;
         String label;
         int iconId = R.mipmap.img24dp_directory;
         int iconDescId = R.string.label_directory;
+
+        @Override
+        public int compareTo(ListItem o) {
+            if (o.isBackButton)
+                return 1;
+
+            if (o.isFile != isFile)
+                return o.isFile ? 0 : 1;
+
+            return label.compareTo(o.label);
+        }
     }
 }
