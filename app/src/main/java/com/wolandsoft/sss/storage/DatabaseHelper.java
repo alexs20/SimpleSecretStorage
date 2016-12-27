@@ -29,8 +29,8 @@ import static com.wolandsoft.sss.AppConstants.APP_SHORT_NAME;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = APP_SHORT_NAME;
-    public static final int DATABASE_VERSION = 1;
-    public static final ATableDefinition[] TABLES = {
+    private static final int DATABASE_VERSION = 1;
+    private static final ATableDefinition[] TABLES = {
             new SecretEntryTable(),
             new SecretEntryAttributeTable()
     };

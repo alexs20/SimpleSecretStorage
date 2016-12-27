@@ -201,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements
                 openPinValidationFragment(delaySec);
             }
             controlDrawerAvailability();
-            return;
         }
     }
 
@@ -216,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    public void selectDrawerItem(MenuItem menuItem) {
+    private void selectDrawerItem(MenuItem menuItem) {
         mDrawerLayout.closeDrawers();
 
         switch (menuItem.getItemId()) {
@@ -271,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements
         controlDrawerAvailability();
     }
 
-    public void controlDrawerAvailability() {
+    private void controlDrawerAvailability() {
         boolean isEmptyStack = getSupportFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isEmptyStack && !mIsLocked);
         mDrawerLayout.setDrawerLockMode(isEmptyStack && !mIsLocked ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);

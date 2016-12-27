@@ -27,8 +27,8 @@ import com.wolandsoft.sss.BuildConfig;
  * @author Alexander Shulgin
  */
 public class LogEx {
-    public static final boolean msIsDebug = BuildConfig.DEBUG;
-    public static final boolean msIsSource = BuildConfig.SHOW_SRC_IN_LOG;
+    private static final boolean msIsDebug = BuildConfig.DEBUG;
+    private static final boolean msIsSource = BuildConfig.SHOW_SRC_IN_LOG;
     private static final String TAG = AppConstants.APP_TAG;
 
     /**
