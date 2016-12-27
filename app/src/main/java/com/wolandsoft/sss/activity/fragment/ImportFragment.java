@@ -414,7 +414,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     }
 
     @Override
-    public void onFileSelected(File path) {
+    public void onFileSelected(File path, String uiPath) {
         mTxtSourcePath.setText(path.toString());
     }
 
