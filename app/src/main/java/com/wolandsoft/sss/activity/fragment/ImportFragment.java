@@ -82,7 +82,6 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     private FloatingActionButton mBtnApply;
     private TextView mTxtExtEngineLabel;
     private TextView mTxtConflictResLabel;
-    private Button mBtnPermissions;
     private Button mBtnSource;
     private RelativeLayout mLayoutWait;
     private RelativeLayout mLayoutForm;
@@ -189,8 +188,8 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             }
         });
 
-        mBtnPermissions = (Button) view.findViewById(R.id.btnPermissions);
-        mBtnPermissions.setOnClickListener(new View.OnClickListener() {
+        Button btnPermissions = (Button) view.findViewById(R.id.btnPermissions);
+        btnPermissions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onPermissionsRequested();

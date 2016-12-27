@@ -74,7 +74,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private final static String ARG_POSITION = "position";
     private OnFragmentToFragmentInteract mListener;
     private ISharedObjects mHost;
-    private RecyclerView mRecyclerView;
     private RVAdapter mRVAdapter;
     private View mView;
     private int mClickedPosition;
@@ -150,10 +149,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                              Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.fragment_entry, container, false);
 
-        mRecyclerView = (RecyclerView) mView.findViewById(R.id.rvAttrList);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRecyclerView.setAdapter(mRVAdapter);
+        RecyclerView rView = (RecyclerView) mView.findViewById(R.id.rvAttrList);
+        rView.setHasFixedSize(true);
+        rView.setLayoutManager(new LinearLayoutManager(getContext()));
+        rView.setAdapter(mRVAdapter);
 
         FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {

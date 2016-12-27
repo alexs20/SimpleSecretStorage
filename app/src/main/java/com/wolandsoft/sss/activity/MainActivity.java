@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements
         ISharedObjects {
     //some shared objects
     private DrawerLayout mDrawerLayout;
-    private NavigationView mDrawerView;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
     private KeyStoreManager mKSManager;
@@ -117,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements
 
         //drawer
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerView = (NavigationView) findViewById(R.id.nvView);
+        NavigationView drawerView = (NavigationView) findViewById(R.id.nvView);
         //drawer items selection listener
-        mDrawerView.setNavigationItemSelectedListener(
+        drawerView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {

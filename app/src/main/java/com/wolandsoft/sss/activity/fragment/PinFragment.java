@@ -49,7 +49,6 @@ public class PinFragment extends Fragment {
     private ImageView mImgPin2;
     private ImageView mImgPin3;
     private ImageView mImgPin4;
-    private TextView mTxtMessage;
     private ImageButton mBtnClear;
     private ImageButton mBtnDelete;
     private ImageButton[] mBtnDigit;
@@ -111,7 +110,6 @@ public class PinFragment extends Fragment {
         mImgPin2 = (ImageView) view.findViewById(R.id.imgPin2);
         mImgPin3 = (ImageView) view.findViewById(R.id.imgPin3);
         mImgPin4 = (ImageView) view.findViewById(R.id.imgPin4);
-        mTxtMessage = (TextView) view.findViewById(R.id.txtMessage);
         mBtnClear = (ImageButton) view.findViewById(R.id.btnClear);
         mBtnDelete = (ImageButton) view.findViewById(R.id.btnDelete);
         mBtnDigit = new ImageButton[10];
@@ -130,8 +128,8 @@ public class PinFragment extends Fragment {
             mPin = savedInstanceState.getString(KEY_PIN);
         }
         updatePinUI();
-
-        mTxtMessage.setText(mMsgResId);
+        TextView txtMessage = (TextView) view.findViewById(R.id.txtMessage);
+        txtMessage.setText(mMsgResId);
 
         mBtnClear.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -86,7 +86,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private EditText mEdtPasswordOpen;
     private FloatingActionButton mBtnApply;
     private TextView mTxtExtEngineLabel;
-    private Button mBtnPermissions;
     private Button mBtnDestination;
     private RelativeLayout mLayoutWait;
     private RelativeLayout mLayoutForm;
@@ -168,8 +167,8 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             }
         });
 
-        mBtnPermissions = (Button) view.findViewById(R.id.btnPermissions);
-        mBtnPermissions.setOnClickListener(new View.OnClickListener() {
+        Button btnPermissions = (Button) view.findViewById(R.id.btnPermissions);
+        btnPermissions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onPermissionsRequested();

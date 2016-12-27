@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
@@ -45,7 +46,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -76,6 +76,14 @@ public class JsonAes256Zip extends AExternal {
 
     public JsonAes256Zip(Context base) {
         super(base);
+    }
+
+    private static <T> T convertInstanceOfObject(Object o, Class<T> clazz) {
+        try {
+            return clazz.cast(o);
+        } catch (ClassCastException e) {
+            return null;
+        }
     }
 
     @Override
@@ -162,51 +170,58 @@ public class JsonAes256Zip extends AExternal {
             String dataString = IOUtils.toString(in, "UTF-8");
 
             Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-            List<Map> entriesList = gson.fromJson(dataString, ArrayList.class);
+            List<Map<String, Object>> entriesList = gson.fromJson(dataString,
+                    new TypeToken<List<Map<String, Object>>>() {
+                    }.getType());
             for (Map entryMap : entriesList) {
                 int id = Integer.parseInt(entryMap.get(KEY_ID).toString());
                 SecretEntry entry = new SecretEntry(id,
                         format.parse(entryMap.get(CREATED).toString()).getTime(),
                         format.parse(entryMap.get(UPDATED).toString()).getTime());
-                List<Map> attrsList = (List<Map>) entryMap.get(DATA);
-                for (Map attrMap : attrsList) {
-                    boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
-                    String value = attrMap.get(VALUE).toString();
-                    if (isProtected) {
-                        value = keystore.encrypt(value);
-                    }
-                    SecretEntryAttribute attr = new SecretEntryAttribute(
-                            attrMap.get(KEY).toString(),
-                            value,
-                            isProtected);
-                    entry.add(attr);
-                }
-                SecretEntry oldEntry = toStorage.get(id);
-                if (oldEntry == null || ConflictResolution.overwrite == conflictRes) {
-                    toStorage.put(entry);
-                } else {
-                    long created = oldEntry.getCreated() > entry.getCreated() ? entry.getCreated() : oldEntry.getCreated();
-                    long updated = oldEntry.getUpdated() < entry.getUpdated() ? entry.getUpdated() : oldEntry.getUpdated();
-                    SecretEntry mergedEntry = new SecretEntry(id, created, updated);
-                    for (SecretEntryAttribute oldAttr : oldEntry) {
-                        mergedEntry.add(oldAttr);
-                        for (int i = 0; i < entry.size(); i++) {
-                            SecretEntryAttribute attr = entry.get(i);
-                            if (attr.getKey().equals(oldAttr.getKey())) {
-                                if (!attr.getValue().equals(oldAttr.getValue())) {
-                                    mergedEntry.add(attr);
-                                }
-                                entry.remove(i);
-                                break;
+                Object objItem = entryMap.get(DATA);
+                if (objItem instanceof List<?>) {
+                    List<?> attrsList = (List<?>) objItem;
+                    for (Object objAttr : attrsList) {
+                        if (objAttr instanceof Map<?, ?>) {
+                            Map attrMap = (Map) objAttr;
+                            boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
+                            String value = attrMap.get(VALUE).toString();
+                            if (isProtected) {
+                                value = keystore.encrypt(value);
                             }
+                            SecretEntryAttribute attr = new SecretEntryAttribute(
+                                    attrMap.get(KEY).toString(),
+                                    value,
+                                    isProtected);
+                            entry.add(attr);
                         }
                     }
-                    for (SecretEntryAttribute attr : entry) {
-                        mergedEntry.add(attr);
+                    SecretEntry oldEntry = toStorage.get(id);
+                    if (oldEntry == null || ConflictResolution.overwrite == conflictRes) {
+                        toStorage.put(entry);
+                    } else {
+                        long created = oldEntry.getCreated() > entry.getCreated() ? entry.getCreated() : oldEntry.getCreated();
+                        long updated = oldEntry.getUpdated() < entry.getUpdated() ? entry.getUpdated() : oldEntry.getUpdated();
+                        SecretEntry mergedEntry = new SecretEntry(id, created, updated);
+                        for (SecretEntryAttribute oldAttr : oldEntry) {
+                            mergedEntry.add(oldAttr);
+                            for (int i = 0; i < entry.size(); i++) {
+                                SecretEntryAttribute attr = entry.get(i);
+                                if (attr.getKey().equals(oldAttr.getKey())) {
+                                    if (!attr.getValue().equals(oldAttr.getValue())) {
+                                        mergedEntry.add(attr);
+                                    }
+                                    entry.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        for (SecretEntryAttribute attr : entry) {
+                            mergedEntry.add(attr);
+                        }
+                        toStorage.put(mergedEntry);
                     }
-                    toStorage.put(mergedEntry);
                 }
-
             }
         } catch (ZipException | StorageException | IOException | ParseException | IllegalBlockSizeException | BadPaddingException e) {
             throw new ExternalException(e.getMessage(), e);

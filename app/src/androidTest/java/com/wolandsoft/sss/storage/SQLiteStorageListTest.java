@@ -60,13 +60,13 @@ public class SQLiteStorageListTest {
     private static final String TEMPLATE_PASSWORD = "123456789%1$s";
     private static final int ENTRIES_COUNT = 100;
     private static SQLiteStorage storage;
-    private static KeyStoreManager keystore;
 
     @BeforeClass
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security keystore initialization
+        KeyStoreManager keystore;
         try {
             keystore = new KeyStoreManager(context);
         } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
