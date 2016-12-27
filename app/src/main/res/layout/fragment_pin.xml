@@ -14,6 +14,7 @@
     limitations under the License.
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -40,7 +41,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img48dp_underscore" />
+                android:src="@mipmap/img48dp_underscore"
+                tools:ignore="ContentDescription,NestedWeights" />
 
             <ImageView
                 android:id="@+id/imgPin2"
@@ -52,7 +54,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img48dp_underscore" />
+                android:src="@mipmap/img48dp_underscore"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/imgPin3"
@@ -64,7 +67,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img48dp_underscore" />
+                android:src="@mipmap/img48dp_underscore"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/imgPin4"
@@ -76,7 +80,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img48dp_underscore" />
+                android:src="@mipmap/img48dp_underscore"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <TextView
@@ -107,7 +112,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig1" />
+                android:src="@mipmap/img64dp_dig1"
+                tools:ignore="ContentDescription,NestedWeights" />
 
             <ImageButton
                 android:id="@+id/btnDig2"
@@ -120,7 +126,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig2" />
+                android:src="@mipmap/img64dp_dig2"
+                tools:ignore="ContentDescription" />
 
             <ImageButton
                 android:id="@+id/btnDig3"
@@ -133,7 +140,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig3" />
+                android:src="@mipmap/img64dp_dig3"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <LinearLayout
@@ -154,7 +162,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig4" />
+                android:src="@mipmap/img64dp_dig4"
+                tools:ignore="ContentDescription,NestedWeights" />
 
             <ImageButton
                 android:id="@+id/btnDig5"
@@ -167,7 +176,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig5" />
+                android:src="@mipmap/img64dp_dig5"
+                tools:ignore="ContentDescription" />
 
             <ImageButton
                 android:id="@+id/btnDig6"
@@ -180,7 +190,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig6" />
+                android:src="@mipmap/img64dp_dig6"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <LinearLayout
@@ -201,7 +212,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig7" />
+                android:src="@mipmap/img64dp_dig7"
+                tools:ignore="ContentDescription,NestedWeights" />
 
             <ImageButton
                 android:id="@+id/btnDig8"
@@ -214,7 +226,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig8" />
+                android:src="@mipmap/img64dp_dig8"
+                tools:ignore="ContentDescription" />
 
             <ImageButton
                 android:id="@+id/btnDig9"
@@ -227,7 +240,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig9" />
+                android:src="@mipmap/img64dp_dig9"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <LinearLayout
@@ -248,7 +262,9 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_remove" />
+                android:src="@mipmap/img64dp_remove"
+                android:contentDescription="@string/label_clear"
+                tools:ignore="NestedWeights" />
 
             <ImageButton
                 android:id="@+id/btnDig0"
@@ -261,7 +277,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_dig0" />
+                android:src="@mipmap/img64dp_dig0"
+                tools:ignore="ContentDescription" />
 
             <ImageButton
                 android:id="@+id/btnDelete"
@@ -274,7 +291,8 @@
                 android:paddingStart="5dp"
                 android:paddingTop="5dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/img64dp_delete_back" />
+                android:src="@mipmap/img64dp_delete_back"
+                android:contentDescription="@string/label_delete"/>
 
         </LinearLayout>
     </LinearLayout>

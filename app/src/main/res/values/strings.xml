@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Simple Secret Storage</string>
     <string name="screen_monitor_service_name">Screen Monitor Service</string>
 
@@ -41,7 +41,7 @@
     <string name="label_attribute_value">Field value</string>
     <string name="label_encrypted">Encrypted</string>
     <string name="label_search">Search</string>
-    <string name="label_loading_ellipsis">Loading&#8230;</string>
+    <string name="label_loading_ellipsis" tools:keep="@string/label_loading_ellipsis">Loading&#8230;</string>
     <string name="label_delete_entry">Delete Secret Entry</string>
     <string name="label_delete_field">Delete Field</string>
     <string name="label_delete">Delete</string>
@@ -82,6 +82,7 @@
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Expose Protected Fields</string>
+    <string name="label_clear">Clear</string>
 
     <string-array name="spinner_conflict_resolution">
         <item>@string/label_overwrite</item>
@@ -92,7 +93,6 @@
     <string name="message_no_source_file_selected">Source file not selected.</string>
     <string name="message_password_not_the_same">Repeated password is not the same.</string>
     <string name="message_no_password">No password defined.</string>
-    <string name="message_are_you_sure">Are you sure?</string>
     <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
     <string name="message_can_not_delete_before_protected_attribute">Top field before protected can not be deleted.</string>
     <string name="message_import_process_completed">All data has been successfully imported.</string>
@@ -100,7 +100,6 @@
     <string name="message_import_process_failed">Error processing input file.</string>
     <string name="message_export_process_failed">Error processing output file.</string>
     <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
-    <string name="message_pin_should_be_4chars">Pin should be 4 numbers length.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
     <string name="message_protected_fields_visible_by_default">Protected fields are visible by default.</string>
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>

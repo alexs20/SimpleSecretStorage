@@ -95,7 +95,7 @@ public class FileDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, null);
+        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, (ViewGroup)null);
         ListView listView = (ListView) v.findViewById(R.id.lstItems);
         mTxtSelectedFile = (TextView) v.findViewById(R.id.txtTitle);
         if (savedInstanceState != null) {

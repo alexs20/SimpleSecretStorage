@@ -15,6 +15,7 @@
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/fragment_padding"
@@ -44,7 +45,7 @@
                 android:id="@+id/sprExtEngine"
                 style="@style/SpinnerMedium"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:layout_weight="1" />
 
             <android.support.design.widget.TextInputLayout
@@ -60,7 +61,8 @@
                     android:hint="@string/label_password"
                     android:inputType="textPassword"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    tools:ignore="Deprecated" />
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -76,7 +78,8 @@
                     android:hint="@string/label_password_repeat"
                     android:inputType="textPassword"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    tools:ignore="Deprecated" />
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -92,7 +95,8 @@
                     android:hint="@string/label_password"
                     android:inputType="textVisiblePassword"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    tools:ignore="Deprecated" />
             </android.support.design.widget.TextInputLayout>
 
             <Button
@@ -103,7 +107,8 @@
                 android:singleLine="true"
                 android:text="@string/label_select_destination"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                style="@style/Widget.AppCompat.Button.Colored"/>
+                style="@style/Widget.AppCompat.Button.Colored"
+                tools:ignore="Deprecated" />
 
 
         </LinearLayout>
@@ -128,7 +133,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="UselessParent">
 
             <TextView
                 android:layout_width="match_parent"
@@ -141,7 +147,6 @@
                 android:id="@+id/btnPermissions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
                 android:layout_marginTop="21dp"
                 android:text="@string/label_request_permissions"
                 style="@style/Widget.AppCompat.Button.Colored" />

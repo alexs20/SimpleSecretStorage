@@ -123,10 +123,10 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        int[] attrs = new int[]{android.R.attr.colorControlActivated, android.R.attr.textColorSecondary};
+        int[] attrs = new int[]{R.attr.colorAccent, android.R.attr.textColorSecondary};
         TypedArray a = getActivity().getTheme().obtainStyledAttributes(R.style.AppTheme, attrs);
         final int colorActive = a.getColor(0, Color.RED);
-        final int colorPassive = a.getColor(1, Color.BLACK);
+        final int colorPassive = a.getColor(1, Color.GRAY);
         a.recycle();
 
         View view = inflater.inflate(R.layout.fragment_export, container, false);

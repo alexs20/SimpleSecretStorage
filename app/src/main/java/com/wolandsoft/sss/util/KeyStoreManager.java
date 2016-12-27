@@ -15,6 +15,7 @@
  */
 package com.wolandsoft.sss.util;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.security.KeyPairGeneratorSpec;
@@ -63,6 +64,7 @@ public class KeyStoreManager extends ContextWrapper {
         this(base, KEY_ALIAS);
     }
 
+    @SuppressLint("GetInstance")
     public KeyStoreManager(Context base, String keyAlias) throws KeyStoreException, CertificateException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IOException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException {
         super(base);
         alias = keyAlias;

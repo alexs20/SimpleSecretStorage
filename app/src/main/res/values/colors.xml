@@ -19,5 +19,4 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="colorSemiTransparent">#88000000</color>
-    <color name="labelActive">?attr/colorControlActivated</color>
 </resources>
