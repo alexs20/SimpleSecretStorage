@@ -29,7 +29,6 @@ import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.SwitchPreferenceCompat;
 import android.view.View;
-import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
@@ -37,10 +36,6 @@ import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
@@ -134,16 +129,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             if (mPin.equals(pin)) {
                 SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-                try {
-                    ksPref.edit()
-                            .putBoolean(R.string.pref_pin_enabled_key, true)
-                            .putString(R.string.pref_pin_key, mKSManager.encrypt(pin))
-                            .apply();
-                    ScreenMonitorService.manageService(true, getContext());
-                } catch (BadPaddingException | IllegalBlockSizeException e) {
-                    LogEx.e(e.getMessage(), e);
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                }
+                ksPref.edit()
+                        .putBoolean(R.string.pref_pin_enabled_key, true)
+                        .putString(R.string.pref_pin_key, mKSManager.encrypt(pin))
+                        .apply();
+                ScreenMonitorService.manageService(true, getContext());
             } else {
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,

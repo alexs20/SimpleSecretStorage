@@ -49,7 +49,7 @@ public final class ExternalFactory extends ContextWrapper {
         return thisInstance;
     }
 
-    public IExternal getExternal(String id) throws ExternalException {
+    public IExternal getExternal(String id) {
         return externals.get(id);
     }
 

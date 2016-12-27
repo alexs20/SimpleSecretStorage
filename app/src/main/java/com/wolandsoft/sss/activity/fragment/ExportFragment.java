@@ -29,7 +29,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -47,7 +46,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
@@ -259,13 +257,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private void onApplyClicked() {
         ExportArgs args = new ExportArgs();
         String selectedEngine = mSprExtEngine.getSelectedItem().toString();
-        try {
-            args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
-        } catch (ExternalException e) {
-            LogEx.e(e.getMessage(), e);
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
+        args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
         if (mIsShowPwd) {
             args.password = mEdtPasswordOpen.getText().toString();
         } else {
@@ -388,11 +380,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override

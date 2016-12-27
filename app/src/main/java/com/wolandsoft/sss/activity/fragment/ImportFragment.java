@@ -46,7 +46,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
@@ -280,13 +279,7 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
     private void onApplyClicked() {
         ExportArgs args = new ExportArgs();
         String selectedEngine = mSprExtEngine.getSelectedItem().toString();
-        try {
-            args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
-        } catch (ExternalException e) {
-            LogEx.e(e.getMessage(), e);
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
+        args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
         if (mIsShowPwd) {
             args.password = mEdtPasswordOpen.getText().toString();
         } else {
@@ -411,11 +404,6 @@ public class ImportFragment extends Fragment implements FileDialogFragment.OnDia
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override

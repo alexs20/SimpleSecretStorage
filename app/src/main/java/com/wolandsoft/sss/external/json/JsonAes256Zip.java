@@ -29,7 +29,6 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.AExternal;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeyStoreManager;
 
 import net.lingala.zip4j.core.ZipFile;
@@ -52,9 +51,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 
 /**
  * Export - import engine.<br/>
@@ -141,7 +137,7 @@ public class JsonAes256Zip extends AExternal {
             InputStream in = IOUtils.toInputStream(outStr);
             zip.addStream(in, parameters);
 
-        } catch (StorageException | IllegalBlockSizeException | BadPaddingException | ZipException e) {
+        } catch (ZipException e) {
             throw new ExternalException(e.getMessage(), e);
         }
     }
@@ -223,7 +219,7 @@ public class JsonAes256Zip extends AExternal {
                     }
                 }
             }
-        } catch (ZipException | StorageException | IOException | ParseException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (ZipException | IOException | ParseException e) {
             throw new ExternalException(e.getMessage(), e);
         }
     }

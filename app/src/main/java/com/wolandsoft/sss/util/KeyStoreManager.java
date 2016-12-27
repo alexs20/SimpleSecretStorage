@@ -23,25 +23,14 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.Calendar;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.security.auth.x500.X500Principal;
 
 /**
@@ -60,69 +49,85 @@ public class KeyStoreManager extends ContextWrapper {
     private Cipher encryptCipher;
     private Cipher decryptCipher;
 
-    public KeyStoreManager(Context base) throws KeyStoreException, CertificateException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IOException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    public KeyStoreManager(Context base) {
         this(base, KEY_ALIAS);
     }
 
     @SuppressLint("GetInstance")
-    public KeyStoreManager(Context base, String keyAlias) throws KeyStoreException, CertificateException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IOException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    public KeyStoreManager(Context base, String keyAlias) {
         super(base);
         alias = keyAlias;
-        keystore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keystore.load(null);
-        if (!keystore.containsAlias(keyAlias)) {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance(KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
-            X500Principal subj = new X500Principal("CN=" + keyAlias);
-            Calendar start = Calendar.getInstance();
-            Calendar end = Calendar.getInstance();
-            end.add(Calendar.YEAR, 100);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
-                        keyAlias, KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_ENCRYPT)
-                        .setCertificateSubject(subj)
-                        .setCertificateSerialNumber(BigInteger.ONE)
-                        .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                        .setKeyValidityStart(start.getTime())
-                        .setKeyValidityEnd(end.getTime())
-                        .build();
-                generator.initialize(spec);
-            } else {
-                //noinspection deprecation : it works only for android version blow 23
-                KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(this)
-                        .setAlias(keyAlias)
-                        .setSubject(subj)
-                        .setSerialNumber(BigInteger.ONE)
-                        .setStartDate(start.getTime())
-                        .setEndDate(end.getTime())
-                        .build();
-                generator.initialize(spec);
+        try {
+            keystore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keystore.load(null);
+            if (!keystore.containsAlias(keyAlias)) {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance(KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
+                X500Principal subj = new X500Principal("CN=" + keyAlias);
+                Calendar start = Calendar.getInstance();
+                Calendar end = Calendar.getInstance();
+                end.add(Calendar.YEAR, 100);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
+                            keyAlias, KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_ENCRYPT)
+                            .setCertificateSubject(subj)
+                            .setCertificateSerialNumber(BigInteger.ONE)
+                            .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+                            .setKeyValidityStart(start.getTime())
+                            .setKeyValidityEnd(end.getTime())
+                            .build();
+                    generator.initialize(spec);
+                } else {
+                    //noinspection deprecation : it works only for android version blow 23
+                    KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(this)
+                            .setAlias(keyAlias)
+                            .setSubject(subj)
+                            .setSerialNumber(BigInteger.ONE)
+                            .setStartDate(start.getTime())
+                            .setEndDate(end.getTime())
+                            .build();
+                    generator.initialize(spec);
+                }
+                generator.generateKeyPair();
             }
-            generator.generateKeyPair();
+
+            KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(keyAlias, null);
+            PublicKey publicKey = privateKeyEntry.getCertificate().getPublicKey();
+            PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+
+            encryptCipher = Cipher.getInstance(CIPHER_MODE);
+            encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+            decryptCipher = Cipher.getInstance(CIPHER_MODE);
+            decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-
-        KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keystore.getEntry(keyAlias, null);
-        PublicKey publicKey = privateKeyEntry.getCertificate().getPublicKey();
-        PrivateKey privateKey = privateKeyEntry.getPrivateKey();
-
-        encryptCipher = Cipher.getInstance(CIPHER_MODE);
-        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
-
-        decryptCipher = Cipher.getInstance(CIPHER_MODE);
-        decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
     }
 
-    public String encrypt(String value) throws BadPaddingException, IllegalBlockSizeException {
-        byte[] encoded = encryptCipher.doFinal(value.getBytes());
-        return Base64.encodeToString(encoded, Base64.DEFAULT);
+    public String encrypt(String value) {
+        try {
+            byte[] encoded = encryptCipher.doFinal(value.getBytes());
+            return Base64.encodeToString(encoded, Base64.DEFAULT);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
-    public String decrupt(String value) throws BadPaddingException, IllegalBlockSizeException {
-        byte[] decoded = decryptCipher.doFinal(Base64.decode(value, Base64.DEFAULT));
-        return new String(decoded);
+    public String decrupt(String value) {
+        try {
+            byte[] decoded = decryptCipher.doFinal(Base64.decode(value, Base64.DEFAULT));
+            return new String(decoded);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
-    public void deleteKey() throws KeyStoreException {
-        keystore.deleteEntry(alias);
+    public void deleteKey() {
+        try {
+            keystore.deleteEntry(alias);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

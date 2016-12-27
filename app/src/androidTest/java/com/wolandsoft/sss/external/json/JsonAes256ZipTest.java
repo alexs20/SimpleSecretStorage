@@ -27,9 +27,7 @@ import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
 import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,17 +37,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.List;
-
-import javax.crypto.NoSuchPaddingException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -82,21 +70,9 @@ public class JsonAes256ZipTest {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security keystore initialization
-        try {
-            keystore = new KeyStoreManager(context);
-        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
-                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
-                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        keystore = new KeyStoreManager(context);
         //db initialization
-        try {
-            storage = new SQLiteStorage(context);
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
@@ -114,7 +90,7 @@ public class JsonAes256ZipTest {
     }
 
     @Test
-    public void test_export_import() throws ExternalException, StorageException, InterruptedException {
+    public void test_export_import() throws ExternalException, InterruptedException {
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File location = new File(dir, FILE_NAME);
         if (location.exists()) {

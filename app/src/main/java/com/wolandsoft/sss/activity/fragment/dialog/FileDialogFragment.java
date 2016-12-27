@@ -66,11 +66,6 @@ public class FileDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         Fragment parent = getTargetFragment();
@@ -151,10 +146,6 @@ public class FileDialogFragment extends DialogFragment {
                     }
                 });
         return dialog;
-    }
-
-    private void navigate(File currentPath, boolean goInside) {
-
     }
 
     private List<ListItem> loadFileList(File path) {

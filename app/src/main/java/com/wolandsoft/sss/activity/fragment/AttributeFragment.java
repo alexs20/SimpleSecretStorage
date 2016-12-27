@@ -30,16 +30,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 
 /**
  * Attribute edit fragment
@@ -106,13 +101,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    try {
-                        String plain = mKsMgr.decrupt(mAttr.getValue());
-                        mTxtValue.setText(plain);
-                    } catch (BadPaddingException | IllegalBlockSizeException e) {
-                        LogEx.e(e.getMessage(), e);
-                        throw new RuntimeException(e.getMessage(), e);
-                    }
+                    String plain = mKsMgr.decrupt(mAttr.getValue());
+                    mTxtValue.setText(plain);
                 }
             } else {
                 mTxtValue.setText(mAttr.getValue());
@@ -189,11 +179,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
-            try {
-                protectedStr = mKsMgr.encrypt(protectedStr);
-            } catch (BadPaddingException | IllegalBlockSizeException e) {
-                LogEx.e(e.getMessage(), e);
-            }
+            protectedStr = mKsMgr.encrypt(protectedStr);
         }
         SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
         Fragment parent = getTargetFragment();

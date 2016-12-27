@@ -62,13 +62,13 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s0_get_null() throws StorageException {
+    public void test_s0_get_null() {
         SecretEntry se = storage.get(1);
         assertNull(se);
     }
 
     @Test
-    public void test_s0_put() throws StorageException {
+    public void test_s0_put() {
         SecretEntry se = storage.put(entry);
         assertNotNull(se);
         assertTrue(se.getID() > 0);
@@ -78,7 +78,7 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s1_put_and_get() throws StorageException {
+    public void test_s1_put_and_get() {
         SecretEntry out = storage.put(entry);
         assertNotNull(out);
         SecretEntry se = storage.get(out.getID());
@@ -97,7 +97,7 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s2_put_update_and_get() throws StorageException {
+    public void test_s2_put_update_and_get() {
         SecretEntry out = storage.put(entry);
         assertNotNull(out);
         for (int i = 0; i < entry.size(); i++) {
@@ -121,7 +121,7 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s3_delete() throws StorageException {
+    public void test_s3_delete() {
         SecretEntry out = storage.put(entry);
         assertNotNull(out);
         storage.delete(out.getID());

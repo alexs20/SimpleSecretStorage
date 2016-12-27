@@ -48,17 +48,12 @@ import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Locale;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 
 /**
  * Single secret entry edit.
@@ -170,11 +165,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(String.valueOf(R.id.mnuShowPwd), mIsShowPwd);
@@ -202,11 +192,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 }
                 break;
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override
@@ -302,12 +287,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             mOnActionListener = listener;
             mKs = ks;
             mDb = db;
-            try {
-                mEntry = db.get(itemId);
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mEntry = db.get(itemId);
         }
 
         public boolean onItemReorder(int fromPosition, int toPosition) {
@@ -354,13 +334,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     if (mIsProtectedVisible) {
-                        try {
-                            String plain = mKs.decrupt(attr.getValue());
-                            holder.mTxtValue.setText(plain);
-                        } catch (BadPaddingException | IllegalBlockSizeException e) {
-                            LogEx.e(e.getMessage(), e);
-                            throw new RuntimeException(e.getMessage(), e);
-                        }
+                        String plain = mKs.decrupt(attr.getValue());
+                        holder.mTxtValue.setText(plain);
                     } else {
                         holder.mTxtValue.setText(R.string.label_hidden_password);
                     }
@@ -395,12 +370,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                             String text = attr.getValue();
                             if (attr.isProtected()) {
                                 if (attr.getValue() != null && attr.getValue().length() > 0) {
-                                    try {
-                                        text = mKs.decrupt(attr.getValue());
-                                    } catch (BadPaddingException | IllegalBlockSizeException e) {
-                                        LogEx.e(e.getMessage(), e);
-                                        throw new RuntimeException(e.getMessage(), e);
-                                    }
+                                    text = mKs.decrupt(attr.getValue());
                                 }
                             }
                             ClipData clip = ClipData.newPlainText(attr.getKey(), text);
@@ -424,12 +394,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         void updateEntryInDb() {
-            try {
-                mDb.put(mEntry);
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mDb.put(mEntry);
             mOnActionListener.onEntryUpdated(mEntry);
         }
 

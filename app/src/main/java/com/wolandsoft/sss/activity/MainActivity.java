@@ -33,7 +33,6 @@ import android.support.v7.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
@@ -43,24 +42,10 @@ import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.storage.StorageException;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 /**
  * Main UI class of the app.
@@ -82,21 +67,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //security keystore initialization
-        try {
-            mKSManager = new KeyStoreManager(getApplicationContext());
-        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
-                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
-                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        mKSManager = new KeyStoreManager(getApplicationContext());
         //db initialization
-        try {
-            mSQLtStorage = new SQLiteStorage(getApplicationContext());
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        mSQLtStorage = new SQLiteStorage(getApplicationContext());
 
         super.onCreate(savedInstanceState);
 
@@ -171,16 +144,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     @Override
@@ -286,31 +249,26 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressLint("StringFormatInvalid")
     @Override
     public void onPinProvided(String pin) {
-        try {
-            SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
-            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-            String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-            storedPin = mKSManager.decrupt(storedPin);
-            mIsLocked = !pin.equals(storedPin);
-            if (!mIsLocked) {
-                //resetting pin response delay to zero.
-                ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
-                ActionBar actionBar = getSupportActionBar();
-                if (actionBar != null) {
-                    actionBar.show();
-                }
-                controlDrawerAvailability();
-                ScreenMonitorService.manageService(true, this);
-            } else {
-                //incrementing pin response delay on each invalid pin provided.
-                int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
-                delaySec++;
-                ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
-                openPinValidationFragment(delaySec);
+        SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
+        String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
+        storedPin = mKSManager.decrupt(storedPin);
+        mIsLocked = !pin.equals(storedPin);
+        if (!mIsLocked) {
+            //resetting pin response delay to zero.
+            ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.show();
             }
-        } catch (BadPaddingException | IllegalBlockSizeException e) {
-            LogEx.e(e.getMessage(), e);
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            controlDrawerAvailability();
+            ScreenMonitorService.manageService(true, this);
+        } else {
+            //incrementing pin response delay on each invalid pin provided.
+            int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+            delaySec++;
+            ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
+            openPinValidationFragment(delaySec);
         }
     }
 

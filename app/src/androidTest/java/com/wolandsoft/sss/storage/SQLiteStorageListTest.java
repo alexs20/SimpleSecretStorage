@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,17 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.List;
-
-import javax.crypto.NoSuchPaddingException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -66,22 +55,9 @@ public class SQLiteStorageListTest {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security keystore initialization
-        KeyStoreManager keystore;
-        try {
-            keystore = new KeyStoreManager(context);
-        } catch (UnrecoverableEntryException | NoSuchAlgorithmException | CertificateException
-                | IOException | InvalidKeyException | InvalidAlgorithmParameterException
-                | KeyStoreException | NoSuchPaddingException | NoSuchProviderException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        KeyStoreManager keystore = new KeyStoreManager(context);
         //db initialization
-        try {
-            storage = new SQLiteStorage(context);
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
@@ -98,14 +74,14 @@ public class SQLiteStorageListTest {
     }
 
     @Test
-    public void test_s0_get_id_all() throws StorageException {
+    public void test_s0_get_id_all() {
         List<Integer> seIds = storage.find(null, true);
         assertNotNull(seIds);
         assertEquals(ENTRIES_COUNT, seIds.size());
     }
 
     @Test
-    public void test_s1_get_id_by_name() throws StorageException {
+    public void test_s1_get_id_by_name() {
         String name = String.format(TEMPLATE_NAME, 0);
         List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);
@@ -119,7 +95,7 @@ public class SQLiteStorageListTest {
     }
 
     @Test
-    public void test_s1_get_id_by_url() throws StorageException {
+    public void test_s1_get_id_by_url() {
         String name = String.format(TEMPLATE_URL, 0);
         List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);
@@ -133,7 +109,7 @@ public class SQLiteStorageListTest {
     }
 
     @Test
-    public void test_s1_get_id_by_name_many() throws StorageException {
+    public void test_s1_get_id_by_name_many() {
         String name = String.format(TEMPLATE_NAME, 7);
         List<Integer> seIds = storage.find(name, true);
         assertNotNull(seIds);

@@ -191,11 +191,6 @@ public class PwdGenFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(String.valueOf(R.id.txtPwdPreview), mTxtPwdPreview.getText().toString());

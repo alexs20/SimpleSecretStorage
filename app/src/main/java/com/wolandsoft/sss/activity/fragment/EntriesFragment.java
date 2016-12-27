@@ -49,13 +49,8 @@ import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.storage.StorageException;
-import com.wolandsoft.sss.util.LogEx;
 
 import java.util.List;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 
 
 /**
@@ -146,21 +141,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             String key = getString(attr.getKeyResID());
             String value = "";
             if (attr.isProtected()) {
-                try {
-                    value = mHost.getKeyStoreManager().encrypt(value);
-                } catch (BadPaddingException | IllegalBlockSizeException e) {
-                    LogEx.e(e.getMessage(), e);
-                    throw new RuntimeException(e.getMessage(), e);
-                }
+                value = mHost.getKeyStoreManager().encrypt(value);
             }
             entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
         }
-        try {
-            entry = mHost.getSQLiteStorage().put(entry);
-        } catch (StorageException e) {
-            LogEx.e(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        entry = mHost.getSQLiteStorage().put(entry);
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry.getID());
         fragment.setTargetFragment(this, 0);
@@ -258,12 +243,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             mSqLtStorage = sqLtStorage;
             mSearchCriteria = searchCriteria;
             mHandler = new Handler();
-            try {
-                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
         }
 
         void updateSearchCriteria(final String criteria) {
@@ -338,24 +318,14 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         void deleteItem(int id) {
             //get position of the item
             int idx = mItemIds.indexOf(id);
-            try {
-                mSqLtStorage.delete(id);
-                mItemIds.remove(idx);
-                notifyItemRemoved(idx);
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mSqLtStorage.delete(id);
+            mItemIds.remove(idx);
+            notifyItemRemoved(idx);
         }
 
         void reload() {
-            try {
-                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
-                notifyDataSetChanged();
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+            notifyDataSetChanged();
         }
 
         void reloadItem(int id) {
@@ -365,25 +335,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void updateItem(SecretEntry item) {
-            try {
-                mSqLtStorage.put(item);
-                mItemIds = mSqLtStorage.find(mSearchCriteria, true);
-                notifyDataSetChanged();
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            mSqLtStorage.put(item);
+            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+            notifyDataSetChanged();
         }
 
         @Nullable
         SecretEntry getItem(final int idx) {
             int id = mItemIds.get(idx);
-            try {
-                return mSqLtStorage.get(id);
-            } catch (StorageException e) {
-                LogEx.e(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            return mSqLtStorage.get(id);
         }
 
         //ItemTouchHelper extension
