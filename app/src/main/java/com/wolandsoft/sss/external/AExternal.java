@@ -25,7 +25,7 @@ import android.content.ContextWrapper;
  */
 
 public abstract class AExternal extends ContextWrapper implements IExternal {
-    public AExternal(Context base) {
+    protected AExternal(Context base) {
         super(base);
     }
 }

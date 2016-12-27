@@ -29,8 +29,8 @@ public enum PredefinedAttribute {
     USER(false, R.string.enum_USER),
     PASSWORD(true, R.string.enum_PASSWORD);
 
-    int keyResID;
-    boolean isProtected;
+    final int keyResID;
+    final boolean isProtected;
 
     PredefinedAttribute(boolean isProtected, int keyResID) {
         this.isProtected = isProtected;

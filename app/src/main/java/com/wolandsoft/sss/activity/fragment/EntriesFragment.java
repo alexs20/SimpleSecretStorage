@@ -244,12 +244,12 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
+        private final OnRVAdapterActionListener mOnActionListener;
+        private final Handler mHandler;
+        private final SQLiteStorage mSqLtStorage;
         private List<Integer> mItemIds = null;
-        private OnRVAdapterActionListener mOnActionListener;
         private String mSearchCriteria;
-        private Handler mHandler;
         private Runnable mSearchUpdate;
-        private SQLiteStorage mSqLtStorage;
 
         RVAdapter(OnRVAdapterActionListener onActionListener,
                   SQLiteStorage sqLtStorage,
@@ -418,9 +418,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView mTxtTitle;
-            TextView mTxtTitleSmall;
-            ImageView mImgIcon;
+            final TextView mTxtTitle;
+            final TextView mTxtTitleSmall;
+            final ImageView mImgIcon;
 
             ViewHolder(View view) {
                 super(view);

@@ -21,7 +21,7 @@ package com.wolandsoft.sss.storage;
  * @author Alexander Shulgin
  */
 
-public abstract class ATableDefinition {
+abstract class ATableDefinition {
 
     public abstract String[] getCreateSQL();
 

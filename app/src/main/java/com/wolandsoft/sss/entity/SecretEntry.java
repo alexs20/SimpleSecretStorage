@@ -38,9 +38,9 @@ public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Par
         }
     };
 
-    private int id;
-    private long created;
-    private long updated;
+    private final int id;
+    private final long created;
+    private final long updated;
 
     public SecretEntry() {
         this(0, 0, 0);
@@ -52,6 +52,7 @@ public class SecretEntry extends LinkedList<SecretEntryAttribute> implements Par
         this.updated = updated;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public SecretEntry(Parcel parcel) {
         this.id = parcel.readInt();
         this.created = parcel.readLong();

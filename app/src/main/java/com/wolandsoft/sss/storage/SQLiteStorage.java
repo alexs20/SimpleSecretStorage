@@ -59,7 +59,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         }
     }
 
-    public synchronized List<Integer> find(String criteria, boolean isASC) throws StorageException {
+    public synchronized List<Integer> find(String criteria, @SuppressWarnings("SameParameterValue") boolean isASC) throws StorageException {
         LogEx.d("find( ", criteria, ", ", isASC, " )");
         if (dbHelper == null) {
             return new ArrayList<>();

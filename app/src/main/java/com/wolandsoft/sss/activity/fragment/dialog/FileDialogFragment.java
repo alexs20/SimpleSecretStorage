@@ -50,11 +50,10 @@ import java.util.List;
 public class FileDialogFragment extends DialogFragment {
     private static final String KEY_IS_FILE_CHOOSER = "file_chooser";
     private static final String KEY_CURRENT_PATH = "current_path";
+    private final File mBasePath = Environment.getExternalStorageDirectory();
     private OnDialogToFragmentInteract mListener;
     private TextView mTxtSelectedFile;
     private FolderListAdapter mAdapter;
-
-    private File mBasePath = Environment.getExternalStorageDirectory();
     private File mCurrentPath = mBasePath;
     private boolean mIsFileChooser = false;
 
@@ -95,7 +94,7 @@ public class FileDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, (ViewGroup)null);
+        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_file_list, (ViewGroup) null);
         ListView listView = (ListView) v.findViewById(R.id.lstItems);
         mTxtSelectedFile = (TextView) v.findViewById(R.id.txtTitle);
         if (savedInstanceState != null) {

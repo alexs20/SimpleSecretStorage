@@ -291,10 +291,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     }
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
+        private final OnRVAdapterActionListener mOnActionListener;
+        private final KeyStoreManager mKs;
+        private final SQLiteStorage mDb;
         private SecretEntry mEntry;
-        private OnRVAdapterActionListener mOnActionListener;
-        private KeyStoreManager mKs;
-        private SQLiteStorage mDb;
         private boolean mIsProtectedVisible = false;
 
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
@@ -495,10 +495,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView mTxtKey;
-            TextView mTxtValue;
-            ImageView mImgProtected;
-            ImageView mImgMenu;
+            final TextView mTxtKey;
+            final TextView mTxtValue;
+            final ImageView mImgProtected;
+            final ImageView mImgMenu;
 
             ViewHolder(View view) {
                 super(view);

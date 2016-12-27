@@ -25,8 +25,8 @@ import android.text.Spanned;
  */
 
 public class InputFilterMinMax implements InputFilter {
-    private int mMin;
-    private int mMax;
+    private final int mMin;
+    private final int mMax;
 
     public InputFilterMinMax(int min, int max) {
         mMin = min;

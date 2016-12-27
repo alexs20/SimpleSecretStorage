@@ -32,6 +32,7 @@ import java.util.StringTokenizer;
  * @author Alexander Shulgin
  */
 
+@SuppressWarnings("ALL")
 public class KeySharedPreferences extends ContextWrapper implements SharedPreferences {
 
     private SharedPreferences mSharedPreferences;

@@ -36,7 +36,7 @@ public class SecretEntryAttribute implements Parcelable {
         }
     };
 
-    private String key;
+    private final String key;
     private String value;
     private boolean isProtected;
 
@@ -46,6 +46,7 @@ public class SecretEntryAttribute implements Parcelable {
         this.isProtected = isProtected;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public SecretEntryAttribute(Parcel parcel) {
         this.key = parcel.readString();
         this.value = parcel.readString();
@@ -60,7 +61,7 @@ public class SecretEntryAttribute implements Parcelable {
         return this.isProtected;
     }
 
-    public void setProtected(boolean isProtected) {
+    public void setProtected(@SuppressWarnings("SameParameterValue") boolean isProtected) {
         this.isProtected = isProtected;
     }
 

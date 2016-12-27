@@ -55,7 +55,7 @@ public class KeyStoreManager extends ContextWrapper {
     private static final String KEY_ALIAS = "ssspkey";
     private static final String CIPHER_MODE = "RSA/ECB/PKCS1Padding";
     private static final String KEY_ALGORITHM_RSA = "RSA";
-    private String alias;
+    private final String alias;
     private KeyStore keystore;
     private Cipher encryptCipher;
     private Cipher decryptCipher;

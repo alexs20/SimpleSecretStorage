@@ -43,7 +43,7 @@ import static org.junit.Assert.assertNotEquals;
 public class KeyStoreManagerTest {
     private final static String TEST_ALIAS = "test_alias";
     private static KeyStoreManager ksMgr;
-    private String pwd;
+    private final String pwd;
 
     public KeyStoreManagerTest(String pwd) {
         this.pwd = pwd;
