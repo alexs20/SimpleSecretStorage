@@ -49,6 +49,7 @@ import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.util.List;
 
@@ -96,6 +97,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         String searchCriteria = "";
         if (savedInstanceState != null) {
             searchCriteria = savedInstanceState.getString(KEY_SEARCH_PHRASE, searchCriteria);
+            LogEx.d("Search criteria restored: ", searchCriteria);
         }
         //Recycler view adapter
         mRVAdapter = new RVAdapter(icl, mHost.getSQLiteStorage(), searchCriteria);
@@ -111,6 +113,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mRVAdapter);
+        mRVAdapter.setSearchLocked(false);
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -131,9 +134,12 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(KEY_SEARCH_PHRASE, mRVAdapter.getSearchCriteria());
+        LogEx.d("Search criteria saved: ", mRVAdapter.getSearchCriteria());
     }
 
     private void onAddClicked() {
+        //preserve search criteria
+        mRVAdapter.setSearchLocked(true);
         //create new entry
         SecretEntry entry = new SecretEntry();
         for (PredefinedAttribute attr : PredefinedAttribute.values()) {
@@ -154,6 +160,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     private void onSecretEntryClick(SecretEntry entry) {
+        //preserve search criteria
+        mRVAdapter.setSearchLocked(true);
+        //open entry view
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry.getID());
         fragment.setTargetFragment(this, 0);
@@ -179,14 +188,15 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
         //attaching search view
+        LogEx.d("Building search menu / view when search criteria already: ", mRVAdapter.getSearchCriteria());
         MenuItem mnuSearch = menu.findItem(R.id.mnuSearch);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(mnuSearch);
-        searchView.setOnQueryTextListener(this);
         if (!mRVAdapter.getSearchCriteria().isEmpty()) {
             mnuSearch.expandActionView();
             searchView.setQuery(mRVAdapter.getSearchCriteria(), true);
             searchView.clearFocus();
         }
+        searchView.setOnQueryTextListener(this);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -218,7 +228,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public void onEntryUpdate(SecretEntry entry) {
-        mRVAdapter.updateItem(entry);
+        mRVAdapter.reload();
     }
 
     @Override
@@ -234,6 +244,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private List<Integer> mItemIds = null;
         private String mSearchCriteria;
         private Runnable mSearchUpdate;
+        private boolean mSearchLocked = false;
 
         RVAdapter(OnRVAdapterActionListener onActionListener,
                   SQLiteStorage sqLtStorage,
@@ -246,18 +257,20 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void updateSearchCriteria(final String criteria) {
-            if (mSearchUpdate != null)
-                mHandler.removeCallbacks(mSearchUpdate);
-            mSearchUpdate = new Runnable() {
-                @Override
-                public void run() {
-                    if (!criteria.equals(mSearchCriteria)) {
-                        mSearchCriteria = criteria;
-                        reload();
+            if (!mSearchLocked) {
+                if (mSearchUpdate != null)
+                    mHandler.removeCallbacks(mSearchUpdate);
+                mSearchUpdate = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!criteria.equals(mSearchCriteria)) {
+                            mSearchCriteria = criteria;
+                            reload();
+                        }
                     }
-                }
-            };
-            mHandler.postDelayed(mSearchUpdate, DELAY_SEARCH_UPDATE);
+                };
+                mHandler.postDelayed(mSearchUpdate, DELAY_SEARCH_UPDATE);
+            }
         }
 
         @Override
@@ -317,6 +330,10 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             return mSearchCriteria;
         }
 
+        void setSearchLocked(boolean state) {
+            mSearchLocked = state;
+        }
+
         void deleteItem(int id) {
             //get position of the item
             int idx = mItemIds.indexOf(id);
@@ -334,12 +351,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             //get position of the item
             int idx = mItemIds.indexOf(id);
             notifyItemChanged(idx);
-        }
-
-        void updateItem(SecretEntry item) {
-            mSqLtStorage.put(item);
-            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
-            notifyDataSetChanged();
         }
 
         @Nullable

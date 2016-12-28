@@ -54,6 +54,7 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.util.Collections;
 
@@ -318,6 +319,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         public boolean onItemReorder(int fromPosition, int toPosition) {
+            LogEx.d("onItemReorder ( ", fromPosition, ", ", toPosition, " )");
             //need to be sure that protected field will not move to the top
             if ((toPosition == 0 && mEntry.get(fromPosition).isProtected()) ||
                     (fromPosition == 0 && mEntry.get(1).isProtected())) {
