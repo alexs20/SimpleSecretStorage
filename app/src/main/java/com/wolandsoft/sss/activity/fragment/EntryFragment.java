@@ -45,6 +45,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.ISharedObjects;
@@ -270,6 +271,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
         ClipData clip = ClipData.newPlainText(attr.getKey(), text);
         clipboard.setPrimaryClip(clip);
+        Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
     }
 
     @Override
