@@ -16,12 +16,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/mnuCopy"
-        android:title="@string/label_copy" />
+        android:title="@string/label_copy"
+        android:icon="@mipmap/img24dp_copy"/>
     <item
         android:id="@+id/mnuNavigate"
         android:title="@string/label_navigate"
-        android:visible="false"/>
-    <item
-        android:id="@+id/mnuEdit"
-        android:title="@string/label_edit" />
+        android:visible="false"
+        android:icon="@mipmap/img24dp_navigate"/>
 </menu>

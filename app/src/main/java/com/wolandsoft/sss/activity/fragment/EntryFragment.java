@@ -31,6 +31,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.support.v7.view.menu.MenuBuilder;
+import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
@@ -120,6 +122,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             @Override
             public void onEntryAttributeNavigate(SecretEntryAttribute attr) {
                 EntryFragment.this.onEntryAttributeNavigate(attr);
+            }
+
+            @Override
+            public void onEntryAttributeCopy(SecretEntryAttribute attr) {
+                EntryFragment.this.onEntryAttributeCopy(attr);
             }
 
             @Override
@@ -252,6 +259,18 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         startActivity(browserIntent);
     }
 
+    private void onEntryAttributeCopy(SecretEntryAttribute attr) {
+        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        String text = attr.getValue();
+        if (attr.isProtected()) {
+            if (attr.getValue() != null && attr.getValue().length() > 0) {
+                text = mHost.getKeyStoreManager().decrupt(attr.getValue());
+            }
+        }
+        ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+        clipboard.setPrimaryClip(clip);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entry_options_menu, menu);
@@ -363,6 +382,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             });
         }
 
+        @SuppressWarnings("UnusedParameters")
         private void openPopup(final View v, final int position, final SecretEntryAttribute attr) {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
             popup.getMenuInflater().inflate(R.menu.fragment_entry_card_popup, popup.getMenu());
@@ -370,19 +390,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
-                        case R.id.mnuEdit:
-                            mOnActionListener.onEntryAttributeEdit(position);
-                            return true;
                         case R.id.mnuCopy:
-                            ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                            String text = attr.getValue();
-                            if (attr.isProtected()) {
-                                if (attr.getValue() != null && attr.getValue().length() > 0) {
-                                    text = mKs.decrupt(attr.getValue());
-                                }
-                            }
-                            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-                            clipboard.setPrimaryClip(clip);
+                            mOnActionListener.onEntryAttributeCopy(attr);
                             break;
                         case R.id.mnuNavigate:
                             mOnActionListener.onEntryAttributeNavigate(attr);
@@ -395,7 +404,9 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuNavigate);
                 mnuNavigate.setVisible(true);
             }
-            popup.show();
+            MenuPopupHelper menuHelper = new MenuPopupHelper(v.getContext(), (MenuBuilder) popup.getMenu(), v);
+            menuHelper.setForceShowIcon(true);
+            menuHelper.show();
         }
 
         @Override
@@ -471,6 +482,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             void onEntryAttributeEdit(int idx);
 
             void onEntryAttributeNavigate(SecretEntryAttribute attr);
+
+            void onEntryAttributeCopy(SecretEntryAttribute attr);
 
             void onEntryUpdated(SecretEntry entry);
         }
