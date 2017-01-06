@@ -52,7 +52,8 @@ public class KeyStoreManagerTest {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"12345"}, {"98765"}
+                {"12345"}, {"98765"}, {"1234567890"}, {"qwertyuiop1234567890"},
+                {"1q2w3e4r5t6y7u8i9o0pazsxdcfvgbhnjmk,l.;/[']\\=-"}
         });
     }
 
