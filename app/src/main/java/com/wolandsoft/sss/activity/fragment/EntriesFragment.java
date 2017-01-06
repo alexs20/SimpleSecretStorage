@@ -253,7 +253,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             mSqLtStorage = sqLtStorage;
             mSearchCriteria = searchCriteria;
             mHandler = new Handler();
-            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+            mItemIds = mSqLtStorage.find(mSearchCriteria);
         }
 
         void updateSearchCriteria(final String criteria) {
@@ -343,7 +343,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
 
         void reload() {
-            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+            mItemIds = mSqLtStorage.find(mSearchCriteria);
             notifyDataSetChanged();
         }
 

@@ -75,7 +75,7 @@ public class SQLiteStorageListTest {
 
     @Test
     public void test_s0_get_id_all() {
-        List<Integer> seIds = storage.find(null, true);
+        List<Integer> seIds = storage.find(null);
         assertNotNull(seIds);
         assertEquals(ENTRIES_COUNT, seIds.size());
     }
@@ -83,7 +83,7 @@ public class SQLiteStorageListTest {
     @Test
     public void test_s1_get_id_by_name() {
         String name = String.format(TEMPLATE_NAME, 0);
-        List<Integer> seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name);
         assertNotNull(seIds);
         assertEquals(1, seIds.size());
 
@@ -97,7 +97,7 @@ public class SQLiteStorageListTest {
     @Test
     public void test_s1_get_id_by_url() {
         String name = String.format(TEMPLATE_URL, 0);
-        List<Integer> seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name);
         assertNotNull(seIds);
         assertEquals(1, seIds.size());
 
@@ -111,7 +111,7 @@ public class SQLiteStorageListTest {
     @Test
     public void test_s1_get_id_by_name_many() {
         String name = String.format(TEMPLATE_NAME, 7);
-        List<Integer> seIds = storage.find(name, true);
+        List<Integer> seIds = storage.find(name);
         assertNotNull(seIds);
         assertEquals(11, seIds.size());
     }

@@ -101,7 +101,7 @@ public class JsonAes256Zip extends AExternal {
 
 
             List<Object> jsonEntries = new LinkedList<>();
-            List<Integer> entries = storage.find(null, true);
+            List<Integer> entries = storage.find(null);
             for (int id : entries) {
                 SecretEntry entry = storage.get(id);
                 Map<String, Object> jsonEntry = new LinkedHashMap<>();
