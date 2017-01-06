@@ -48,10 +48,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.service.CoreService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
@@ -71,7 +71,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
     private final static String ARG_POSITION = "position";
     private OnFragmentToFragmentInteract mListener;
-    private ISharedObjects mHost;
+    private CoreService.CoreServiceProvider mServiceProvider;
     private RVAdapter mRVAdapter;
     private View mView;
     private boolean mIsShowPwd = false;
@@ -87,11 +87,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ISharedObjects) {
-            mHost = (ISharedObjects) context;
+        if (context instanceof CoreService.CoreServiceProvider) {
+            mServiceProvider = (CoreService.CoreServiceProvider) context;
         } else {
             throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
-                    context.toString(), ISharedObjects.class.getName()));
+                    context.toString(), CoreService.CoreServiceProvider.class.getName()));
         }
     }
 
@@ -135,7 +135,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             public void onEntryUpdated(SecretEntry entry) {
                 mListener.onEntryUpdate(entry);
             }
-        }, entryId, mHost.getKeyStoreManager(), mHost.getSQLiteStorage());
+        }, entryId, mServiceProvider);
 
         if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.mnuShowPwd));
@@ -262,16 +262,19 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     }
 
     private void onEntryAttributeCopy(SecretEntryAttribute attr) {
-        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-        String text = attr.getValue();
-        if (attr.isProtected()) {
-            if (attr.getValue() != null && attr.getValue().length() > 0) {
-                text = mHost.getKeyStoreManager().decrupt(attr.getValue());
+        CoreService service = mServiceProvider.getCoreService();
+        if(service != null) {
+            ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            String text = attr.getValue();
+            if (attr.isProtected()) {
+                if (attr.getValue() != null && attr.getValue().length() > 0) {
+                    text = service.getKeyStoreManager().decrupt(attr.getValue());
+                }
             }
+            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
         }
-        ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-        clipboard.setPrimaryClip(clip);
-        Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -305,19 +308,24 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         void onEntryUpdate(SecretEntry entry);
     }
 
-    static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
+    static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> implements CoreService.CoreServiceStateListener{
         private final OnRVAdapterActionListener mOnActionListener;
-        private final KeyStoreManager mKs;
-        private final SQLiteStorage mDb;
-        private final SecretEntry mEntry;
+        private KeyStoreManager mKs;
+        private SQLiteStorage mDb;
+        private SecretEntry mEntry;
         private boolean mIsProtectedVisible = false;
 
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
-                  KeyStoreManager ks, SQLiteStorage db) {
+                  CoreService.CoreServiceProvider serviceProvider) {
             mOnActionListener = listener;
-            mKs = ks;
-            mDb = db;
-            mEntry = db.get(itemId);
+            serviceProvider.addCoreServiceStateListener(this);
+            if(serviceProvider.getCoreService() != null) {
+                mDb = serviceProvider.getCoreService().getSQLiteStorage();
+                mKs = serviceProvider.getCoreService().getKeyStoreManager();
+                mEntry = mDb.get(itemId);
+            } else {
+                mEntry = new SecretEntry(itemId, 0, 0);
+            }
         }
 
         public boolean onItemReorder(int fromPosition, int toPosition) {
@@ -414,9 +422,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         @Override
-        public int getItemCount() {
-            return mEntry.size();
-        }
+        public int getItemCount() { return mEntry.size(); }
 
         SecretEntry getEntry() {
             return mEntry;
@@ -478,6 +484,14 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             };
             ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
             touchHelper.attachToRecyclerView(recyclerView);
+        }
+
+        @Override
+        public void onCoreServiceReady(CoreService service) {
+            mDb = service.getSQLiteStorage();
+            mKs = service.getKeyStoreManager();
+            mEntry = mDb.get(mEntry.getID());
+            notifyDataSetChanged();
         }
 
         interface OnRVAdapterActionListener {

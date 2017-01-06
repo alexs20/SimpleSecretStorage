@@ -49,7 +49,6 @@ import android.widget.TextView;
 
 import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
 import com.wolandsoft.sss.external.ExternalException;
@@ -98,17 +97,17 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        ISharedObjects sharedObj;
-        if (context instanceof ISharedObjects) {
-            sharedObj = (ISharedObjects) context;
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
-        }
-        mKSManager = sharedObj.getKeyStoreManager();
-        mSQLtStorage = sharedObj.getSQLiteStorage();
+//        ISharedObjects sharedObj;
+//        if (context instanceof ISharedObjects) {
+//            sharedObj = (ISharedObjects) context;
+//        } else {
+//            throw new ClassCastException(
+//                    String.format(
+//                            getString(R.string.internal_exception_must_implement),
+//                            context.toString(), ISharedObjects.class.getName()));
+//        }
+//        mKSManager = sharedObj.getKeyStoreManager();
+//        mSQLtStorage = sharedObj.getSQLiteStorage();
 
         ExternalFactory extFactory = ExternalFactory.getInstance(context);
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());

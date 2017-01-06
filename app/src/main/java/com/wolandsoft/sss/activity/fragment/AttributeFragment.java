@@ -32,16 +32,16 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.service.CoreService;
 
 /**
  * Attribute edit fragment
  *
  * @author Alexander Shulgin
  */
-public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract {
+public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract,
+        CoreService.CoreServiceStateListener {
     private final static String ARG_ATTR = "attr";
     private final static String ARG_ATTR_POS = "attr_pos";
 
@@ -56,7 +56,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     //model adjustment
     private String mGeneratedPwd = null;
     //utils
-    private KeyStoreManager mKsMgr;
+    private CoreService.CoreServiceProvider mServiceProvider;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
@@ -73,19 +73,21 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        if (context instanceof CoreService.CoreServiceProvider) {
+            mServiceProvider = (CoreService.CoreServiceProvider) context;
+        } else {
+            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
+                    context.toString(), CoreService.CoreServiceProvider.class.getName()));
+        }
+    }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         mAttr = args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
-
-        if (context instanceof ISharedObjects) {
-            mKsMgr = ((ISharedObjects) context).getKeyStoreManager();
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
-        }
+        mServiceProvider.addCoreServiceStateListener(this);
     }
 
     @Override
@@ -101,8 +103,11 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    String plain = mKsMgr.decrupt(mAttr.getValue());
-                    mTxtValue.setText(plain);
+                    CoreService service = mServiceProvider.getCoreService();
+                    if (service != null) {
+                        String plain = service.getKeyStoreManager().decrupt(mAttr.getValue());
+                        mTxtValue.setText(plain);
+                    }
                 }
             } else {
                 mTxtValue.setText(mAttr.getValue());
@@ -170,36 +175,49 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     }
 
     private void onOkClicked() {
-        View currentFocus = getActivity().getCurrentFocus();
-        if (currentFocus != null) {
-            //hide soft keyboard
-            InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        }
+        CoreService service = mServiceProvider.getCoreService();
+        if (service != null || !mChkProtected.isChecked()) {
+            View currentFocus = getActivity().getCurrentFocus();
+            if (currentFocus != null) {
+                //hide soft keyboard
+                InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            }
 
-        String protectedStr = mTxtValue.getText().toString();
-        if (mChkProtected.isChecked()) {
-            protectedStr = mKsMgr.encrypt(protectedStr);
+            String protectedStr = mTxtValue.getText().toString();
+            if (mChkProtected.isChecked()) {
+                protectedStr = service.getKeyStoreManager().encrypt(protectedStr);
+            }
+            SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
+            Fragment parent = getTargetFragment();
+            if (parent instanceof OnFragmentToFragmentInteract) {
+                ((OnFragmentToFragmentInteract) parent).onAttributeUpdate(mAttrPos, attr);
+            } else {
+                throw new ClassCastException(
+                        String.format(
+                                getString(R.string.internal_exception_must_implement),
+                                parent.toString(),
+                                OnFragmentToFragmentInteract.class.getName()
+                        )
+                );
+            }
+            getFragmentManager().popBackStack();
         }
-        SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
-        Fragment parent = getTargetFragment();
-        if (parent instanceof OnFragmentToFragmentInteract) {
-            ((OnFragmentToFragmentInteract) parent).onAttributeUpdate(mAttrPos, attr);
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            parent.toString(),
-                            OnFragmentToFragmentInteract.class.getName()
-                    )
-            );
-        }
-        getFragmentManager().popBackStack();
     }
 
     @Override
     public void onPasswordGenerate(String password) {
         mGeneratedPwd = password;
+    }
+
+    @Override
+    public void onCoreServiceReady(CoreService service) {
+        if (mAttr.isProtected()) {
+            if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
+                String plain = service.getKeyStoreManager().decrupt(mAttr.getValue());
+                mTxtValue.setText(plain);
+            }
+        }
     }
 
     /**

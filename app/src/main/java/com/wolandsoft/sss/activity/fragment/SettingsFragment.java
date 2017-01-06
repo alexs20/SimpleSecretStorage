@@ -31,7 +31,6 @@ import android.support.v7.preference.SwitchPreferenceCompat;
 import android.view.View;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.util.KeySharedPreferences;
@@ -46,16 +45,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        ISharedObjects sharedObj;
-        if (context instanceof ISharedObjects) {
-            sharedObj = (ISharedObjects) context;
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
-        }
-        mKSManager = sharedObj.getKeyStoreManager();
+//        ISharedObjects sharedObj;
+//        if (context instanceof ISharedObjects) {
+//            sharedObj = (ISharedObjects) context;
+//        } else {
+//            throw new ClassCastException(
+//                    String.format(
+//                            getString(R.string.internal_exception_must_implement),
+//                            context.toString(), ISharedObjects.class.getName()));
+//        }
+//        mKSManager = sharedObj.getKeyStoreManager();
     }
 
     @Override
