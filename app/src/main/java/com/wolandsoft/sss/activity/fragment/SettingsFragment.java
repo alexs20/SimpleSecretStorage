@@ -133,6 +133,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                         .putString(R.string.pref_pin_key, mKSManager.encrypt(pin))
                         .apply();
                 ScreenMonitorService.manageService(true, getContext());
+                SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));
+                chk.setChecked(true);
             } else {
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,

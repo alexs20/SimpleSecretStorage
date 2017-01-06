@@ -197,7 +197,7 @@ public class PinFragment extends Fragment {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    fMgr.popBackStack();
+                    fMgr.popBackStackImmediate();
                     mListener.onPinProvided(mPin);
                 }
             }, mDelayMsec);
