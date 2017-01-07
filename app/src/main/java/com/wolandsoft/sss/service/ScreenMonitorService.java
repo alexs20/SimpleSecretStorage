@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,26 +28,6 @@ import android.support.annotation.Nullable;
 public class ScreenMonitorService extends Service {
 
     private BroadcastReceiver mReceiver;
-
-    public static boolean isServiceRunning(Context context) {
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (ScreenMonitorService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static void manageService(boolean isEnabled, Context context) {
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(context, ScreenMonitorService.class));
-        if (isEnabled) {
-            context.startService(intent);
-        } else {
-            context.stopService(intent);
-        }
-    }
 
     @Override
     public void onCreate() {

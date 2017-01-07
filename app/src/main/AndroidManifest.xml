@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@
             android:name=".service.CoreService"
             android:description="@string/core_service_name"
             android:label="@string/core_service_name" />
+        <service
+            android:name=".service.ExportImportService"
+            android:description="@string/export_import_service_name"
+            android:label="@string/export_import_service_name" />
 
         <activity
             android:name=".activity.MainActivity"

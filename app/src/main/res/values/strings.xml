@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
     <string name="app_name">Simple Secret Storage</string>
     <string name="screen_monitor_service_name">Screen Monitor Service</string>
     <string name="core_service_name">Core Service</string>
+    <string name="export_import_service_name">Export/Import Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>

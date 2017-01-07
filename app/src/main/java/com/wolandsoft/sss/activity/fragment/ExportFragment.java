@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,16 +12,17 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.activity.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
@@ -29,6 +30,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -51,12 +53,9 @@ import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.FileDialogFragment;
-import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
-import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.util.KeyStoreManager;
-import com.wolandsoft.sss.util.LogEx;
+import com.wolandsoft.sss.service.ExportImportService;
+import com.wolandsoft.sss.service.ServiceManager;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -89,30 +88,34 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     private RelativeLayout mLayoutPermissions;
     private boolean mIsShowPwd;
     private File mDestinationPath;
-
-    private KeyStoreManager mKSManager;
-    private SQLiteStorage mSQLtStorage;
+    private BroadcastReceiver mBrReceiver;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        //
+    }
 
-//        ISharedObjects sharedObj;
-//        if (context instanceof ISharedObjects) {
-//            sharedObj = (ISharedObjects) context;
-//        } else {
-//            throw new ClassCastException(
-//                    String.format(
-//                            getString(R.string.internal_exception_must_implement),
-//                            context.toString(), ISharedObjects.class.getName()));
-//        }
-//        mKSManager = sharedObj.getKeyStoreManager();
-//        mSQLtStorage = sharedObj.getSQLiteStorage();
-
-        ExternalFactory extFactory = ExternalFactory.getInstance(context);
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ExternalFactory extFactory = ExternalFactory.getInstance(getContext());
         List<String> engines = Arrays.asList(extFactory.getAvailableIds());
         mExtEngAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, engines);
         mExtEngAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //enabling show pwd icon
+        setHasOptionsMenu(true);
+        //an export result status
+        mBrReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (ExportImportService.BROADCAST_EVENT_COMPLETED.equals(intent.getAction())) {
+                    int task = intent.getIntExtra(ExportImportService.KEY_TASK, -1);
+                    boolean status = intent.getBooleanExtra(ExportImportService.KEY_STATUS, false);
+                    onServiceResult(task, status);
+                }
+            }
+        };
     }
 
     @Override
@@ -219,6 +222,38 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         }
     }
 
+    private void onServiceResult(int task, boolean status) {
+        mLayoutWait.setVisibility(View.GONE);
+        mBtnApply.setEnabled(false);
+        if (task == ExportImportService.TASK_EXPORT) {
+            FragmentManager fragmentManager = getFragmentManager();
+            if (status) {
+                fragmentManager.popBackStack();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
+                        R.string.label_export, R.string.message_export_process_completed, false, null);
+                fragment.setCancelable(true);
+                fragment.setTargetFragment(ExportFragment.this, 0);
+                transaction.addToBackStack(null);
+                fragment.show(transaction, DialogFragment.class.getName());
+            } else {
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
+                        R.string.label_export, R.string.message_export_process_failed, false, null);
+                fragment.setCancelable(true);
+                fragment.setTargetFragment(ExportFragment.this, 0);
+                transaction.addToBackStack(null);
+                fragment.show(transaction, DialogFragment.class.getName());
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getContext().unregisterReceiver(mBrReceiver);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -233,6 +268,18 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         }
         mLayoutForm.setVisibility(askForPermissions ? View.GONE : View.VISIBLE);
         mLayoutPermissions.setVisibility(askForPermissions ? View.VISIBLE : View.GONE);
+
+        IntentFilter filter = new IntentFilter(ExportImportService.BROADCAST_EVENT_COMPLETED);
+        getContext().registerReceiver(mBrReceiver, filter);
+        if(!askForPermissions) {
+            if (ServiceManager.isServiceRunning(getContext(), ExportImportService.class)) {
+                mLayoutWait.setVisibility(View.VISIBLE);
+                mBtnApply.setEnabled(false);
+            } else {
+                mLayoutWait.setVisibility(View.GONE);
+                mBtnApply.setEnabled(true);
+            }
+        }
     }
 
     private void setOpenPasswordView(View view) {
@@ -254,15 +301,14 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     }
 
     private void onApplyClicked() {
-        ExportArgs args = new ExportArgs();
         String selectedEngine = mSprExtEngine.getSelectedItem().toString();
-        args.engine = ExternalFactory.getInstance(getContext()).getExternal(selectedEngine);
+        String password;
         if (mIsShowPwd) {
-            args.password = mEdtPasswordOpen.getText().toString();
+            password = mEdtPasswordOpen.getText().toString();
         } else {
-            args.password = mEdtPassword1.getText().toString();
+            password = mEdtPassword1.getText().toString();
             String pwd2 = mEdtPassword2.getText().toString();
-            if (!args.password.equals(pwd2)) {
+            if (!password.equals(pwd2)) {
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                         R.string.label_error, R.string.message_password_not_the_same, false, null);
@@ -273,7 +319,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
                 return;
             }
         }
-        if (args.password.length() == 0) {
+        if (password.length() == 0) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                     R.string.label_error, R.string.message_no_password, false, null);
@@ -293,63 +339,21 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
             fragment.show(transaction, DialogFragment.class.getName());
             return;
         }
-        args.destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
-        while (args.destination.exists()) {
-            args.destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+
+        File destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
+        while (destination.exists()) {
+            destination = new File(mDestinationPath, String.format(OUTPUT_FILE_NAME, format.format(new Date())));
         }
 
-        new AsyncTask<ExportArgs, Void, Boolean>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                mLayoutWait.setVisibility(View.VISIBLE);
-                mBtnApply.setEnabled(false);
-            }
+        mLayoutWait.setVisibility(View.VISIBLE);
+        mBtnApply.setEnabled(true);
 
-            @Override
-            protected void onPostExecute(Boolean aBoolean) {
-                super.onPostExecute(aBoolean);
-                mLayoutWait.setVisibility(View.GONE);
-                mBtnApply.setEnabled(false);
-                if (aBoolean) {
-                    getFragmentManager().popBackStack();
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
-                            R.string.label_export, R.string.message_export_process_completed, false, null);
-                    fragment.setCancelable(true);
-                    fragment.setTargetFragment(ExportFragment.this, 0);
-                    transaction.addToBackStack(null);
-                    fragment.show(transaction, DialogFragment.class.getName());
-                } else {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
-                            R.string.label_export, R.string.message_export_process_failed, false, null);
-                    fragment.setCancelable(true);
-                    fragment.setTargetFragment(ExportFragment.this, 0);
-                    transaction.addToBackStack(null);
-                    fragment.show(transaction, DialogFragment.class.getName());
-                }
-            }
-
-            @Override
-            protected Boolean doInBackground(ExportArgs... params) {
-                try {
-                    params[0].engine.doExport(mSQLtStorage, mKSManager,
-                            params[0].destination.toURI(), params[0].password);
-                } catch (ExternalException e) {
-                    LogEx.e(e.getMessage(), e);
-                    return false;
-                }
-                return true;
-            }
-        }.execute(args);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //enabling show pwd icon
-        setHasOptionsMenu(true);
+        Intent intent = new Intent(getContext(), ExportImportService.class);
+        intent.putExtra(ExportImportService.KEY_TASK, ExportImportService.TASK_EXPORT);
+        intent.putExtra(ExportImportService.KEY_ENGINE, selectedEngine);
+        intent.putExtra(ExportImportService.KEY_PASSWORD, password);
+        intent.putExtra(ExportImportService.KEY_PATH, destination.getAbsolutePath());
+        getContext().startService(intent);
     }
 
     @Override
@@ -396,11 +400,5 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
 
-    }
-
-    class ExportArgs {
-        IExternal engine;
-        String password;
-        File destination;
     }
 }

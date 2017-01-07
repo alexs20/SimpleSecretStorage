@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -47,7 +47,9 @@ import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
 import com.wolandsoft.sss.service.CoreService;
 import com.wolandsoft.sss.service.ScreenMonitorService;
+import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements
             Fragment fragment = new EntriesFragment();
             transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
             transaction.commit();
-            ScreenMonitorService.manageService(false, this);
+            ServiceManager.manageService(this, ScreenMonitorService.class, false);
         }
 
         //Listen for changes in the back stack
@@ -172,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ScreenMonitorService.isServiceRunning(this);
+        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ServiceManager.isServiceRunning(this, ScreenMonitorService.class);
         //pin protection enabled
         if (mIsLocked) {
             ActionBar actionBar = getSupportActionBar();
@@ -225,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 Fragment fragment = new SettingsFragment();
                 fragment.setTargetFragment(target, 0);
-                transaction.replace(R.id.content_fragment, fragment);
+                transaction.replace(R.id.content_fragment, fragment, SettingsFragment.class.getName());
                 transaction.addToBackStack(SettingsFragment.class.getName());
                 transaction.commit();
                 break;
@@ -254,6 +256,16 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackStackChanged() {
+        if (LogEx.IS_DEBUG) {
+            LogEx.d("onBackStackChanged()");
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            for (int i = 0; i < fragments.size(); i++) {
+                Fragment fragment = fragments.get(i);
+                if (fragment != null) {
+                    LogEx.d("Fragment ", i, ": ", fragment.getClass().getName(), "; Tag: ", fragment.getTag());
+                }
+            }
+        }
         controlDrawerAvailability();
     }
 
@@ -272,25 +284,22 @@ public class MainActivity extends AppCompatActivity implements
 
     @SuppressLint("StringFormatInvalid")
     @Override
-    public void onPinProvided(String pin) {
+    public void onPinProvided(String pin, CoreService service) {
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-        //we can handle that only if service is alive
-        if (mCoreService != null) {
-            String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-            storedPin = mCoreService.getKeyStoreManager().decrupt(storedPin);
-            mIsLocked = !pin.equals(storedPin);
-            if (!mIsLocked) {
-                //resetting pin response delay to zero.
-                ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
-                ActionBar actionBar = getSupportActionBar();
-                if (actionBar != null) {
-                    actionBar.show();
-                }
-                controlDrawerAvailability();
-                ScreenMonitorService.manageService(true, this);
-                return;
+        String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
+        storedPin = service.getKeyStoreManager().decrupt(storedPin);
+        mIsLocked = !pin.equals(storedPin);
+        if (!mIsLocked) {
+            //resetting pin response delay to zero.
+            ksPref.edit().putInt(R.string.pref_pin_delay_key, 0).apply();
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.show();
             }
+            controlDrawerAvailability();
+            ServiceManager.manageService(this, ScreenMonitorService.class, true);
+            return;
         }
         //incrementing pin response delay on each invalid pin provided.
         int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);

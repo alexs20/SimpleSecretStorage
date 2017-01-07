@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -48,6 +52,7 @@ import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.service.CoreService;
+import com.wolandsoft.sss.service.ExportImportService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -69,6 +74,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     private static final String KEY_SEARCH_PHRASE = "search_phrase";
     private CoreService.CoreServiceProvider mServiceProvider;
     private RVAdapter mRVAdapter;
+    private BroadcastReceiver mBrReceiver;
 
     @Override
     public void onAttach(Context context) {
@@ -104,6 +110,25 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         mRVAdapter = new RVAdapter(icl, mServiceProvider, searchCriteria);
         //enabling action bar menu items
         setHasOptionsMenu(true);
+        //an import result status
+        mBrReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (ExportImportService.BROADCAST_EVENT_COMPLETED.equals(intent.getAction())) {
+                    int task = intent.getIntExtra(ExportImportService.KEY_TASK, -1);
+                    boolean status = intent.getBooleanExtra(ExportImportService.KEY_STATUS, false);
+                    onServiceResult(task, status);
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(ExportImportService.BROADCAST_EVENT_COMPLETED);
+        getContext().registerReceiver(mBrReceiver, filter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getContext().unregisterReceiver(mBrReceiver);
     }
 
     @Override
@@ -136,6 +161,12 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         super.onSaveInstanceState(outState);
         outState.putString(KEY_SEARCH_PHRASE, mRVAdapter.getSearchCriteria());
         LogEx.d("Search criteria saved: ", mRVAdapter.getSearchCriteria());
+    }
+
+    private void onServiceResult(int task, boolean status) {
+        if (task == ExportImportService.TASK_IMPORT) {
+            mRVAdapter.notifyDataSetChanged();
+        }
     }
 
     private void onAddClicked() {

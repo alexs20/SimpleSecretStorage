@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.util;
 
 import android.util.Log;
@@ -28,9 +28,9 @@ import com.wolandsoft.sss.BuildConfig;
  */
 @SuppressWarnings("unused")
 public class LogEx {
-    private static final boolean msIsDebug = BuildConfig.DEBUG;
-    private static final boolean msIsSource = BuildConfig.SHOW_SRC_IN_LOG;
-    private static final String TAG = AppConstants.APP_TAG;
+    public static final boolean IS_DEBUG = BuildConfig.DEBUG;
+    public static final boolean SHOW_SOURCE = BuildConfig.SHOW_SRC_IN_LOG;
+    public static final String TAG = AppConstants.APP_TAG;
 
     /**
      * Print debug information.
@@ -38,7 +38,7 @@ public class LogEx {
      * @param args Sequence of elements to concatenate and print. The last element could be an exception.
      */
     public static void d(Object... args) {
-        if (msIsDebug) {
+        if (IS_DEBUG) {
             StringBuilder sb = getStringBuilderWithHeader();
             for (Object arg : args) {
                 if (arg instanceof Throwable) {
@@ -108,7 +108,7 @@ public class LogEx {
      * @param args Sequence of elements to concatenate and print. The last element could be an exception.
      */
     public static void v(Object... args) {
-        if (msIsDebug) {
+        if (IS_DEBUG) {
             StringBuilder sb = getStringBuilderWithHeader();
             for (Object arg : args) {
                 if (arg instanceof Throwable) {
@@ -126,7 +126,7 @@ public class LogEx {
      */
     private static StringBuilder getStringBuilderWithHeader() {
         StringBuilder sb = new StringBuilder();
-        if (msIsSource) {
+        if (SHOW_SOURCE) {
             Throwable th = new Throwable();
             StackTraceElement ste = th.getStackTrace()[2];
             String clsName = ste.getClassName();
