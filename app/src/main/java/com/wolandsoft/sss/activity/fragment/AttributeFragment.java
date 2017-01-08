@@ -154,13 +154,6 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         return view;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        LogEx.d("onSaveInstanceState()");
-        //outState.putString(String.valueOf(R.id.txtKey), mTxtPwdPreview.getText().toString());
-    }
-
     private void onGenerateClicked() {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         Fragment fragment = new PwdGenFragment();
