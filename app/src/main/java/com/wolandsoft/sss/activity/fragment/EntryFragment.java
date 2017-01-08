@@ -120,11 +120,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             public void onEntryAttributeCopy(SecretEntryAttribute attr) {
                 EntryFragment.this.onEntryAttributeCopy(attr);
             }
-
-            @Override
-            public void onEntryUpdated(SecretEntry entry) {
-
-            }
         }, entryId, mServiceProvider);
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -161,6 +156,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         rView.setHasFixedSize(true);
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRVAdapter);
+        mRVAdapter.updateModel();
 
         FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -314,13 +310,11 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
                   CoreService.CoreServiceProvider serviceProvider) {
             mOnActionListener = listener;
+            mEntry = new SecretEntry(itemId, 0, 0);
             serviceProvider.addCoreServiceStateListener(this);
             if (serviceProvider.getCoreService() != null) {
                 mDb = serviceProvider.getCoreService().getSQLiteStorage();
                 mKs = serviceProvider.getCoreService().getKeyStoreManager();
-                mEntry = mDb.get(itemId);
-            } else {
-                mEntry = new SecretEntry(itemId, 0, 0);
             }
         }
 
@@ -428,7 +422,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
         void updateEntryInDb() {
             mDb.put(mEntry);
-            mOnActionListener.onEntryUpdated(mEntry);
         }
 
         void deleteItem(int idx) {
@@ -446,6 +439,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 notifyItemInserted(idx);
             }
             updateEntryInDb();
+        }
+
+        void updateModel() {
+            if(mDb != null && mKs != null) {
+                mEntry = mDb.get(mEntry.getID());
+                notifyDataSetChanged();
+            }
         }
 
         void setProtectedVisible(boolean isProtectedVisible) {
@@ -500,8 +500,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             void onEntryAttributeNavigate(SecretEntryAttribute attr);
 
             void onEntryAttributeCopy(SecretEntryAttribute attr);
-
-            void onEntryUpdated(SecretEntry entry);
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

@@ -278,8 +278,8 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             mOnActionListener = onActionListener;
             mSearchCriteria = searchCriteria;
             mHandler = new Handler();
-            serviceProvider.addCoreServiceStateListener(this);
             mItemIds = Collections.emptyList();
+            serviceProvider.addCoreServiceStateListener(this);
             if(serviceProvider.getCoreService() != null) {
                 mSqLtStorage = serviceProvider.getCoreService().getSQLiteStorage();
             }
