@@ -26,7 +26,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -66,7 +65,6 @@ import java.util.List;
  * @author Alexander Shulgin
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
-        EntryFragment.OnFragmentToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
     private static final String KEY_ID = "id";
@@ -78,6 +76,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        LogEx.d("onAttach()");
         if (context instanceof CoreService.CoreServiceProvider) {
             mServiceProvider = (CoreService.CoreServiceProvider) context;
         } else {
@@ -89,6 +88,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogEx.d("onCreate()");
         RVAdapter.OnRVAdapterActionListener icl = new RVAdapter.OnRVAdapterActionListener() {
             @Override
             public void onRVItemClick(SecretEntry entry) {
@@ -132,6 +132,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        LogEx.d("onCreateView()");
         View view = inflater.inflate(R.layout.fragment_entries, container, false);
         //init recycler view
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
@@ -139,6 +140,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mRVAdapter);
         mRVAdapter.setSearchLocked(false);
+        mRVAdapter.updateModel();
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -164,7 +166,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     private void onServiceResult(int task, boolean status) {
         if (task == ExportImportService.TASK_IMPORT) {
-            mRVAdapter.reload();
+            mRVAdapter.updateModel();
         }
     }
 
@@ -184,7 +186,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
             }
             entry = service.getSQLiteStorage().put(entry);
-            mRVAdapter.reload();
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             Fragment fragment = EntryFragment.newInstance(entry.getID());
             fragment.setTargetFragment(this, 0);
@@ -261,11 +262,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
     }
 
-    @Override
-    public void onEntryUpdate(SecretEntry entry) {
-        mRVAdapter.reload();
-    }
-
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> implements CoreService.CoreServiceStateListener {
         private static final long DELAY_SEARCH_UPDATE = 1000;
         private final OnRVAdapterActionListener mOnActionListener;
@@ -283,11 +279,9 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             mSearchCriteria = searchCriteria;
             mHandler = new Handler();
             serviceProvider.addCoreServiceStateListener(this);
+            mItemIds = Collections.emptyList();
             if(serviceProvider.getCoreService() != null) {
                 mSqLtStorage = serviceProvider.getCoreService().getSQLiteStorage();
-                mItemIds = mSqLtStorage.find(mSearchCriteria);
-            } else {
-                mItemIds = Collections.emptyList();
             }
         }
 
@@ -300,7 +294,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     public void run() {
                         if (!criteria.equals(mSearchCriteria)) {
                             mSearchCriteria = criteria;
-                            reload();
+                            updateModel();
                         }
                     }
                 };
@@ -377,9 +371,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             notifyItemRemoved(idx);
         }
 
-        void reload() {
-            mItemIds = mSqLtStorage.find(mSearchCriteria);
-            notifyDataSetChanged();
+        void updateModel() {
+            if(mSqLtStorage != null) {
+                mItemIds = mSqLtStorage.find(mSearchCriteria);
+                notifyDataSetChanged();
+            }
         }
 
         void reloadItem(int id) {
@@ -422,7 +418,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         @Override
         public void onCoreServiceReady(CoreService service) {
             mSqLtStorage = service.getSQLiteStorage();
-            reload();
+            updateModel();
         }
 
         interface OnRVAdapterActionListener {

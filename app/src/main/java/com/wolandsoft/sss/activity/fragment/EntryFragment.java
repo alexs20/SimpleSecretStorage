@@ -70,7 +70,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 1;
 
     private final static String ARG_POSITION = "position";
-    private OnFragmentToFragmentInteract mListener;
     private CoreService.CoreServiceProvider mServiceProvider;
     private RVAdapter mRVAdapter;
     private View mView;
@@ -98,15 +97,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fragment parent = getTargetFragment();
-        if (parent instanceof OnFragmentToFragmentInteract) {
-            mListener = (OnFragmentToFragmentInteract) parent;
-        } else {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement),
-                            parent.toString(), OnFragmentToFragmentInteract.class.getName()));
-        }
-
         Bundle args = getArguments();
         int entryId = args.getInt(ARG_ITEM_ID);
 
@@ -133,7 +123,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
             @Override
             public void onEntryUpdated(SecretEntry entry) {
-                mListener.onEntryUpdate(entry);
+
             }
         }, entryId, mServiceProvider);
 
@@ -312,13 +302,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
-     */
-    interface OnFragmentToFragmentInteract {
-        void onEntryUpdate(SecretEntry entry);
     }
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> implements CoreService.CoreServiceStateListener {
