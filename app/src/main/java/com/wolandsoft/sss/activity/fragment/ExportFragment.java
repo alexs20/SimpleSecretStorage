@@ -72,7 +72,7 @@ import java.util.Locale;
 public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
-    private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
+    private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
 
     private ArrayAdapter<String> mExtEngAdapter;
 
