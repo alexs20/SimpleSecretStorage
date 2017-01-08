@@ -69,7 +69,7 @@ import java.util.Locale;
  *
  * @author Alexander Shulgin
  */
-public class ExportFragment extends Fragment implements FileDialogFragment.OnDialogToFragmentInteract,
+public class ExportFragment extends BaseFragment implements FileDialogFragment.OnDialogToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final String OUTPUT_FILE_NAME = "secret_export_%1$s.zip";
     private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
@@ -171,7 +171,7 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         btnPermissions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onPermissionsRequested();
+                requestPermission(AppConstants.EXTERNAL_STORAGE_PERMISSIONS);
             }
         });
 
@@ -199,27 +199,6 @@ public class ExportFragment extends Fragment implements FileDialogFragment.OnDia
         if (actionBar != null)
             actionBar.setTitle(R.string.title_export);
         return view;
-    }
-
-    private void onPermissionsRequested() {
-        boolean askForPermissionsDirect = false;
-        for (String permission : AppConstants.EXTERNAL_STORAGE_PERMISSIONS) {
-            int permissionGranted = ContextCompat.checkSelfPermission(getContext(), permission);
-            if (permissionGranted != PackageManager.PERMISSION_GRANTED) {
-                askForPermissionsDirect = askForPermissionsDirect || shouldShowRequestPermissionRationale(permission);
-            }
-        }
-        if (askForPermissionsDirect) {
-            requestPermissions(AppConstants.EXTERNAL_STORAGE_PERMISSIONS, 0);
-        } else {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
-            intent.setData(uri);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            startActivityForResult(intent, 0);
-        }
     }
 
     private void onServiceResult(int task, boolean status) {
