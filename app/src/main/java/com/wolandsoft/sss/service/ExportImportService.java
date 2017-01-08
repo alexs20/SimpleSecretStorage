@@ -15,12 +15,12 @@
 */
 package com.wolandsoft.sss.service;
 
-import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -91,8 +91,18 @@ public class ExportImportService extends Service {
                         LogEx.d("Rescheduling Export / Import execution");
                         mHandler.post(this);
                     } else {
-                        execute(finalIntent);
-                        stopSelf(finalStartId);
+                        new AsyncTask<Void, Void, Void>() {
+                            @Override
+                            protected Void doInBackground(Void... params) {
+                                executeRequest(finalIntent);
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void aVoid) {
+                                stopSelf(finalStartId);
+                            }
+                        }.execute();
                     }
                 }
             };
@@ -103,7 +113,7 @@ public class ExportImportService extends Service {
         return START_STICKY;
     }
 
-    private void execute(Intent intent) {
+    private void executeRequest(Intent intent) {
         String engine = intent.getStringExtra(KEY_ENGINE);
         int task = intent.getIntExtra(KEY_TASK, TASK_EXPORT);
         String password = intent.getStringExtra(KEY_PASSWORD);
@@ -113,7 +123,6 @@ public class ExportImportService extends Service {
             case TASK_IMPORT:
                 String conflictResolution = intent.getStringExtra(KEY_CONFLICT_RESOLUTION);
                 result = doImport(engine, password, path, conflictResolution);
-                intent.putExtra(KEY_STATUS, result);
                 break;
             case TASK_EXPORT:
             default:
