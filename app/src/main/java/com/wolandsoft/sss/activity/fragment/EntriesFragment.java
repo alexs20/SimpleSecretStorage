@@ -67,7 +67,6 @@ import java.util.List;
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
         EntryFragment.OnFragmentToFragmentInteract,
-        ImportFragment.OnFragmentToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
     private static final String KEY_ID = "id";
@@ -165,7 +164,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     private void onServiceResult(int task, boolean status) {
         if (task == ExportImportService.TASK_IMPORT) {
-            mRVAdapter.notifyDataSetChanged();
+            mRVAdapter.reload();
         }
     }
 
@@ -264,11 +263,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public void onEntryUpdate(SecretEntry entry) {
-        mRVAdapter.reload();
-    }
-
-    @Override
-    public void onImportCompleted() {
         mRVAdapter.reload();
     }
 

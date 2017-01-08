@@ -22,14 +22,11 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
@@ -228,18 +225,6 @@ public class ImportFragment extends BaseFragment implements FileDialogFragment.O
         if (task == ExportImportService.TASK_IMPORT) {
             FragmentManager fragmentManager = getFragmentManager();
             if (status) {
-                Fragment parent = getTargetFragment();
-                if (parent instanceof OnFragmentToFragmentInteract) {
-                    ((OnFragmentToFragmentInteract) parent).onImportCompleted();
-                } else {
-                    throw new ClassCastException(
-                            String.format(
-                                    getString(R.string.internal_exception_must_implement),
-                                    parent.toString(),
-                                    OnFragmentToFragmentInteract.class.getName()
-                            )
-                    );
-                }
                 fragmentManager.popBackStack();
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_info,
@@ -400,9 +385,5 @@ public class ImportFragment extends BaseFragment implements FileDialogFragment.O
     @Override
     public void onDialogResult(int requestCode, int result, Bundle args) {
 
-    }
-
-    interface OnFragmentToFragmentInteract {
-        void onImportCompleted();
     }
 }
