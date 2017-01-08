@@ -88,6 +88,7 @@ public class ExportImportService extends Service {
                 @Override
                 public void run() {
                     if (mCoreService == null) {
+                        LogEx.d("Rescheduling Export / Import execution");
                         mHandler.post(this);
                     } else {
                         execute(finalIntent);

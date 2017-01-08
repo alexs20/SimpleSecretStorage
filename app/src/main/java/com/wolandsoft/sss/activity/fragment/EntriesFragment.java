@@ -223,7 +223,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
         //attaching search view
-        LogEx.d("Building search menu / view when search criteria already: ", mRVAdapter.getSearchCriteria());
+        LogEx.d("Building search menu / view with search criteria: ", mRVAdapter.getSearchCriteria());
         MenuItem mnuSearch = menu.findItem(R.id.mnuSearch);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(mnuSearch);
         if (!mRVAdapter.getSearchCriteria().isEmpty()) {
