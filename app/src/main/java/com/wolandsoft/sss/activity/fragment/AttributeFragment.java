@@ -57,6 +57,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private String mGeneratedPwd = null;
     //utils
     private CoreService.CoreServiceProvider mServiceProvider;
+    private OnFragmentToFragmentInteract mListener;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
@@ -78,6 +79,14 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         } else {
             throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
                     context.toString(), CoreService.CoreServiceProvider.class.getName()));
+        }
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            mListener = (OnFragmentToFragmentInteract) parent;
+        } else {
+            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
+                    parent.toString(), OnFragmentToFragmentInteract.class.getName())
+            );
         }
     }
 
@@ -189,19 +198,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
                 protectedStr = service.getKeyStoreManager().encrypt(protectedStr);
             }
             SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
-            Fragment parent = getTargetFragment();
-            if (parent instanceof OnFragmentToFragmentInteract) {
-                ((OnFragmentToFragmentInteract) parent).onAttributeUpdate(mAttrPos, attr);
-            } else {
-                throw new ClassCastException(
-                        String.format(
-                                getString(R.string.internal_exception_must_implement),
-                                parent.toString(),
-                                OnFragmentToFragmentInteract.class.getName()
-                        )
-                );
-            }
-            getFragmentManager().popBackStack();
+            getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back
+            mListener.onAttributeUpdate(mAttrPos, attr);
         }
     }
 
