@@ -81,7 +81,8 @@
     <string name="label_enter_new_pin">Enter New Pin</string>
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
-    <string name="label_protected_field_visible">Expose Protected Fields</string>
+    <string name="label_protected_field_visible">Expose Protected</string>
+    <string name="label_auto_copy_protected_field">Auto-copy Protected</string>
     <string name="label_clear">Clear</string>
     <string name="label_navigate">Navigate</string>
     <string name="label_copied">Copied</string>
@@ -107,5 +108,6 @@
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
     <string name="message_entry_confirmation">You are going to delete the swiped Secret Entry. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
+    <string name="message_auto_copy_protected_field">Copy first protected field into memory on open.</string>
 
 </resources>

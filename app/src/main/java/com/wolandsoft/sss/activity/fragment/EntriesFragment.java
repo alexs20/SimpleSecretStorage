@@ -185,6 +185,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                 entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
             }
             entry = service.getSQLiteStorage().put(entry);
+            mRVAdapter.reload();
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             Fragment fragment = EntryFragment.newInstance(entry.getID());
             fragment.setTargetFragment(this, 0);

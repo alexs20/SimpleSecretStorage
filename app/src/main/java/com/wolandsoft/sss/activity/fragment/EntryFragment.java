@@ -137,11 +137,12 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             }
         }, entryId, mServiceProvider);
 
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+
         if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.mnuShowPwd));
         } else {
-            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
             mIsShowPwd = ksPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
                     R.bool.pref_protected_field_default_visibility_value);
         }
@@ -149,6 +150,16 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
         //enabling actionbar icons
         setHasOptionsMenu(true);
+
+        if (ksPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value)) {
+            SecretEntry entry = mRVAdapter.getEntry();
+            for (SecretEntryAttribute attr : entry) {
+                if (attr.isProtected()) {
+                    onEntryAttributeCopy(attr);
+                    break;
+                }
+            }
+        }
     }
 
     @Override
@@ -263,17 +274,19 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
     private void onEntryAttributeCopy(SecretEntryAttribute attr) {
         CoreService service = mServiceProvider.getCoreService();
-        if(service != null) {
-            ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (service != null) {
             String text = attr.getValue();
             if (attr.isProtected()) {
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     text = service.getKeyStoreManager().decrupt(attr.getValue());
                 }
             }
-            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
+            if (text.length() > 0) {
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -308,7 +321,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         void onEntryUpdate(SecretEntry entry);
     }
 
-    static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> implements CoreService.CoreServiceStateListener{
+    static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> implements CoreService.CoreServiceStateListener {
         private final OnRVAdapterActionListener mOnActionListener;
         private KeyStoreManager mKs;
         private SQLiteStorage mDb;
@@ -319,7 +332,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                   CoreService.CoreServiceProvider serviceProvider) {
             mOnActionListener = listener;
             serviceProvider.addCoreServiceStateListener(this);
-            if(serviceProvider.getCoreService() != null) {
+            if (serviceProvider.getCoreService() != null) {
                 mDb = serviceProvider.getCoreService().getSQLiteStorage();
                 mKs = serviceProvider.getCoreService().getKeyStoreManager();
                 mEntry = mDb.get(itemId);
@@ -422,7 +435,9 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         @Override
-        public int getItemCount() { return mEntry.size(); }
+        public int getItemCount() {
+            return mEntry.size();
+        }
 
         SecretEntry getEntry() {
             return mEntry;

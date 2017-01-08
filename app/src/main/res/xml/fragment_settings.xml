@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,5 +28,11 @@
         android:key="@string/pref_protected_field_default_visibility_key"
         android:summary="@string/message_protected_fields_visible_by_default"
         android:title="@string/label_protected_field_visible" />
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="@bool/pref_auto_copy_protected_field_value"
+        android:key="@string/pref_auto_copy_protected_field_key"
+        android:summary="@string/message_auto_copy_protected_field"
+        android:title="@string/label_auto_copy_protected_field" />
 
 </android.support.v7.preference.PreferenceScreen>
