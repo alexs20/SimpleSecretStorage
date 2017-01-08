@@ -15,11 +15,8 @@
 */
 package com.wolandsoft.sss.service;
 
-import android.app.Service;
+import android.app.IntentService;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
 
 import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.external.ExternalException;
@@ -34,7 +31,7 @@ import java.io.File;
  *
  * @author Alexander Shulgin
  */
-public class ExportImportService extends Service {
+public class ExportImportService extends IntentService {
     public static final String KEY_TASK = "task";
     public static final int TASK_IMPORT = 1;
     public static final int TASK_EXPORT = 0;
@@ -45,36 +42,17 @@ public class ExportImportService extends Service {
     public static final String BROADCAST_EVENT_COMPLETED = "com.wolandsoft.sss.IMPORT_EXPORT_COMPLETED";
     public static final String KEY_STATUS = "status";
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     * @param name Used to name the worker thread, important only for debugging.
+     */
+    public ExportImportService() {
+        super(ExportImportService.class.getSimpleName());
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            final Intent finalIntent = intent;
-            final int finalStartId = startId;
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    executeRequest(finalIntent);
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    stopSelf(finalStartId);
-                }
-            }.execute();
-        } else {
-            stopSelf(startId);
-        }
-        return START_STICKY;
-    }
-
-    private void executeRequest(Intent intent) {
+    protected void onHandleIntent(Intent intent) {
         String engine = intent.getStringExtra(KEY_ENGINE);
         int task = intent.getIntExtra(KEY_TASK, TASK_EXPORT);
         String password = intent.getStringExtra(KEY_PASSWORD);

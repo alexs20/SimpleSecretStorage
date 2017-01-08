@@ -16,17 +16,16 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/fragment_padding"
-    android:paddingEnd="@dimen/fragment_padding"
-    android:paddingStart="@dimen/fragment_padding"
-    android:paddingTop="@dimen/fragment_padding">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/fragment_padding"
+        android:paddingEnd="@dimen/fragment_padding"
+        android:paddingStart="@dimen/fragment_padding"
+        android:paddingTop="@dimen/fragment_padding">
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -96,21 +95,21 @@
 
     </LinearLayout>
 
-    <GridLayout
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:columnCount="1">
+        android:orientation="vertical">
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btnRefresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:layout_marginBottom="0dp"
             android:src="@mipmap/img24dp_refresh"
-            app:fabSize="normal"
-            android:layout_marginBottom="0dp" />
+            app:fabSize="normal" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btnApply"
@@ -120,6 +119,6 @@
             android:src="@mipmap/img24dp_ok"
             app:fabSize="normal" />
 
-    </GridLayout>
+    </LinearLayout>
 
 </RelativeLayout>
