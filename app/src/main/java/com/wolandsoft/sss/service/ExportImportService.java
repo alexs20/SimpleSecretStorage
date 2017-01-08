@@ -16,15 +16,12 @@
 package com.wolandsoft.sss.service;
 
 import android.app.Service;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
@@ -48,10 +45,6 @@ public class ExportImportService extends Service {
     public static final String BROADCAST_EVENT_COMPLETED = "com.wolandsoft.sss.IMPORT_EXPORT_COMPLETED";
     public static final String KEY_STATUS = "status";
 
-    private ServiceConnection mServiceConnection;
-    private CoreService mCoreService;
-    private Handler mHandler;
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -59,54 +52,22 @@ public class ExportImportService extends Service {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        mHandler = new Handler();
-        //prepare service connection
-        mServiceConnection = new ServiceConnection() {
-
-            public void onServiceDisconnected(ComponentName name) {
-                mCoreService = null;
-            }
-
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                CoreService.LocalBinder binder = (CoreService.LocalBinder) service;
-                mCoreService = binder.getService();
-            }
-        };
-        //start connection process
-        Intent intent = new Intent(this, CoreService.class);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             final Intent finalIntent = intent;
             final int finalStartId = startId;
-            Runnable runnable = new Runnable() {
+            new AsyncTask<Void, Void, Void>() {
                 @Override
-                public void run() {
-                    if (mCoreService == null) {
-                        LogEx.d("Rescheduling Export / Import execution");
-                        mHandler.post(this);
-                    } else {
-                        new AsyncTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
-                                executeRequest(finalIntent);
-                                return null;
-                            }
-
-                            @Override
-                            protected void onPostExecute(Void aVoid) {
-                                stopSelf(finalStartId);
-                            }
-                        }.execute();
-                    }
+                protected Void doInBackground(Void... params) {
+                    executeRequest(finalIntent);
+                    return null;
                 }
-            };
-            mHandler.post(runnable);
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    stopSelf(finalStartId);
+                }
+            }.execute();
         } else {
             stopSelf(startId);
         }
@@ -141,8 +102,7 @@ public class ExportImportService extends Service {
         IExternal iEngine = ExternalFactory.getInstance(this).getExternal(engine);
         File destination = new File(path);
         try {
-            iEngine.doExport(mCoreService.getSQLiteStorage(), mCoreService.getKeyStoreManager(),
-                    destination.toURI(), password);
+            iEngine.doExport(TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager(), destination.toURI(), password);
         } catch (ExternalException e) {
             LogEx.e(e.getMessage(), e);
             return false;
@@ -159,8 +119,7 @@ public class ExportImportService extends Service {
         IExternal iEngine = ExternalFactory.getInstance(this).getExternal(engine);
         File destination = new File(path);
         try {
-            iEngine.doImport(mCoreService.getSQLiteStorage(), mCoreService.getKeyStoreManager(), conflictRes,
-                    destination.toURI(), password);
+            iEngine.doImport(TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager(), conflictRes, destination.toURI(), password);
         } catch (ExternalException e) {
             LogEx.e(e.getMessage(), e);
             return false;
@@ -168,15 +127,5 @@ public class ExportImportService extends Service {
             LogEx.d("doImport() finished");
         }
         return true;
-    }
-
-    @Override
-    public void onDestroy() {
-        if (mCoreService != null) {
-            //close live connections to the service
-            unbindService(mServiceConnection);
-            mCoreService = null;
-        }
-        super.onDestroy();
     }
 }

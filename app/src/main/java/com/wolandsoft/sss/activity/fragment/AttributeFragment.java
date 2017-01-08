@@ -32,16 +32,16 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.service.CoreService;
+import com.wolandsoft.sss.util.LogEx;
 
 /**
  * Attribute edit fragment
  *
  * @author Alexander Shulgin
  */
-public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract,
-        CoreService.CoreServiceStateListener {
+public class AttributeFragment extends Fragment implements PwdGenFragment.OnFragmentToFragmentInteract {
     private final static String ARG_ATTR = "attr";
     private final static String ARG_ATTR_POS = "attr_pos";
 
@@ -53,10 +53,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     //model objects
     private int mAttrPos;
     private SecretEntryAttribute mAttr;
-    //model adjustment
-    private String mGeneratedPwd = null;
     //utils
-    private CoreService.CoreServiceProvider mServiceProvider;
     private OnFragmentToFragmentInteract mListener;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
@@ -74,12 +71,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof CoreService.CoreServiceProvider) {
-            mServiceProvider = (CoreService.CoreServiceProvider) context;
-        } else {
-            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
-                    context.toString(), CoreService.CoreServiceProvider.class.getName()));
-        }
+        LogEx.d("onAttach()");
         Fragment parent = getTargetFragment();
         if (parent instanceof OnFragmentToFragmentInteract) {
             mListener = (OnFragmentToFragmentInteract) parent;
@@ -93,15 +85,15 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogEx.d("onCreate()");
         Bundle args = getArguments();
         mAttr = args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
-        mServiceProvider.addCoreServiceStateListener(this);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        LogEx.d("onCreateView()");
         View view = inflater.inflate(R.layout.fragment_attr, container, false);
         mTxtKey = (TextView) view.findViewById(R.id.txtKey);
         mTxtValue = (TextView) view.findViewById(R.id.txtValue);
@@ -112,11 +104,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    CoreService service = mServiceProvider.getCoreService();
-                    if (service != null) {
-                        String plain = service.getKeyStoreManager().decrupt(mAttr.getValue());
-                        mTxtValue.setText(plain);
-                    }
+                    String plain = TheApp.getKeyStoreManager().decrupt(mAttr.getValue());
+                    mTxtValue.setText(plain);
                 }
             } else {
                 mTxtValue.setText(mAttr.getValue());
@@ -166,12 +155,10 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if (mGeneratedPwd != null) {
-            mTxtValue.setText(mGeneratedPwd);
-            mGeneratedPwd = null;
-        }
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        LogEx.d("onSaveInstanceState()");
+        //outState.putString(String.valueOf(R.id.txtKey), mTxtPwdPreview.getText().toString());
     }
 
     private void onGenerateClicked() {
@@ -184,38 +171,25 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     }
 
     private void onOkClicked() {
-        CoreService service = mServiceProvider.getCoreService();
-        if (service != null || !mChkProtected.isChecked()) {
-            View currentFocus = getActivity().getCurrentFocus();
-            if (currentFocus != null) {
-                //hide soft keyboard
-                InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-            }
-
-            String protectedStr = mTxtValue.getText().toString();
-            if (mChkProtected.isChecked()) {
-                protectedStr = service.getKeyStoreManager().encrypt(protectedStr);
-            }
-            SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
-            getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back
-            mListener.onAttributeUpdate(mAttrPos, attr);
+        View currentFocus = getActivity().getCurrentFocus();
+        if (currentFocus != null) {
+            //hide soft keyboard
+            InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
+
+        String protectedStr = mTxtValue.getText().toString();
+        if (mChkProtected.isChecked()) {
+            protectedStr = TheApp.getKeyStoreManager().encrypt(protectedStr);
+        }
+        SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
+        getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back
+        mListener.onAttributeUpdate(mAttrPos, attr);
     }
 
     @Override
     public void onPasswordGenerate(String password) {
-        mGeneratedPwd = password;
-    }
-
-    @Override
-    public void onCoreServiceReady(CoreService service) {
-        if (mAttr.isProtected()) {
-            if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                String plain = service.getKeyStoreManager().decrupt(mAttr.getValue());
-                mTxtValue.setText(plain);
-            }
-        }
+        mTxtValue.setText(password);
     }
 
     /**

@@ -32,7 +32,7 @@ import android.view.View;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
-import com.wolandsoft.sss.service.CoreService;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
@@ -109,7 +109,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     }
 
     @Override
-    public void onPinProvided(String pin, CoreService service) {
+    public void onPinProvided(String pin) {
         if (mPin == null) {
             mPin = pin;
             showPinFragment(R.string.label_repeat_new_pin);
@@ -119,7 +119,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 ksPref.edit()
                         .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, service.getKeyStoreManager().encrypt(pin))
+                        .putString(R.string.pref_pin_key, TheApp.getKeyStoreManager().encrypt(pin))
                         .apply();
                 ServiceManager.manageService(getContext(), ScreenMonitorService.class, true);
                 SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));

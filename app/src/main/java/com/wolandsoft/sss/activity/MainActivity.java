@@ -16,14 +16,9 @@
 package com.wolandsoft.sss.activity;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -45,13 +40,12 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
-import com.wolandsoft.sss.service.CoreService;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -63,40 +57,17 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        PinFragment.OnFragmentToFragmentInteract,
-        CoreService.CoreServiceProvider {
+        PinFragment.OnFragmentToFragmentInteract {
     //some shared objects
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
-
-    private ServiceConnection mServiceConnection;
-    private CoreService mCoreService;
-    private List<CoreService.CoreServiceStateListener> mServiceStateListeners = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
-        //prepare service connection
-        mServiceConnection = new ServiceConnection() {
-
-            public void onServiceDisconnected(ComponentName name) {
-                mCoreService = null;
-            }
-
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                CoreService.LocalBinder binder = (CoreService.LocalBinder) service;
-                mCoreService = binder.getService();
-                for (CoreService.CoreServiceStateListener listener : mServiceStateListeners) {
-                    listener.onCoreServiceReady(mCoreService);
-                }
-            }
-        };
-        //start connection process
-        Intent intent = new Intent(this, CoreService.class);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -245,16 +216,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onDestroy() {
-        if (mCoreService != null) {
-            //close live connections to the service
-            unbindService(mServiceConnection);
-            mCoreService = null;
-        }
-        super.onDestroy();
-    }
-
-    @Override
     public void onBackStackChanged() {
         if (LogEx.IS_DEBUG) {
             LogEx.d("onBackStackChanged()");
@@ -284,11 +245,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @SuppressLint("StringFormatInvalid")
     @Override
-    public void onPinProvided(String pin, CoreService service) {
+    public void onPinProvided(String pin) {
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
         String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-        storedPin = service.getKeyStoreManager().decrupt(storedPin);
+        storedPin = TheApp.getKeyStoreManager().decrupt(storedPin);
         mIsLocked = !pin.equals(storedPin);
         if (!mIsLocked) {
             //resetting pin response delay to zero.
@@ -313,16 +274,5 @@ public class MainActivity extends AppCompatActivity implements
         if (!mIsLocked) {
             super.onBackPressed();
         }
-    }
-
-
-    @Override
-    public void addCoreServiceStateListener(CoreService.CoreServiceStateListener listener) {
-        mServiceStateListeners.add(listener);
-    }
-
-    @Override
-    public CoreService getCoreService() {
-        return mCoreService;
     }
 }

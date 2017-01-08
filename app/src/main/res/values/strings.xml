@@ -16,7 +16,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Simple Secret Storage</string>
     <string name="screen_monitor_service_name">Screen Monitor Service</string>
-    <string name="core_service_name">Core Service</string>
     <string name="export_import_service_name">Export/Import Service</string>
 
     <!-- predefined entry fields -->

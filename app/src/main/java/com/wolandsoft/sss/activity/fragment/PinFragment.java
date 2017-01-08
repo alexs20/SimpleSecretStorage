@@ -32,14 +32,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.service.CoreService;
 
 /**
  * Pin input fragment
  *
  * @author Alexander Shulgin
  */
-public class PinFragment extends Fragment  implements CoreService.CoreServiceStateListener{
+public class PinFragment extends Fragment {
     private final static String ARG_MSG_RES_ID = "msg_res_id";
     private final static String ARG_DELAY_MSEC = "delay_msec";
     private final static String KEY_PIN = "pin";
@@ -49,7 +48,6 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
     private long mDelayMsec;
     private String mPin = "";
     private Handler mHandler;
-    private CoreService.CoreServiceProvider mServiceProvider;
     //ui elements
     private RelativeLayout mLayoutRoot;
     private RelativeLayout mLayoutWait;
@@ -98,12 +96,6 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
                         )
                 );
             }
-        }
-        if (context instanceof CoreService.CoreServiceProvider) {
-            mServiceProvider = (CoreService.CoreServiceProvider) context;
-        } else {
-            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
-                    context.toString(), CoreService.CoreServiceProvider.class.getName()));
         }
     }
 
@@ -173,11 +165,6 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
         if (actionBar != null)
             actionBar.setTitle(R.string.title_master_pin);
 
-        mServiceProvider.addCoreServiceStateListener(this);
-        if(mServiceProvider.getCoreService() == null) {
-            mLayoutRoot.setVisibility(View.GONE);
-        }
-
         return view;
     }
 
@@ -209,7 +196,7 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
         updatePinUI();
         if (mPin.length() > 3) {
             final FragmentManager fragmentManager = getFragmentManager();
-            if(mDelayMsec > 0) {
+            if (mDelayMsec > 0) {
                 mBtnClear.setEnabled(false);
                 mBtnDelete.setEnabled(false);
                 for (ImageButton btn : mBtnDigit) {
@@ -220,12 +207,12 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
                     @Override
                     public void run() {
                         fragmentManager.popBackStackImmediate();
-                        mListener.onPinProvided(mPin, mServiceProvider.getCoreService());
+                        mListener.onPinProvided(mPin);
                     }
                 }, mDelayMsec);
             } else {
                 fragmentManager.popBackStackImmediate();
-                mListener.onPinProvided(mPin, mServiceProvider.getCoreService());
+                mListener.onPinProvided(mPin);
             }
         }
     }
@@ -236,11 +223,6 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
         outState.putString(KEY_PIN, mPin);
     }
 
-    @Override
-    public void onCoreServiceReady(CoreService service) {
-        mLayoutRoot.setVisibility(View.VISIBLE);
-    }
-
     /**
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
@@ -249,8 +231,7 @@ public class PinFragment extends Fragment  implements CoreService.CoreServiceSta
          * Triggered when user complete entering 4 digits pin.
          *
          * @param pin pin number
-         * @param service instance of {@link CoreService}, newer {@code null}
          */
-        void onPinProvided(String pin, CoreService service);
+        void onPinProvided(String pin);
     }
 }
