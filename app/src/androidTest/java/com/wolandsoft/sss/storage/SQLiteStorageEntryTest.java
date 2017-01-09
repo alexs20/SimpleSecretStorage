@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.storage;
 
 import android.content.Context;
@@ -41,55 +41,55 @@ import static junit.framework.Assert.assertTrue;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SQLiteStorageEntryTest {
 
-    private SQLiteStorage storage;
-    private SecretEntry entry;
+    private SQLiteStorage mStorage;
+    private SecretEntry mEntry;
 
     @Before
     public void setupDB() throws Exception {
-        entry = new SecretEntry();
-        entry.add(new SecretEntryAttribute("Name", "Test1", false));
-        entry.add(new SecretEntryAttribute("URL", "http://test.example.com", false));
-        entry.add(new SecretEntryAttribute("Password", "12345", true));
+        mEntry = new SecretEntry();
+        mEntry.add(new SecretEntryAttribute("Name", "Test1", false));
+        mEntry.add(new SecretEntryAttribute("URL", "http://test.example.com", false));
+        mEntry.add(new SecretEntryAttribute("Password", "12345", true));
 
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        storage = new SQLiteStorage(context);
+        mStorage = new SQLiteStorage(context);
     }
 
     @After
     public void cleanDB() throws Exception {
-        storage.close();
+        mStorage.close();
     }
 
     @Test
-    public void test_s0_get_null() {
-        SecretEntry se = storage.get(1);
+    public void test_00_get_null() {
+        SecretEntry se = mStorage.get(1);
         assertNull(se);
     }
 
     @Test
-    public void test_s0_put() {
-        SecretEntry se = storage.put(entry);
+    public void test_00_put() {
+        SecretEntry se = mStorage.put(mEntry);
         assertNotNull(se);
         assertTrue(se.getID() > 0);
         assertTrue(se.getCreated() > 0);
         assertTrue(se.getUpdated() > 0);
-        assertEquals(entry.size(), se.size());
+        assertEquals(mEntry.size(), se.size());
     }
 
     @Test
-    public void test_s1_put_and_get() {
-        SecretEntry out = storage.put(entry);
+    public void test_01_put_and_get() {
+        SecretEntry out = mStorage.put(mEntry);
         assertNotNull(out);
-        SecretEntry se = storage.get(out.getID());
-        assertNotNull(se);
-        assertEquals(out.getID(), se.getID());
-        assertEquals(out.getCreated(), se.getCreated());
-        assertEquals(out.getUpdated(), se.getUpdated());
-        assertEquals(entry.size(), se.size());
-        for (int i = 0; i < entry.size(); i++) {
-            SecretEntryAttribute inSeAttr = entry.get(i);
-            SecretEntryAttribute outSeAttr = se.get(i);
+        SecretEntry entry = mStorage.get(out.getID());
+        assertNotNull(entry);
+        assertEquals(out.getID(), entry.getID());
+        assertEquals(out.getCreated(), entry.getCreated());
+        assertEquals(out.getUpdated(), entry.getUpdated());
+        assertEquals(mEntry.size(), entry.size());
+        for (int i = 0; i < mEntry.size(); i++) {
+            SecretEntryAttribute inSeAttr = mEntry.get(i);
+            SecretEntryAttribute outSeAttr = entry.get(i);
             assertEquals(inSeAttr.getKey(), outSeAttr.getKey());
             assertEquals(inSeAttr.getValue(), outSeAttr.getValue());
             assertEquals(inSeAttr.isProtected(), outSeAttr.isProtected());
@@ -97,23 +97,22 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s2_put_update_and_get() {
-        SecretEntry out = storage.put(entry);
+    public void test_02_put_update_and_get() {
+        SecretEntry out = mStorage.put(mEntry);
         assertNotNull(out);
-        for (int i = 0; i < entry.size(); i++) {
+        for (int i = 0; i < out.size(); i++) {
             SecretEntryAttribute inSeAttr = out.get(i);
             inSeAttr.setValue(inSeAttr.getValue() + "_changed");
-            inSeAttr.setProtected(false);
         }
-        SecretEntry se = storage.put(out);
-        assertNotNull(se);
-        se = storage.get(out.getID());
-        assertNotNull(se);
-        assertEquals(out.getID(), se.getID());
-        assertEquals(out.size(), se.size());
-        for (int i = 0; i < entry.size(); i++) {
-            SecretEntryAttribute inSeAttr = entry.get(i);
-            SecretEntryAttribute outSeAttr = se.get(i);
+        SecretEntry entry1 = mStorage.put(out);
+        assertNotNull(entry1);
+        SecretEntry entry2 = mStorage.get(entry1.getID());
+        assertNotNull(entry1);
+        assertEquals(entry1.getID(), entry2.getID());
+        assertEquals(entry1.size(), entry2.size());
+        for (int i = 0; i < entry1.size(); i++) {
+            SecretEntryAttribute inSeAttr = entry1.get(i);
+            SecretEntryAttribute outSeAttr = entry2.get(i);
             assertEquals(inSeAttr.getKey(), outSeAttr.getKey());
             assertEquals(inSeAttr.getValue(), outSeAttr.getValue());
             assertEquals(inSeAttr.isProtected(), outSeAttr.isProtected());
@@ -121,11 +120,11 @@ public class SQLiteStorageEntryTest {
     }
 
     @Test
-    public void test_s3_delete() {
-        SecretEntry out = storage.put(entry);
+    public void test_03_delete() {
+        SecretEntry out = mStorage.put(mEntry);
         assertNotNull(out);
-        storage.delete(out.getID());
-        out = storage.get(out.getID());
+        mStorage.delete(out.getID());
+        out = mStorage.get(out.getID());
         assertNull(out);
     }
 }

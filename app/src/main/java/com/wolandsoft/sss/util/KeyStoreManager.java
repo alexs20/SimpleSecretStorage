@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.util;
 
 import android.annotation.SuppressLint;
@@ -21,6 +21,7 @@ import android.content.ContextWrapper;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.support.annotation.VisibleForTesting;
 import android.util.Base64;
 
 import java.math.BigInteger;
@@ -49,10 +50,21 @@ public class KeyStoreManager extends ContextWrapper {
     private Cipher encryptCipher;
     private Cipher decryptCipher;
 
+    /**
+     * Initialize keystore manager using predefined {@value #KEY_ALIAS} alias.
+     *
+     * @param base an application context.
+     */
     public KeyStoreManager(Context base) {
         this(base, KEY_ALIAS);
     }
 
+    /**
+     * Initialize keystore manager.
+     *
+     * @param base     An application context.
+     * @param keyAlias a key alias.
+     */
     @SuppressLint("GetInstance")
     public KeyStoreManager(Context base, String keyAlias) {
         super(base);
@@ -105,6 +117,12 @@ public class KeyStoreManager extends ContextWrapper {
         }
     }
 
+    /**
+     * Cipher value using public key stored in keystore.
+     *
+     * @param value value to encrypt.
+     * @return encrypted value in Base64 format.
+     */
     public String encrypt(String value) {
         try {
             byte[] encoded = encryptCipher.doFinal(value.getBytes());
@@ -114,6 +132,12 @@ public class KeyStoreManager extends ContextWrapper {
         }
     }
 
+    /**
+     * Decipher value using private key stored in keystore.
+     *
+     * @param value encrypted value in Base64 format.
+     * @return deciphered vale.
+     */
     public String decrupt(String value) {
         try {
             byte[] decoded = decryptCipher.doFinal(Base64.decode(value, Base64.DEFAULT));
@@ -123,6 +147,11 @@ public class KeyStoreManager extends ContextWrapper {
         }
     }
 
+    /**
+     * Delete generated key rfom keystore.<br/>
+     * Only for testing.
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     public void deleteKey() {
         try {
             keystore.deleteEntry(alias);

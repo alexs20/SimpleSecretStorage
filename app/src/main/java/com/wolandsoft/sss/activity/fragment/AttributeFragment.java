@@ -17,8 +17,10 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -29,12 +31,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.util.LogEx;
 
 /**
  * Attribute edit fragment
@@ -46,17 +47,15 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private final static String ARG_ATTR_POS = "attr_pos";
 
     //ui elements
-    private TextView mTxtKey;
-    private TextView mTxtValue;
+    private TextInputEditText mTxtKey;
+    private TextInputEditText mTxtValue;
     private SwitchCompat mChkProtected;
     private FloatingActionButton mBtnGenerate;
     //model objects
     private int mAttrPos;
     private SecretEntryAttribute mAttr;
-    //model adjustment
-    private String mGeneratedPwd = null;
     //utils
-    private KeyStoreManager mKsMgr;
+    private OnFragmentToFragmentInteract mListener;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
         AttributeFragment fragment = new AttributeFragment();
@@ -73,27 +72,32 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
-        Bundle args = getArguments();
-        mAttr = args.getParcelable(ARG_ATTR);
-        mAttrPos = args.getInt(ARG_ATTR_POS);
-
-        if (context instanceof ISharedObjects) {
-            mKsMgr = ((ISharedObjects) context).getKeyStoreManager();
+        LogEx.d("onAttach()");
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            mListener = (OnFragmentToFragmentInteract) parent;
         } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
+            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
+                    parent.toString(), OnFragmentToFragmentInteract.class.getName())
+            );
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LogEx.d("onCreate()");
+        Bundle args = getArguments();
+        mAttr = args.getParcelable(ARG_ATTR);
+        mAttrPos = args.getInt(ARG_ATTR_POS);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        LogEx.d("onCreateView()");
         View view = inflater.inflate(R.layout.fragment_attr, container, false);
-        mTxtKey = (TextView) view.findViewById(R.id.txtKey);
-        mTxtValue = (TextView) view.findViewById(R.id.txtValue);
+        mTxtKey = (TextInputEditText) view.findViewById(R.id.txtKey);
+        mTxtValue = (TextInputEditText) view.findViewById(R.id.txtValue);
         mChkProtected = (SwitchCompat) view.findViewById(R.id.chkProtected);
         mBtnGenerate = (FloatingActionButton) view.findViewById(R.id.btnGenerate);
 
@@ -101,7 +105,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    String plain = mKsMgr.decrupt(mAttr.getValue());
+                    String plain = TheApp.getKeyStoreManager().decrupt(mAttr.getValue());
                     mTxtValue.setText(plain);
                 }
             } else {
@@ -152,12 +156,27 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if (mGeneratedPwd != null) {
-            mTxtValue.setText(mGeneratedPwd);
-            mGeneratedPwd = null;
-        }
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final Handler handler = new Handler();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                TextInputEditText lastView;
+                if (mTxtKey.getText().length() == 0) {
+                    mTxtKey.setFocusableInTouchMode(true);
+                    mTxtKey.requestFocus();
+                    lastView = mTxtKey;
+                } else {
+                    mTxtValue.setFocusableInTouchMode(true);
+                    mTxtValue.requestFocus();
+                    lastView = mTxtValue;
+                }
+                lastView.setSelection(lastView.getText().length());
+                InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                mgr.showSoftInput(lastView, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
     }
 
     private void onGenerateClicked() {
@@ -179,27 +198,16 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
-            protectedStr = mKsMgr.encrypt(protectedStr);
+            protectedStr = TheApp.getKeyStoreManager().encrypt(protectedStr);
         }
         SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
-        Fragment parent = getTargetFragment();
-        if (parent instanceof OnFragmentToFragmentInteract) {
-            ((OnFragmentToFragmentInteract) parent).onAttributeUpdate(mAttrPos, attr);
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            parent.toString(),
-                            OnFragmentToFragmentInteract.class.getName()
-                    )
-            );
-        }
-        getFragmentManager().popBackStack();
+        getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back
+        mListener.onAttributeUpdate(mAttrPos, attr);
     }
 
     @Override
     public void onPasswordGenerate(String password) {
-        mGeneratedPwd = password;
+        mTxtValue.setText(password);
     }
 
     /**

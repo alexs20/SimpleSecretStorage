@@ -48,8 +48,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.storage.SQLiteStorage;
@@ -70,11 +70,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private static final int DELETE_ATTRIBUTE_CONFIRMATION_DIALOG = 1;
 
     private final static String ARG_POSITION = "position";
-    private OnFragmentToFragmentInteract mListener;
-    private ISharedObjects mHost;
     private RVAdapter mRVAdapter;
     private View mView;
     private boolean mIsShowPwd = false;
+    private KeySharedPreferences mKsPref;
 
     public static EntryFragment newInstance(int entryId) {
         EntryFragment fragment = new EntryFragment();
@@ -87,26 +86,12 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ISharedObjects) {
-            mHost = (ISharedObjects) context;
-        } else {
-            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
-                    context.toString(), ISharedObjects.class.getName()));
-        }
+        //
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fragment parent = getTargetFragment();
-        if (parent instanceof OnFragmentToFragmentInteract) {
-            mListener = (OnFragmentToFragmentInteract) parent;
-        } else {
-            throw new ClassCastException(
-                    String.format(getString(R.string.internal_exception_must_implement),
-                            parent.toString(), OnFragmentToFragmentInteract.class.getName()));
-        }
-
         Bundle args = getArguments();
         int entryId = args.getInt(ARG_ITEM_ID);
 
@@ -130,25 +115,22 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             public void onEntryAttributeCopy(SecretEntryAttribute attr) {
                 EntryFragment.this.onEntryAttributeCopy(attr);
             }
+        }, entryId, TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager());
 
-            @Override
-            public void onEntryUpdated(SecretEntry entry) {
-                mListener.onEntryUpdate(entry);
-            }
-        }, entryId, mHost.getKeyStoreManager(), mHost.getSQLiteStorage());
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mKsPref = new KeySharedPreferences(shPref, getContext());
 
         if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.mnuShowPwd));
         } else {
-            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-            mIsShowPwd = ksPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
+            mIsShowPwd = mKsPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
                     R.bool.pref_protected_field_default_visibility_value);
         }
         mRVAdapter.setProtectedVisible(mIsShowPwd);
 
         //enabling actionbar icons
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -160,6 +142,19 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         rView.setHasFixedSize(true);
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRVAdapter);
+        mRVAdapter.updateModel();
+        if (savedInstanceState == null) { // means first time
+            boolean isAutoCopy = mKsPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value);
+            if (isAutoCopy) {
+                SecretEntry entry = mRVAdapter.getEntry();
+                for (SecretEntryAttribute attr : entry) {
+                    if (attr.isProtected()) {
+                        onEntryAttributeCopy(attr);
+                        break;
+                    }
+                }
+            }
+        }
 
         FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -262,16 +257,18 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     }
 
     private void onEntryAttributeCopy(SecretEntryAttribute attr) {
-        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         String text = attr.getValue();
         if (attr.isProtected()) {
             if (attr.getValue() != null && attr.getValue().length() > 0) {
-                text = mHost.getKeyStoreManager().decrupt(attr.getValue());
+                text = TheApp.getKeyStoreManager().decrupt(attr.getValue());
             }
         }
-        ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-        clipboard.setPrimaryClip(clip);
-        Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
+        if (text.length() > 0) {
+            ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -298,26 +295,19 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
-     */
-    interface OnFragmentToFragmentInteract {
-        void onEntryUpdate(SecretEntry entry);
-    }
-
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private final OnRVAdapterActionListener mOnActionListener;
-        private final KeyStoreManager mKs;
-        private final SQLiteStorage mDb;
-        private final SecretEntry mEntry;
+        private KeyStoreManager mKs;
+        private SQLiteStorage mDb;
+        private SecretEntry mEntry;
         private boolean mIsProtectedVisible = false;
 
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
-                  KeyStoreManager ks, SQLiteStorage db) {
+                  SQLiteStorage db, KeyStoreManager ks) {
             mOnActionListener = listener;
-            mKs = ks;
             mDb = db;
-            mEntry = db.get(itemId);
+            mKs = ks;
+            mEntry = new SecretEntry(itemId, 0, 0);
         }
 
         public boolean onItemReorder(int fromPosition, int toPosition) {
@@ -424,7 +414,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
         void updateEntryInDb() {
             mDb.put(mEntry);
-            mOnActionListener.onEntryUpdated(mEntry);
         }
 
         void deleteItem(int idx) {
@@ -442,6 +431,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 notifyItemInserted(idx);
             }
             updateEntryInDb();
+        }
+
+        void updateModel() {
+            if (mDb != null && mKs != null) {
+                mEntry = mDb.get(mEntry.getID());
+                notifyDataSetChanged();
+            }
         }
 
         void setProtectedVisible(boolean isProtectedVisible) {
@@ -488,8 +484,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             void onEntryAttributeNavigate(SecretEntryAttribute attr);
 
             void onEntryAttributeCopy(SecretEntryAttribute attr);
-
-            void onEntryUpdated(SecretEntry entry);
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

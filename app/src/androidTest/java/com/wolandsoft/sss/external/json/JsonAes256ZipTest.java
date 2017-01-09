@@ -103,7 +103,7 @@ public class JsonAes256ZipTest {
         external.doExport(storage, keystore, location.toURI(), FILE_PASSWORD);
         assertTrue(location.exists());
 
-        List<Integer> entries = storage.find(null, true);
+        List<Integer> entries = storage.find(null);
         assertEquals(ENTRIES_COUNT, entries.size());
         SecretEntry se = storage.get(entries.get(0));
         assertNotNull(se);
@@ -112,7 +112,7 @@ public class JsonAes256ZipTest {
         storage.put(se);
 
         external.doImport(storage, keystore, IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
-        entries = storage.find(null, true);
+        entries = storage.find(null);
         assertEquals(ENTRIES_COUNT, entries.size());
 
         se = storage.get(entries.get(0));
@@ -127,7 +127,7 @@ public class JsonAes256ZipTest {
         storage.put(se);
 
         external.doImport(storage, keystore, IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
-        entries = storage.find(null, true);
+        entries = storage.find(null);
         assertEquals(ENTRIES_COUNT, entries.size());
 
         se = storage.get(entries.get(0));

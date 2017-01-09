@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.LruCache;
 
 import com.wolandsoft.sss.R;
@@ -31,40 +32,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Sqlite database implementation of secret entry storage.
+ * SQLite database implementation that stores {@link SecretEntry} objects.
  *
  * @author Alexander Shulgin
  */
 public class SQLiteStorage extends ContextWrapper implements Closeable {
-    private DatabaseHelper dbHelper;
-    private LruCache<Integer, SecretEntry> mCache;
+    private final DatabaseHelper mDBHelper;
+    private final LruCache<Integer, SecretEntry> mCache;
 
+    /**
+     * Initialize database and cache.<br/>
+     * The cache size determined by {@link R.integer#pref_db_cache_size pref_db_cache_size} property parameter.
+     *
+     * @param base An application context.
+     */
     public SQLiteStorage(Context base) {
         super(base);
         LogEx.d("SQLiteStorage() ", this);
-        dbHelper = new DatabaseHelper(this);
+        mDBHelper = new DatabaseHelper(this);
         int cacheSize = getResources().getInteger(R.integer.pref_db_cache_size);
         mCache = new LruCache<>(cacheSize);
     }
 
+    /**
+     * Preparing this object for disposal.<br/>
+     * Once closed this object can not be reused.
+     */
     @Override
-    public synchronized void close() {
+    public void close() {
         LogEx.d("close() ", this);
-        if (dbHelper != null) {
-            dbHelper.close();
-            dbHelper = null;
+        if (mDBHelper != null) {
+            mDBHelper.close();
         }
         if (mCache != null) {
-            mCache = null;
+            mCache.evictAll();
         }
     }
 
-    public synchronized List<Integer> find(String criteria, @SuppressWarnings("SameParameterValue") boolean isASC) {
-        LogEx.d("find( ", criteria, ", ", isASC, " )");
-        if (dbHelper == null) {
-            return new ArrayList<>();
-        }
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+    /**
+     * Fet list of {@link SecretEntry} IDs that matches to the search criteria.
+     * If search criteria is {@code null} then ID's of all elements returned.
+     *
+     * @param criteria A search criteria or {@code null}.
+     * @return List of {@link SecretEntry} IDs.
+     */
+    public List<Integer> find(@Nullable String criteria) {
+        LogEx.d("find( ", criteria, " )");
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         String[] keywords = null;
         if (criteria != null) {
             keywords = criteria.split("\\s");
@@ -93,7 +107,7 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             sb.append("))");
         }
         sb.append(" WHERE R.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0");
-        sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE).append(isASC ? " ASC" : " DESC");
+        sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE);
         Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]));
         ArrayList<Integer> result = new ArrayList<>();
         result.ensureCapacity(cursor.getCount());
@@ -106,10 +120,10 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     /**
-     * Get {@link SecretEntry} by ID.</br>
+     * Get {@link SecretEntry} by ID.
      *
-     * @param id Entry id.
-     * @return instance of {@link SecretEntry} or {@code null}
+     * @param id ID of {@link SecretEntry}.
+     * @return instance of {@link SecretEntry} or {@code null} if not found.
      */
     public SecretEntry get(int id) {
         LogEx.d("get( ", id, " )");
@@ -125,15 +139,20 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     private SecretEntry getFromDb(int id) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         SecretEntry entry = readEntry(id, db);
         db.close();
         return entry;
     }
 
+    /**
+     * Delte {@link SecretEntry} by ID.
+     *
+     * @param id ID of {@link SecretEntry}.
+     */
     public void delete(int id) {
         LogEx.d("delete( ", id, " )");
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             StringBuilder sb = new StringBuilder();
             db.beginTransaction();
@@ -155,17 +174,17 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     /**
-     * Store entry in db.
+     * Store the {@link SecretEntry}.
      *
-     * @param entry entry object to store
+     * @param entry {@link SecretEntry} object to store.
      * @return updated entry where {@link SecretEntry#getID()} and {@link SecretEntry#getCreated()}
-     * values are assigned for new entries and {@link SecretEntry#getUpdated()} value updated.
+     * values are assigned for the new entries and {@link SecretEntry#getUpdated()} value updated for the others.
      */
     public SecretEntry put(SecretEntry entry) {
         LogEx.d("put( ", entry, " )");
         SecretEntry result = null;
         int id = entry.getID();
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             StringBuilder sb = new StringBuilder();
             long updated = System.currentTimeMillis();
@@ -230,7 +249,6 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
             db.endTransaction();
         }
         db.close();
-
         return result;
     }
 

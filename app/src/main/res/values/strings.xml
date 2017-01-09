@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Simple Secret Storage</string>
     <string name="screen_monitor_service_name">Screen Monitor Service</string>
+    <string name="export_import_service_name">Export/Import Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
     <string name="enum_URL">URL</string>
     <string name="enum_USER">User</string>
     <string name="enum_PASSWORD">Password</string>
+    <string name="enum_val_URL">http://</string>
 
     <string name="exception_no_storage_permission">No storage permission granted</string>
     <string name="exception_no_file_found">File not found %1$s</string>
@@ -79,7 +81,8 @@
     <string name="label_enter_new_pin">Enter New Pin</string>
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
-    <string name="label_protected_field_visible">Expose Protected Fields</string>
+    <string name="label_protected_field_visible">Expose Protected</string>
+    <string name="label_auto_copy_protected_field">Auto-copy Protected</string>
     <string name="label_clear">Clear</string>
     <string name="label_navigate">Navigate</string>
     <string name="label_copied">Copied</string>
@@ -105,5 +108,6 @@
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
     <string name="message_entry_confirmation">You are going to delete the swiped Secret Entry. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
+    <string name="message_auto_copy_protected_field">Copy first protected field into memory on open.</string>
 
 </resources>

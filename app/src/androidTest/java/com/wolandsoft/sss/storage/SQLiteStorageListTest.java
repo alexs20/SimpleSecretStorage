@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.storage;
 
 import android.content.Context;
@@ -44,11 +44,14 @@ public class SQLiteStorageListTest {
     private static final String KEY_NAME = "Name";
     private static final String KEY_URL = "URL";
     private static final String KEY_PASSWORD = "Password";
-    private static final String TEMPLATE_NAME = "thename%1$s";
-    private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
-    private static final String TEMPLATE_PASSWORD = "123456789%1$s";
-    private static final int ENTRIES_COUNT = 100;
-    private static SQLiteStorage storage;
+    private static final String TEMPLATE_NAME = "#%1$s_%2$s#";
+    private static final String TEMPLATE_URL = "http://www.%1$s%2$s.com/test";
+    private static final String TEMPLATE_PASSWORD = "%1$s123456789%2$s";
+    private static final int ENTRIES_ABC_COUNT = 50;
+    private static final int ENTRIES_XYZ_COUNT = 50;
+    private static final String VAR_ABC = "abc";
+    private static final String VAR_XYZ = "xyz";
+    private static SQLiteStorage mStorage;
 
     @BeforeClass
     public static void setupDB() throws Exception {
@@ -57,62 +60,77 @@ public class SQLiteStorageListTest {
         //security keystore initialization
         KeyStoreManager keystore = new KeyStoreManager(context);
         //db initialization
-        storage = new SQLiteStorage(context);
-        for (int i = 0; i < ENTRIES_COUNT; i++) {
+        mStorage = new SQLiteStorage(context);
+        for (int i = 0; i < ENTRIES_ABC_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
-            entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
-            entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i));
+            entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_ABC), false));
+            entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_ABC), false));
+            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
-            storage.put(entry);
+            mStorage.put(entry);
+        }
+        for (int i = 0; i < ENTRIES_XYZ_COUNT; i++) {
+            SecretEntry entry = new SecretEntry();
+            entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_XYZ), false));
+            entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_XYZ), false));
+            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
+            entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
+            mStorage.put(entry);
         }
     }
 
     @AfterClass
     public static void cleanDB() throws Exception {
-        storage.close();
+        mStorage.close();
     }
 
     @Test
-    public void test_s0_get_id_all() {
-        List<Integer> seIds = storage.find(null, true);
+    public void test_00_get_id_all() {
+        List<Integer> seIds = mStorage.find(null);
         assertNotNull(seIds);
-        assertEquals(ENTRIES_COUNT, seIds.size());
+        assertEquals(ENTRIES_ABC_COUNT + ENTRIES_XYZ_COUNT, seIds.size());
     }
 
     @Test
-    public void test_s1_get_id_by_name() {
-        String name = String.format(TEMPLATE_NAME, 0);
-        List<Integer> seIds = storage.find(name, true);
-        assertNotNull(seIds);
-        assertEquals(1, seIds.size());
-
-        SecretEntry se = storage.get(seIds.get(0));
-        assertNotNull(se);
-        assertEquals(3, se.size());
-        assertEquals(KEY_NAME, se.get(0).getKey());
-        assertEquals(name, se.get(0).getValue());
-    }
-
-    @Test
-    public void test_s1_get_id_by_url() {
-        String name = String.format(TEMPLATE_URL, 0);
-        List<Integer> seIds = storage.find(name, true);
+    public void test_01_get_id_by_name() {
+        String name = String.format(TEMPLATE_NAME, 0, VAR_ABC);
+        List<Integer> seIds = mStorage.find(name);
         assertNotNull(seIds);
         assertEquals(1, seIds.size());
 
-        SecretEntry se = storage.get(seIds.get(0));
+        SecretEntry se = mStorage.get(seIds.get(0));
         assertNotNull(se);
         assertEquals(3, se.size());
-        assertEquals(KEY_URL, se.get(1).getKey());
-        assertEquals(name, se.get(1).getValue());
+        for (int i = 0; i < se.size(); i++) {
+            if (KEY_NAME.equals(se.get(0).getKey())) {
+                assertEquals(name, se.get(0).getValue());
+                break;
+            }
+        }
     }
 
     @Test
-    public void test_s1_get_id_by_name_many() {
-        String name = String.format(TEMPLATE_NAME, 7);
-        List<Integer> seIds = storage.find(name, true);
+    public void test_01_get_id_by_url() {
+        String name = String.format(TEMPLATE_URL, 0, VAR_ABC);
+        List<Integer> seIds = mStorage.find(name);
         assertNotNull(seIds);
-        assertEquals(11, seIds.size());
+        assertEquals(1, seIds.size());
+
+        SecretEntry se = mStorage.get(seIds.get(0));
+        assertNotNull(se);
+        assertEquals(3, se.size());
+        for (int i = 0; i < se.size(); i++) {
+            if (KEY_URL.equals(se.get(0).getKey())) {
+                assertEquals(name, se.get(0).getValue());
+                break;
+            }
+        }
+    }
+
+    @Test
+    public void test_02_get_id_by_name_many() {
+        List<Integer> seIds = mStorage.find(VAR_ABC);
+        assertNotNull(seIds);
+        assertEquals(ENTRIES_ABC_COUNT, seIds.size());
     }
 }

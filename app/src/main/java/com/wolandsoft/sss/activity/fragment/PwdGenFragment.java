@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -50,10 +51,23 @@ public class PwdGenFragment extends Fragment {
     private TextView mTxtPwdPreview;
     private KeySharedPreferences mPref;
     private Random mRandom;
+    private OnFragmentToFragmentInteract mListener;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        Fragment parent = getTargetFragment();
+        if (parent instanceof OnFragmentToFragmentInteract) {
+            mListener = (OnFragmentToFragmentInteract) parent;
+        } else {
+            throw new ClassCastException(String.format(
+                    getString(R.string.internal_exception_must_implement), parent.toString(), OnFragmentToFragmentInteract.class.getName()));
+        }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         mRandom = new Random();
     }
 
@@ -175,19 +189,8 @@ public class PwdGenFragment extends Fragment {
         editor.putInt(R.string.pref_pwdgen_special_chars_key, Integer.parseInt(mEdtSpChars.getText().toString()));
         editor.apply();
 
-        Fragment parent = getTargetFragment();
-        if (parent instanceof OnFragmentToFragmentInteract) {
-            ((OnFragmentToFragmentInteract) parent).onPasswordGenerate(mTxtPwdPreview.getText().toString());
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            parent.toString(),
-                            OnFragmentToFragmentInteract.class.getName()
-                    )
-            );
-        }
-        getFragmentManager().popBackStack();
+        getFragmentManager().popBackStackImmediate();//complete the pop in order to restore the parent fragment as we are going to call it back
+        mListener.onPasswordGenerate(mTxtPwdPreview.getText().toString());
     }
 
     @Override

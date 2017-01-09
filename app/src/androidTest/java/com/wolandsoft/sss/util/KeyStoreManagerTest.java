@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.util;
 
 import android.content.Context;
@@ -52,7 +52,8 @@ public class KeyStoreManagerTest {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"12345"}, {"98765"}
+                {"12345"}, {"98765"}, {"1234567890"}, {"qwertyuiop1234567890"},
+                {"1q2w3e4r5t6y7u8i9o0pazsxdcfvgbhnjmk,l.;/[']\\=-"}
         });
     }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,12 +12,13 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
@@ -43,7 +44,12 @@ public class PinFragment extends Fragment {
     private final static String KEY_PIN = "pin";
 
     private OnFragmentToFragmentInteract mListener = null;
+    private int mMsgResId;
+    private long mDelayMsec;
+    private String mPin = "";
+    private Handler mHandler;
     //ui elements
+    private RelativeLayout mLayoutRoot;
     private RelativeLayout mLayoutWait;
     private ImageView mImgPin1;
     private ImageView mImgPin2;
@@ -52,10 +58,6 @@ public class PinFragment extends Fragment {
     private ImageButton mBtnClear;
     private ImageButton mBtnDelete;
     private ImageButton[] mBtnDigit;
-    private int mMsgResId;
-    private long mDelayMsec;
-    private String mPin = "";
-    private Handler mHandler;
 
     public static PinFragment newInstance(int msgResId, long delayMsec) {
         PinFragment fragment = new PinFragment();
@@ -69,10 +71,6 @@ public class PinFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mHandler = new Handler();
-        Bundle args = getArguments();
-        mMsgResId = args.getInt(ARG_MSG_RES_ID);
-        mDelayMsec = args.getLong(ARG_DELAY_MSEC);
         Fragment parent = getTargetFragment();
         if (parent != null) { //first try to use target fragment as a callback
             if (parent instanceof OnFragmentToFragmentInteract) {
@@ -86,7 +84,7 @@ public class PinFragment extends Fragment {
                         )
                 );
             }
-        } else { //otherwise use activity
+        } else { //otherwise use an activity
             if (context instanceof OnFragmentToFragmentInteract) {
                 mListener = (OnFragmentToFragmentInteract) context;
             } else {
@@ -102,9 +100,18 @@ public class PinFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mHandler = new Handler();
+        Bundle args = getArguments();
+        mMsgResId = args.getInt(ARG_MSG_RES_ID);
+        mDelayMsec = args.getLong(ARG_DELAY_MSEC);
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_pin, container, false);
+        mLayoutRoot = (RelativeLayout) view.findViewById(R.id.layoutRoot);
         mLayoutWait = (RelativeLayout) view.findViewById(R.id.layoutWait);
         mImgPin1 = (ImageView) view.findViewById(R.id.imgPin1);
         mImgPin2 = (ImageView) view.findViewById(R.id.imgPin2);
@@ -157,6 +164,7 @@ public class PinFragment extends Fragment {
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null)
             actionBar.setTitle(R.string.title_master_pin);
+
         return view;
     }
 
@@ -187,20 +195,25 @@ public class PinFragment extends Fragment {
         mPin = mPin + digit;
         updatePinUI();
         if (mPin.length() > 3) {
-            mBtnClear.setEnabled(false);
-            mBtnDelete.setEnabled(false);
-            for (ImageButton btn : mBtnDigit) {
-                btn.setEnabled(false);
-            }
-            mLayoutWait.setVisibility(View.VISIBLE);
-            final FragmentManager fMgr = getFragmentManager();
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    fMgr.popBackStackImmediate();
-                    mListener.onPinProvided(mPin);
+            final FragmentManager fragmentManager = getFragmentManager();
+            if (mDelayMsec > 0) {
+                mBtnClear.setEnabled(false);
+                mBtnDelete.setEnabled(false);
+                for (ImageButton btn : mBtnDigit) {
+                    btn.setEnabled(false);
                 }
-            }, mDelayMsec);
+                mLayoutWait.setVisibility(View.VISIBLE);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        fragmentManager.popBackStackImmediate();
+                        mListener.onPinProvided(mPin);
+                    }
+                }, mDelayMsec);
+            } else {
+                fragmentManager.popBackStackImmediate();
+                mListener.onPinProvided(mPin);
+            }
         }
     }
 
@@ -214,6 +227,11 @@ public class PinFragment extends Fragment {
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
     public interface OnFragmentToFragmentInteract {
+        /**
+         * Triggered when user complete entering 4 digits pin.
+         *
+         * @param pin pin number
+         */
         void onPinProvided(String pin);
     }
 }

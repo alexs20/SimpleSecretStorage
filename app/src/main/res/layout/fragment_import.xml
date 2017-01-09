@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,11 +17,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/fragment_padding"
-    android:paddingEnd="@dimen/fragment_padding"
-    android:paddingStart="@dimen/fragment_padding"
-    android:paddingTop="@dimen/fragment_padding">
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:id="@+id/layoutForm"
@@ -32,7 +28,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/fragment_padding"
+            android:paddingEnd="@dimen/fragment_padding"
+            android:paddingStart="@dimen/fragment_padding"
+            android:paddingTop="@dimen/fragment_padding">
 
             <TextView
                 android:id="@+id/txtExtEngineLabel"
@@ -99,13 +99,13 @@
 
             <Button
                 android:id="@+id/btnSelectSource"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="start"
                 android:singleLine="true"
                 android:text="@string/label_select_source"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                style="@style/Widget.AppCompat.Button.Colored"
                 tools:ignore="Deprecated" />
 
         </LinearLayout>
@@ -144,11 +144,11 @@
 
             <Button
                 android:id="@+id/btnPermissions"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="21dp"
-                android:text="@string/label_request_permissions"
-                style="@style/Widget.AppCompat.Button.Colored" />
+                android:text="@string/label_request_permissions" />
         </LinearLayout>
 
     </RelativeLayout>

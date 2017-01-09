@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -31,31 +31,19 @@ import android.support.v7.preference.SwitchPreferenceCompat;
 import android.view.View;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.service.ScreenMonitorService;
+import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
-import com.wolandsoft.sss.util.KeyStoreManager;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
     private String mPin = null;
-    private KeyStoreManager mKSManager;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
-        ISharedObjects sharedObj;
-        if (context instanceof ISharedObjects) {
-            sharedObj = (ISharedObjects) context;
-        } else {
-            throw new ClassCastException(
-                    String.format(
-                            getString(R.string.internal_exception_must_implement),
-                            context.toString(), ISharedObjects.class.getName()));
-        }
-        mKSManager = sharedObj.getKeyStoreManager();
     }
 
     @Override
@@ -95,7 +83,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             showPinFragment(R.string.label_enter_new_pin);
             return false;
         } else {
-            ScreenMonitorService.manageService(false, getContext());
+            ServiceManager.manageService(getContext(), ScreenMonitorService.class, false);
         }
         return true;
     }
@@ -111,11 +99,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
         }
     }
 
-    private void showPinFragment(int msgResId) {
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+    private void showPinFragment(final int msgResId) {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
         Fragment fragment = PinFragment.newInstance(msgResId, 0);
-        fragment.setTargetFragment(this, 0);
-        transaction.replace(R.id.content_fragment, fragment);
+        fragment.setTargetFragment(SettingsFragment.this, 0);
+        transaction.replace(R.id.content_fragment, fragment, PinFragment.class.getName());
         transaction.addToBackStack(PinFragment.class.getName());
         transaction.commit();
     }
@@ -131,17 +119,17 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 ksPref.edit()
                         .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, mKSManager.encrypt(pin))
+                        .putString(R.string.pref_pin_key, TheApp.getKeyStoreManager().encrypt(pin))
                         .apply();
-                ScreenMonitorService.manageService(true, getContext());
+                ServiceManager.manageService(getContext(), ScreenMonitorService.class, true);
                 SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));
                 chk.setChecked(true);
             } else {
-                FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_error,
                         R.string.label_error, R.string.message_repeated_pin_no_the_same, false, null);
                 fragment.setCancelable(true);
-                fragment.show(transaction, null);
+                fragment.show(transaction, AlertDialogFragment.class.getName());
             }
         }
     }

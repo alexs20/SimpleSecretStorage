@@ -24,21 +24,27 @@ import com.wolandsoft.sss.R;
  */
 
 public enum PredefinedAttribute {
-    NAME(false, R.string.enum_NAME),
-    URL(false, R.string.enum_URL),
-    USER(false, R.string.enum_USER),
-    PASSWORD(true, R.string.enum_PASSWORD);
+    NAME(false, R.string.enum_NAME, 0),
+    URL(false, R.string.enum_URL, R.string.enum_val_URL),
+    USER(false, R.string.enum_USER, 0),
+    PASSWORD(true, R.string.enum_PASSWORD, 0);
 
     final int keyResID;
+    final int valResID;
     final boolean isProtected;
 
-    PredefinedAttribute(boolean isProtected, int keyResID) {
+    PredefinedAttribute(boolean isProtected, int keyResID, int valResID) {
         this.isProtected = isProtected;
         this.keyResID = keyResID;
+        this.valResID = valResID;
     }
 
     public int getKeyResID() {
         return keyResID;
+    }
+
+    public int getValueResID() {
+        return valResID;
     }
 
     public boolean isProtected() {

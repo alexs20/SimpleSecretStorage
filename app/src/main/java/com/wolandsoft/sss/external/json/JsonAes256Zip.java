@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+*/
 package com.wolandsoft.sss.external.json;
 
 import android.Manifest;
@@ -101,7 +101,7 @@ public class JsonAes256Zip extends AExternal {
 
 
             List<Object> jsonEntries = new LinkedList<>();
-            List<Integer> entries = storage.find(null, true);
+            List<Integer> entries = storage.find(null);
             for (int id : entries) {
                 SecretEntry entry = storage.get(id);
                 Map<String, Object> jsonEntry = new LinkedHashMap<>();
@@ -174,15 +174,13 @@ public class JsonAes256Zip extends AExternal {
                     for (Object objAttr : attrsList) {
                         if (objAttr instanceof Map<?, ?>) {
                             Map attrMap = (Map) objAttr;
+                            String key = attrMap.containsKey(KEY) ? attrMap.get(KEY).toString() : "";
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
-                            String value = attrMap.get(VALUE).toString();
+                            String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
                             if (isProtected) {
                                 value = keystore.encrypt(value);
                             }
-                            SecretEntryAttribute attr = new SecretEntryAttribute(
-                                    attrMap.get(KEY).toString(),
-                                    value,
-                                    isProtected);
+                            SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);
                         }
                     }

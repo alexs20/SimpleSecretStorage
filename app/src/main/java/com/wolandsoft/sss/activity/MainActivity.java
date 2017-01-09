@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -40,11 +40,13 @@ import com.wolandsoft.sss.activity.fragment.ExportFragment;
 import com.wolandsoft.sss.activity.fragment.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.service.ScreenMonitorService;
-import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
-import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.util.LogEx;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -55,33 +57,24 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        PinFragment.OnFragmentToFragmentInteract,
-        ISharedObjects {
+        PinFragment.OnFragmentToFragmentInteract {
     //some shared objects
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
-    private KeyStoreManager mKSManager;
-    private SQLiteStorage mSQLtStorage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //security keystore initialization
-        mKSManager = new KeyStoreManager(getApplicationContext());
-        //db initialization
-        mSQLtStorage = new SQLiteStorage(getApplicationContext());
-
         super.onCreate(savedInstanceState);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-
         setContentView(R.layout.activity_main);
+
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new EntriesFragment();
             transaction.replace(R.id.content_fragment, fragment, EntriesFragment.class.getName());
             transaction.commit();
-            ScreenMonitorService.manageService(false, this);
+            ServiceManager.manageService(this, ScreenMonitorService.class, false);
         }
 
         //Listen for changes in the back stack
@@ -152,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ScreenMonitorService.isServiceRunning(this);
+        mIsLocked = ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value) && !ServiceManager.isServiceRunning(this, ScreenMonitorService.class);
         //pin protection enabled
         if (mIsLocked) {
             ActionBar actionBar = getSupportActionBar();
@@ -205,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 Fragment fragment = new SettingsFragment();
                 fragment.setTargetFragment(target, 0);
-                transaction.replace(R.id.content_fragment, fragment);
+                transaction.replace(R.id.content_fragment, fragment, SettingsFragment.class.getName());
                 transaction.addToBackStack(SettingsFragment.class.getName());
                 transaction.commit();
                 break;
@@ -223,13 +216,17 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onDestroy() {
-        mSQLtStorage.close();
-        super.onDestroy();
-    }
-
-    @Override
     public void onBackStackChanged() {
+        if (LogEx.IS_DEBUG) {
+            LogEx.d("onBackStackChanged()");
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            for (int i = 0; i < fragments.size(); i++) {
+                Fragment fragment = fragments.get(i);
+                if (fragment != null) {
+                    LogEx.d("Fragment ", i, ": ", fragment.getClass().getName(), "; Tag: ", fragment.getTag());
+                }
+            }
+        }
         controlDrawerAvailability();
     }
 
@@ -252,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
         String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-        storedPin = mKSManager.decrupt(storedPin);
+        storedPin = TheApp.getKeyStoreManager().decrupt(storedPin);
         mIsLocked = !pin.equals(storedPin);
         if (!mIsLocked) {
             //resetting pin response delay to zero.
@@ -262,14 +259,14 @@ public class MainActivity extends AppCompatActivity implements
                 actionBar.show();
             }
             controlDrawerAvailability();
-            ScreenMonitorService.manageService(true, this);
-        } else {
-            //incrementing pin response delay on each invalid pin provided.
-            int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
-            delaySec++;
-            ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
-            openPinValidationFragment(delaySec);
+            ServiceManager.manageService(this, ScreenMonitorService.class, true);
+            return;
         }
+        //incrementing pin response delay on each invalid pin provided.
+        int delaySec = ksPref.getInt(getString(R.string.pref_pin_delay_key), 0);
+        delaySec++;
+        ksPref.edit().putInt(R.string.pref_pin_delay_key, delaySec).apply();
+        openPinValidationFragment(delaySec);
     }
 
     @Override
@@ -277,15 +274,5 @@ public class MainActivity extends AppCompatActivity implements
         if (!mIsLocked) {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public KeyStoreManager getKeyStoreManager() {
-        return mKSManager;
-    }
-
-    @Override
-    public SQLiteStorage getSQLiteStorage() {
-        return mSQLtStorage;
     }
 }

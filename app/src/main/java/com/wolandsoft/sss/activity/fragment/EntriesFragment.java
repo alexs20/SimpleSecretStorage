@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -43,14 +46,16 @@ import android.widget.TextView;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.ISharedObjects;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.PredefinedAttribute;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.service.ExportImportService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.LogEx;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -60,29 +65,23 @@ import java.util.List;
  * @author Alexander Shulgin
  */
 public class EntriesFragment extends Fragment implements SearchView.OnQueryTextListener,
-        EntryFragment.OnFragmentToFragmentInteract,
-        ImportFragment.OnFragmentToFragmentInteract,
         AlertDialogFragment.OnDialogToFragmentInteract {
     private static final int DELETE_ITEM_CONFIRMATION_DIALOG = 1;
     private static final String KEY_ID = "id";
     private static final String KEY_SEARCH_PHRASE = "search_phrase";
-    private ISharedObjects mHost;
     private RVAdapter mRVAdapter;
+    private BroadcastReceiver mBrReceiver;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ISharedObjects) {
-            mHost = (ISharedObjects) context;
-        } else {
-            throw new ClassCastException(String.format(getString(R.string.internal_exception_must_implement),
-                    context.toString(), ISharedObjects.class.getName()));
-        }
+        LogEx.d("onAttach()");
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogEx.d("onCreate()");
         RVAdapter.OnRVAdapterActionListener icl = new RVAdapter.OnRVAdapterActionListener() {
             @Override
             public void onRVItemClick(SecretEntry entry) {
@@ -100,13 +99,33 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             LogEx.d("Search criteria restored: ", searchCriteria);
         }
         //Recycler view adapter
-        mRVAdapter = new RVAdapter(icl, mHost.getSQLiteStorage(), searchCriteria);
+        mRVAdapter = new RVAdapter(icl, TheApp.getSQLiteStorage(), searchCriteria);
         //enabling action bar menu items
         setHasOptionsMenu(true);
+        //an import result status
+        mBrReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (ExportImportService.BROADCAST_EVENT_COMPLETED.equals(intent.getAction())) {
+                    int task = intent.getIntExtra(ExportImportService.KEY_TASK, -1);
+                    boolean status = intent.getBooleanExtra(ExportImportService.KEY_STATUS, false);
+                    onServiceResult(task, status);
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(ExportImportService.BROADCAST_EVENT_COMPLETED);
+        getContext().registerReceiver(mBrReceiver, filter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getContext().unregisterReceiver(mBrReceiver);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        LogEx.d("onCreateView()");
         View view = inflater.inflate(R.layout.fragment_entries, container, false);
         //init recycler view
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.rvEntriesList);
@@ -114,6 +133,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(mRVAdapter);
         mRVAdapter.setSearchLocked(false);
+        mRVAdapter.updateModel();
         //connect to add button
         FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -137,6 +157,12 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         LogEx.d("Search criteria saved: ", mRVAdapter.getSearchCriteria());
     }
 
+    private void onServiceResult(int task, boolean status) {
+        if (task == ExportImportService.TASK_IMPORT) {
+            mRVAdapter.updateModel();
+        }
+    }
+
     private void onAddClicked() {
         //preserve search criteria
         mRVAdapter.setSearchLocked(true);
@@ -144,13 +170,13 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         SecretEntry entry = new SecretEntry();
         for (PredefinedAttribute attr : PredefinedAttribute.values()) {
             String key = getString(attr.getKeyResID());
-            String value = "";
+            String value = attr.getValueResID() != 0 ? getString(attr.getValueResID()) : "";
             if (attr.isProtected()) {
-                value = mHost.getKeyStoreManager().encrypt(value);
+                value = TheApp.getKeyStoreManager().encrypt(value);
             }
             entry.add(new SecretEntryAttribute(key, value, attr.isProtected()));
         }
-        entry = mHost.getSQLiteStorage().put(entry);
+        entry = TheApp.getSQLiteStorage().put(entry);
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment = EntryFragment.newInstance(entry.getID());
         fragment.setTargetFragment(this, 0);
@@ -171,7 +197,6 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         transaction.commit();
     }
 
-
     private void onSecretEntryDelete(SecretEntry item) {
         Bundle data = new Bundle();
         data.putInt(KEY_ID, item.getID());
@@ -188,7 +213,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_entries_options_menu, menu);
         //attaching search view
-        LogEx.d("Building search menu / view when search criteria already: ", mRVAdapter.getSearchCriteria());
+        LogEx.d("Building search menu / view with search criteria: ", mRVAdapter.getSearchCriteria());
         MenuItem mnuSearch = menu.findItem(R.id.mnuSearch);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(mnuSearch);
         if (!mRVAdapter.getSearchCriteria().isEmpty()) {
@@ -226,34 +251,24 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         }
     }
 
-    @Override
-    public void onEntryUpdate(SecretEntry entry) {
-        mRVAdapter.reload();
-    }
-
-    @Override
-    public void onImportCompleted() {
-        mRVAdapter.reload();
-    }
-
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private static final long DELAY_SEARCH_UPDATE = 1000;
         private final OnRVAdapterActionListener mOnActionListener;
         private final Handler mHandler;
-        private final SQLiteStorage mSqLtStorage;
+        private SQLiteStorage mSqLtStorage;
         private List<Integer> mItemIds = null;
         private String mSearchCriteria;
         private Runnable mSearchUpdate;
         private boolean mSearchLocked = false;
 
         RVAdapter(OnRVAdapterActionListener onActionListener,
-                  SQLiteStorage sqLtStorage,
+                  SQLiteStorage sqLiteStorage,
                   String searchCriteria) {
             mOnActionListener = onActionListener;
-            mSqLtStorage = sqLtStorage;
+            mSqLtStorage = sqLiteStorage;
             mSearchCriteria = searchCriteria;
             mHandler = new Handler();
-            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
+            mItemIds = Collections.emptyList();
         }
 
         void updateSearchCriteria(final String criteria) {
@@ -265,7 +280,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
                     public void run() {
                         if (!criteria.equals(mSearchCriteria)) {
                             mSearchCriteria = criteria;
-                            reload();
+                            updateModel();
                         }
                     }
                 };
@@ -342,9 +357,11 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
             notifyItemRemoved(idx);
         }
 
-        void reload() {
-            mItemIds = mSqLtStorage.find(mSearchCriteria, true);
-            notifyDataSetChanged();
+        void updateModel() {
+            if (mSqLtStorage != null) {
+                mItemIds = mSqLtStorage.find(mSearchCriteria);
+                notifyDataSetChanged();
+            }
         }
 
         void reloadItem(int id) {
