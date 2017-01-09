@@ -170,7 +170,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         SecretEntry entry = new SecretEntry();
         for (PredefinedAttribute attr : PredefinedAttribute.values()) {
             String key = getString(attr.getKeyResID());
-            String value = "";
+            String value = attr.getValueResID() != 0 ? getString(attr.getValueResID()) : "";
             if (attr.isProtected()) {
                 value = TheApp.getKeyStoreManager().encrypt(value);
             }

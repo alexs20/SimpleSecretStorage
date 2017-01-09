@@ -73,6 +73,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private RVAdapter mRVAdapter;
     private View mView;
     private boolean mIsShowPwd = false;
+    private KeySharedPreferences mKsPref;
 
     public static EntryFragment newInstance(int entryId) {
         EntryFragment fragment = new EntryFragment();
@@ -117,12 +118,12 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }, entryId, TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager());
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+        mKsPref = new KeySharedPreferences(shPref, getContext());
 
         if (savedInstanceState != null) {
             mIsShowPwd = savedInstanceState.getBoolean(String.valueOf(R.id.mnuShowPwd));
         } else {
-            mIsShowPwd = ksPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
+            mIsShowPwd = mKsPref.getBoolean(R.string.pref_protected_field_default_visibility_key,
                     R.bool.pref_protected_field_default_visibility_value);
         }
         mRVAdapter.setProtectedVisible(mIsShowPwd);
@@ -130,15 +131,6 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         //enabling actionbar icons
         setHasOptionsMenu(true);
 
-        if (ksPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value)) {
-            SecretEntry entry = mRVAdapter.getEntry();
-            for (SecretEntryAttribute attr : entry) {
-                if (attr.isProtected()) {
-                    onEntryAttributeCopy(attr);
-                    break;
-                }
-            }
-        }
     }
 
     @Override
@@ -151,6 +143,16 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRVAdapter);
         mRVAdapter.updateModel();
+        boolean isAutoCopy = mKsPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value);
+        if (isAutoCopy) {
+            SecretEntry entry = mRVAdapter.getEntry();
+            for (SecretEntryAttribute attr : entry) {
+                if (attr.isProtected()) {
+                    onEntryAttributeCopy(attr);
+                    break;
+                }
+            }
+        }
 
         FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -263,7 +265,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText(attr.getKey(), text);
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(getContext(), R.string.label_copied, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_LONG).show();
         }
     }
 

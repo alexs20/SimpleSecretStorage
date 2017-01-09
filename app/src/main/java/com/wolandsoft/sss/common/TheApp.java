@@ -16,7 +16,9 @@
 package com.wolandsoft.sss.common;
 
 import android.app.Application;
+import android.support.v7.preference.PreferenceManager;
 
+import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
@@ -43,6 +45,7 @@ public class TheApp extends Application {
     public void onCreate() {
         super.onCreate();
         LogEx.d("TheApp.onCreate()");
+        PreferenceManager.setDefaultValues(this, R.xml.fragment_settings, true);
         //security keystore initialization
         mKSManager = new KeyStoreManager(getApplicationContext());
         //db initialization
