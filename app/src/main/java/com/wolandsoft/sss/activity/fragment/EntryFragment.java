@@ -143,13 +143,15 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRVAdapter);
         mRVAdapter.updateModel();
-        boolean isAutoCopy = mKsPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value);
-        if (isAutoCopy) {
-            SecretEntry entry = mRVAdapter.getEntry();
-            for (SecretEntryAttribute attr : entry) {
-                if (attr.isProtected()) {
-                    onEntryAttributeCopy(attr);
-                    break;
+        if (savedInstanceState == null) { // means first time
+            boolean isAutoCopy = mKsPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value);
+            if (isAutoCopy) {
+                SecretEntry entry = mRVAdapter.getEntry();
+                for (SecretEntryAttribute attr : entry) {
+                    if (attr.isProtected()) {
+                        onEntryAttributeCopy(attr);
+                        break;
+                    }
                 }
             }
         }
