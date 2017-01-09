@@ -74,6 +74,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
     private View mView;
     private boolean mIsShowPwd = false;
     private KeySharedPreferences mKsPref;
+    private boolean mIsFirstAutoCopy = true;
 
     public static EntryFragment newInstance(int entryId) {
         EntryFragment fragment = new EntryFragment();
@@ -143,7 +144,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRVAdapter);
         mRVAdapter.updateModel();
-        if (savedInstanceState == null) { // means first time
+        if (savedInstanceState == null && mIsFirstAutoCopy) { // means first time
+            mIsFirstAutoCopy = false;
             boolean isAutoCopy = mKsPref.getBoolean(R.string.pref_auto_copy_protected_field_key, R.bool.pref_auto_copy_protected_field_value);
             if (isAutoCopy) {
                 SecretEntry entry = mRVAdapter.getEntry();
