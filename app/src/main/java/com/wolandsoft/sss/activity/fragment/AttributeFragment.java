@@ -17,8 +17,10 @@ package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -29,7 +31,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.common.TheApp;
@@ -46,8 +47,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private final static String ARG_ATTR_POS = "attr_pos";
 
     //ui elements
-    private TextView mTxtKey;
-    private TextView mTxtValue;
+    private TextInputEditText mTxtKey;
+    private TextInputEditText mTxtValue;
     private SwitchCompat mChkProtected;
     private FloatingActionButton mBtnGenerate;
     //model objects
@@ -95,8 +96,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         LogEx.d("onCreateView()");
         View view = inflater.inflate(R.layout.fragment_attr, container, false);
-        mTxtKey = (TextView) view.findViewById(R.id.txtKey);
-        mTxtValue = (TextView) view.findViewById(R.id.txtValue);
+        mTxtKey = (TextInputEditText) view.findViewById(R.id.txtKey);
+        mTxtValue = (TextInputEditText) view.findViewById(R.id.txtValue);
         mChkProtected = (SwitchCompat) view.findViewById(R.id.chkProtected);
         mBtnGenerate = (FloatingActionButton) view.findViewById(R.id.btnGenerate);
 
@@ -152,6 +153,30 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
         if (actionBar != null)
             actionBar.setTitle(R.string.title_secret_field);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final Handler handler = new Handler();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                TextInputEditText lastView;
+                if (mTxtKey.getText().length() == 0) {
+                    mTxtKey.setFocusableInTouchMode(true);
+                    mTxtKey.requestFocus();
+                    lastView = mTxtKey;
+                } else {
+                    mTxtValue.setFocusableInTouchMode(true);
+                    mTxtValue.requestFocus();
+                    lastView = mTxtValue;
+                }
+                lastView.setSelection(lastView.getText().length());
+                InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                mgr.showSoftInput(lastView, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
     }
 
     private void onGenerateClicked() {
