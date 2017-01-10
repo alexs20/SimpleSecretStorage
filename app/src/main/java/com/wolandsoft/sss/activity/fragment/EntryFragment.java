@@ -269,7 +269,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText(attr.getKey(), text);
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
         }
     }
 

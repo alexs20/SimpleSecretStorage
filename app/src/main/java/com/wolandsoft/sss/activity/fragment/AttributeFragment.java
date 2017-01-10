@@ -164,17 +164,17 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             public void run() {
                 TextInputEditText lastView;
                 if (mTxtKey.getText().length() == 0) {
-                    mTxtKey.setFocusableInTouchMode(true);
-                    mTxtKey.requestFocus();
                     lastView = mTxtKey;
                 } else {
-                    mTxtValue.setFocusableInTouchMode(true);
-                    mTxtValue.requestFocus();
                     lastView = mTxtValue;
                 }
                 lastView.setSelection(lastView.getText().length());
-                InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                mgr.showSoftInput(lastView, InputMethodManager.SHOW_IMPLICIT);
+                lastView.setFocusableInTouchMode(true);
+                lastView.requestFocus();
+                if(!mChkProtected.isChecked()) {
+                    InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    mgr.showSoftInput(lastView, InputMethodManager.SHOW_IMPLICIT);
+                }
             }
         });
     }
