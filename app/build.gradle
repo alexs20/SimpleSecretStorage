@@ -49,5 +49,6 @@ dependencies {
     compile 'org.apache.commons:commons-io:1.3.2'
     compile 'com.jakewharton:disklrucache:2.0.2'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
+    compile 'com.journeyapps:zxing-android-embedded:3.4.0'
 }
 

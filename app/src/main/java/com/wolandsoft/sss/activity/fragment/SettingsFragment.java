@@ -16,6 +16,7 @@
 package com.wolandsoft.sss.activity.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -28,18 +29,28 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.SwitchPreferenceCompat;
+import android.util.Base64;
 import android.view.View;
+import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.util.LogEx;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
     private String mPin = null;
+    private SwitchPreferenceCompat mChkPinEnabled;
+    private SwitchPreferenceCompat mChkReceiverEnabled;
 
     @Override
     public void onAttach(Context context) {
@@ -49,12 +60,19 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.fragment_settings, rootKey);
-        SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));
 
-        chk.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        mChkPinEnabled = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));
+        mChkPinEnabled.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 return onPinSwitch((Boolean) newValue);
+            }
+        });
+        mChkReceiverEnabled = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pc_receiver_enabled_key));
+        mChkReceiverEnabled.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                return onPCPairSwitch((Boolean) newValue);
             }
         });
 
@@ -88,14 +106,63 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
         return true;
     }
 
+    private boolean onPCPairSwitch(boolean newState) {
+        if (newState) {
+            IntentIntegrator integrator = new IntentIntegrator(getActivity());
+            integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
+            integrator.setPrompt(getString(R.string.message_scan_receiver_code));
+            integrator.setBeepEnabled(true);
+            integrator.setBarcodeImageEnabled(true);
+            Intent intent = integrator.createScanIntent();
+            startActivityForResult(intent, IntentIntegrator.REQUEST_CODE);
+            return false;
+        } else {
+            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+            shPref.edit().putString(getString(R.string.pref_pc_receiver_encoded_key), null).apply();
+        }
+        return true;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null) {
+            if (result.getContents() == null) {
+                //canceled
+            } else {
+                try {
+                    String encodedB64 = result.getContents();
+                    byte[] aesKeyBuff = Base64.decode(encodedB64, Base64.DEFAULT);
+                    SecretKey aesKey = new SecretKeySpec(aesKeyBuff, "AES");
+
+                    SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+                    KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+                    ksPref.edit()
+                            .putString(R.string.pref_pc_receiver_encoded_key, TheApp.getKeyStoreManager().encrypt(encodedB64))
+                            .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
+                            .apply();
+                } catch (Exception e) {
+                    LogEx.w(e.getMessage(), e);
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-        SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));
-        if (chk.isChecked() != ksPref.getBoolean(R.string.pref_pin_enabled_key, false)) {
-            chk.setChecked(!chk.isChecked());
+
+        if (mChkPinEnabled.isChecked() != ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value)) {
+            mChkPinEnabled.setChecked(!mChkPinEnabled.isChecked());
+        }
+
+        if (mChkReceiverEnabled.isChecked() != ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
+            mChkReceiverEnabled.setChecked(!mChkReceiverEnabled.isChecked());
         }
     }
 

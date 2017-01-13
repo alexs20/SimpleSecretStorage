@@ -51,4 +51,8 @@
 
     <item name="pref_permission_asked_type_key" translatable="false" type="string">permission_asked_type</item>
 
+    <item name="pref_pc_receiver_enabled_key" translatable="false" type="string">pc_receiver_enabled</item>
+    <item name="pref_pc_receiver_enabled_value" translatable="false" type="bool">false</item>
+    <item name="pref_pc_receiver_encoded_key" translatable="false" type="string">pc_receiver_encoded</item>
+
 </resources>
