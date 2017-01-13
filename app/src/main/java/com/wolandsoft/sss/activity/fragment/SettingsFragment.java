@@ -112,7 +112,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
             integrator.setPrompt(getString(R.string.message_scan_receiver_code));
             integrator.setBeepEnabled(true);
-            integrator.setBarcodeImageEnabled(true);
+            integrator.setBarcodeImageEnabled(false);
+            integrator.setOrientationLocked(false);
             Intent intent = integrator.createScanIntent();
             startActivityForResult(intent, IntentIntegrator.REQUEST_CODE);
             return false;
