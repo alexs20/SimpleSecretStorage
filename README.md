@@ -7,3 +7,6 @@ Compiled application is currently available via Google Play: https://play.google
 Any beta versions can be accessible by subscribing to testing channel: https://play.google.com/apps/testing/com.wolandsoft.sss
 
 The same binaries also available in Releases section.
+
+Please also see #ssspcreceiver project: https://github.com/alexs20/ssspcreceiver
+This is a PC clipboard data receiver that allows clipboard data copying from SimpleSecretStorage app to PC.
