@@ -42,11 +42,6 @@ public class ExportImportService extends IntentService {
     public static final String BROADCAST_EVENT_COMPLETED = "com.wolandsoft.sss.IMPORT_EXPORT_COMPLETED";
     public static final String KEY_STATUS = "status";
 
-    /**
-     * Creates an IntentService.  Invoked by your subclass's constructor.
-     *
-     * @param name Used to name the worker thread, important only for debugging.
-     */
     public ExportImportService() {
         super(ExportImportService.class.getSimpleName());
     }

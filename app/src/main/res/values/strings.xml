@@ -17,6 +17,7 @@
     <string name="app_name">Simple Secret Storage</string>
     <string name="screen_monitor_service_name">Screen Monitor Service</string>
     <string name="export_import_service_name">Export/Import Service</string>
+    <string name="copy_to_pc_service_name">Copy to PC Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>

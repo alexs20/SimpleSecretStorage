@@ -67,7 +67,10 @@ public class KeySharedPreferences extends ContextWrapper implements SharedPrefer
      * @return Returns the preference value if it exists, or defValue. Throws ClassCastException if there is a
      * preference with this name that is not a String.
      */
-    public String getString(int keyId, int defValueId) {
+    public String getString(int keyId, Integer defValueId) {
+        if (defValueId == null) {
+            return getString(getString(keyId), null);
+        }
         return getString(getString(keyId), getResources().getString(defValueId));
     }
 

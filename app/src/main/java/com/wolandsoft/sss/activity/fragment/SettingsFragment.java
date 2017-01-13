@@ -132,9 +132,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             } else {
                 try {
                     String encodedB64 = result.getContents();
-                    byte[] aesKeyBuff = Base64.decode(encodedB64, Base64.DEFAULT);
-                    SecretKey aesKey = new SecretKeySpec(aesKeyBuff, "AES");
-
                     SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
                     KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                     ksPref.edit()
