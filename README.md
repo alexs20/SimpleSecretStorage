@@ -4,9 +4,9 @@ The main idea of this project is to create a very simple passwords storage with 
 
 Compiled application is currently available via Google Play: https://play.google.com/store/apps/details?id=com.wolandsoft.sss
 
-Any beta versions can be accessible by subscribing to the testing channel: https://play.google.com/apps/testing/com.wolandsoft.sss
+Latest beta versions (if any) can be accessible by subscribing to the testing channel: https://play.google.com/apps/testing/com.wolandsoft.sss
 
 The same binaries also available in Releases section.
 
 Please also see a <b>ssspcreceiver</b> project: https://github.com/alexs20/ssspcreceiver<br/>
-This is a PC clipboard data receiver that allows clipboard data transmitting from the Simple Secret Storage app to PC.
+This is a PC clipboard data receiver that allows clipboard data transmitting from the Simple Secret Storage app to remote PC.
