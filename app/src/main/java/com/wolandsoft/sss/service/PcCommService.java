@@ -25,15 +25,19 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * @author Alexander Shulgin /alexs20@gmail.com/
+ * Copy to PC service
+ *
+ * @author Alexander Shulgin
  */
-
-public class CopyToPCService extends IntentService {
-    public static final String KEY_DATA_TO_COPY = "data";
-    private static final String SERVICE_TAG = CopyToPCService.class.getSimpleName();
+public class PcCommService extends IntentService {
+    public static final int CMD_PING = 0;
+    public static final int CMD_DATA = 1;
+    public static final String KEY_DATA = "data";
+    public static final String KEY_CMD = "cmd";
+    private static final String SERVICE_TAG = PcCommService.class.getSimpleName();
     private static final String ALL_HOSTS_MC_ADDRESS = "224.0.0.1";
 
-    public CopyToPCService() {
+    public PcCommService() {
         super(SERVICE_TAG);
     }
 
@@ -45,20 +49,24 @@ public class CopyToPCService extends IntentService {
             DatagramSocket socket = null;
             try {
                 SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
-                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
-                String encodedParInfo = ksPref.getString(R.string.pref_pc_receiver_encoded_key, (Integer) null);
-                String parInfo = TheApp.getKeyStoreManager().decrupt(encodedParInfo);
-                int sep = parInfo.indexOf(":");
-                int port = Integer.valueOf(parInfo.substring(0, sep));
-                String aesKeyB64 = parInfo.substring(sep + 1);
-                // recreate key
-                byte[] aesKeyBuff = Base64.decode(aesKeyB64, Base64.DEFAULT);
+                int port = shPref.getInt(getString(R.string.pref_pc_receiver_port_key), 0);
+                String encodedKey = shPref.getString(getString(R.string.pref_pc_receiver_key_key), null);
+                String keyB64 = TheApp.getKeyStoreManager().decrupt(encodedKey);
+                byte[] aesKeyBuff = Base64.decode(keyB64, Base64.DEFAULT);
                 SecretKey aesKey = new SecretKeySpec(aesKeyBuff, "AES");
                 Cipher aesCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
                 aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
-                String msgData = intent.getStringExtra(KEY_DATA_TO_COPY);
-                byte[] clearTextBuff = msgData.getBytes();
-                byte[] cipherTextBuff = aesCipher.doFinal(clearTextBuff);
+                byte [] payload;
+                if(CMD_PING == intent.getIntExtra(KEY_CMD, CMD_PING)){
+                    payload = new byte [] {CMD_PING};
+                } else {
+                    String msgData = intent.getStringExtra(KEY_DATA);
+                    byte [] data = msgData.getBytes();
+                    payload = new byte [msgData.length() + 1];
+                    payload[0] = CMD_DATA;
+                    System.arraycopy(data, 0, payload, 1, data.length);
+                }
+                byte[] cipherTextBuff = aesCipher.doFinal(payload);
                 socket = new DatagramSocket(port);
                 InetAddress group = InetAddress.getByName(ALL_HOSTS_MC_ADDRESS);
                 //Sending to Multicast Group

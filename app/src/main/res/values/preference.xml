@@ -53,6 +53,6 @@
 
     <item name="pref_pc_receiver_enabled_key" translatable="false" type="string">pc_receiver_enabled</item>
     <item name="pref_pc_receiver_enabled_value" translatable="false" type="bool">false</item>
-    <item name="pref_pc_receiver_encoded_key" translatable="false" type="string">pc_receiver_encoded</item>
-
+    <item name="pref_pc_receiver_port_key" translatable="false" type="string">pc_receiver_port</item>
+    <item name="pref_pc_receiver_key_key" translatable="false" type="string">pc_receiver_key</item>
 </resources>

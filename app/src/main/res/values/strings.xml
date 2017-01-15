@@ -113,5 +113,6 @@
     <string name="message_auto_copy_protected_field">Copy first protected field into memory on open.</string>
     <string name="message_copy_to_pc">Transmit copied data to paired PC Receiver.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
+    <string name="message_invalid_qr_code">Invalid QR Code.</string>
 
 </resources>

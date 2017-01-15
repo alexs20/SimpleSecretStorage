@@ -38,10 +38,17 @@ import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.common.TheApp;
+import com.wolandsoft.sss.service.PcCommService;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.util.Arrays;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -117,9 +124,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             Intent intent = integrator.createScanIntent();
             startActivityForResult(intent, IntentIntegrator.REQUEST_CODE);
             return false;
-        } else {
-            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-            shPref.edit().putString(getString(R.string.pref_pc_receiver_encoded_key), null).apply();
         }
         return true;
     }
@@ -131,17 +135,43 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             if (result.getContents() == null) {
                 //canceled
             } else {
-                try {
-                    String encodedB64 = result.getContents();
-                    SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-                    KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-                    ksPref.edit()
-                            .putString(R.string.pref_pc_receiver_encoded_key, TheApp.getKeyStoreManager().encrypt(encodedB64))
-                            .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
-                            .apply();
-                } catch (Exception e) {
-                    LogEx.w(e.getMessage(), e);
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                Context ctx = getContext();
+                if(ctx != null) {
+                    try {
+                        String encodedB64 = result.getContents();
+                        byte[] packet = Base64.decode(encodedB64, Base64.DEFAULT);
+                        ByteArrayInputStream bais = new ByteArrayInputStream(packet);
+                        DataInputStream dis = new DataInputStream(bais);
+                        int size = dis.readInt();
+                        byte[] payload = new byte[size];
+                        dis.readFully(payload, 0, size);
+                        long crc = dis.readLong();
+                        Checksum checksum = new CRC32();
+                        checksum.update(payload, 0, payload.length);
+                        if (checksum.getValue() == crc) {
+                            bais = new ByteArrayInputStream(payload);
+                            dis = new DataInputStream(bais);
+                            int port = dis.readInt();
+                            size = dis.readInt();
+                            byte[] key = new byte[size];
+                            dis.readFully(key);
+                            String keyB64 = Base64.encodeToString(key, Base64.DEFAULT);
+                            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+                            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
+                            ksPref.edit()
+                                    .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
+                                    .putInt(R.string.pref_pc_receiver_port_key, port)
+                                    .putString(R.string.pref_pc_receiver_key_key, TheApp.getKeyStoreManager().encrypt(keyB64))
+                                    .commit();
+                            Intent intent = new Intent(ctx, PcCommService.class);
+                            intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_PING);
+                            ctx.startService(intent);
+                            return;
+                        }
+                    } catch (Exception e) {
+                        LogEx.w(e.getMessage(), e);
+                    }
+                    Toast.makeText(getContext(), getString(R.string.message_invalid_qr_code), Toast.LENGTH_LONG).show();
                 }
             }
         } else {

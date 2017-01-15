@@ -52,7 +52,7 @@ import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.service.CopyToPCService;
+import com.wolandsoft.sss.service.PcCommService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.KeyStoreManager;
@@ -275,8 +275,9 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
             if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-                Intent intent = new Intent(getContext(), CopyToPCService.class);
-                intent.putExtra(CopyToPCService.KEY_DATA_TO_COPY, text);
+                Intent intent = new Intent(getContext(), PcCommService.class);
+                intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_DATA);
+                intent.putExtra(PcCommService.KEY_DATA, text);
                 getContext().startService(intent);
             }
         }

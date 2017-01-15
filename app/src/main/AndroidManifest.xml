@@ -42,7 +42,7 @@
             android:description="@string/export_import_service_name"
             android:label="@string/export_import_service_name" />
         <service
-            android:name=".service.CopyToPCService"
+            android:name=".service.PcCommService"
             android:description="@string/copy_to_pc_service_name"
             android:label="@string/copy_to_pc_service_name" />
 
