@@ -13,6 +13,7 @@ import android.util.Base64;
 import com.wolandsoft.sss.BuildConfig;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.common.TheApp;
+import com.wolandsoft.sss.security.AESIVCipher;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -53,12 +54,11 @@ public class PcCommService extends IntentService {
             try {
                 SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
                 int port = shPref.getInt(getString(R.string.pref_pc_receiver_port_key), 0);
-                String encodedKey = shPref.getString(getString(R.string.pref_pc_receiver_key_key), null);
-                String keyB64 = TheApp.getKeyStoreManager().decrupt(encodedKey);
-                byte[] aesKeyBuff = Base64.decode(keyB64, Base64.DEFAULT);
-                SecretKey aesKey = new SecretKeySpec(aesKeyBuff, "AES");
-                Cipher aesCipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
+                String keyB64 = shPref.getString(getString(R.string.pref_pc_receiver_key_key), null);
+                byte[] encodedKey = Base64.decode(keyB64, Base64.DEFAULT);
+                byte[] aesKey = TheApp.getRSAKSCipher().decipher(encodedKey);
+                System.out.println(Base64.encodeToString(aesKey, Base64.DEFAULT));
+                AESIVCipher aesCipher = new AESIVCipher(aesKey);
                 byte [] payload;
                 if(CMD_PING == intent.getIntExtra(KEY_CMD, CMD_PING)){
                     payload = new byte [] {CMD_PING};
@@ -77,7 +77,8 @@ public class PcCommService extends IntentService {
                     dos.close();
                     payload = baos.toByteArray();
                 }
-                byte[] cipherTextBuff = aesCipher.doFinal(payload);
+                byte[] cipherTextBuff = aesCipher.cipher(payload);
+                aesCipher.decipher(cipherTextBuff);
                 socket = new DatagramSocket(port);
                 InetAddress group = InetAddress.getByName(ALL_HOSTS_MC_ADDRESS);
                 //Sending to Multicast Group

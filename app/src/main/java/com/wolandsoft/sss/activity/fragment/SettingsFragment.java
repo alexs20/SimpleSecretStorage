@@ -155,13 +155,14 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                             size = dis.readInt();
                             byte[] key = new byte[size];
                             dis.readFully(key);
-                            String keyB64 = Base64.encodeToString(key, Base64.DEFAULT);
+                            byte [] chipheredKey = TheApp.getRSAKSCipher().cipher(key);
+                            String keyB64 = Base64.encodeToString(chipheredKey, Base64.DEFAULT);
                             SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
                             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
                             ksPref.edit()
                                     .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
                                     .putInt(R.string.pref_pc_receiver_port_key, port)
-                                    .putString(R.string.pref_pc_receiver_key_key, TheApp.getKeyStoreManager().encrypt(keyB64))
+                                    .putString(R.string.pref_pc_receiver_key_key, keyB64)
                                     .commit();
                             Intent intent = new Intent(ctx, PcCommService.class);
                             intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_PING);
