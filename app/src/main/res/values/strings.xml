@@ -48,6 +48,7 @@
     <string name="label_delete_field">Delete Field</string>
     <string name="label_delete">Delete</string>
     <string name="label_copy">Copy</string>
+    <string name="label_copy_to_pc">Copy to PC</string>
     <string name="label_number_of_lowercase_chars">Number of Lowercase Characters</string>
     <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
     <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>

@@ -114,8 +114,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             }
 
             @Override
-            public void onEntryAttributeCopy(SecretEntryAttribute attr) {
-                EntryFragment.this.onEntryAttributeCopy(attr);
+            public void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote) {
+                EntryFragment.this.onEntryAttributeCopy(attr, toRemote);
             }
         }, entryId, TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager());
 
@@ -152,7 +152,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 SecretEntry entry = mRVAdapter.getEntry();
                 for (SecretEntryAttribute attr : entry) {
                     if (attr.isProtected()) {
-                        onEntryAttributeCopy(attr);
+                        onEntryAttributeCopy(attr, false);
                         break;
                     }
                 }
@@ -259,7 +259,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         startActivity(browserIntent);
     }
 
-    private void onEntryAttributeCopy(SecretEntryAttribute attr) {
+    private void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote) {
         String text = attr.getValue();
         if (attr.isProtected()) {
             if (attr.getValue() != null && attr.getValue().length() > 0) {
@@ -267,19 +267,22 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             }
         }
         if (text.length() > 0) {
-            ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
-            //copy to pc
-            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-            if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-                Intent intent = new Intent(getContext(), PcCommService.class);
-                intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_DATA);
-                intent.putExtra(PcCommService.KEY_DATA, text);
-                getContext().startService(intent);
+            if (toRemote) {
+                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+                if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
+                    Intent intent = new Intent(getContext(), PcCommService.class);
+                    intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_DATA);
+                    intent.putExtra(PcCommService.KEY_DATA, text);
+                    intent.putExtra(PcCommService.KEY_TITLE, attr.getKey());
+                    getContext().startService(intent);
+                }
+            } else {
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+                clipboard.setPrimaryClip(clip);
             }
+            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -397,7 +400,10 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
                         case R.id.mnuCopy:
-                            mOnActionListener.onEntryAttributeCopy(attr);
+                            mOnActionListener.onEntryAttributeCopy(attr, false);
+                            break;
+                        case R.id.mnuCopy2PC:
+                            mOnActionListener.onEntryAttributeCopy(attr, true);
                             break;
                         case R.id.mnuNavigate:
                             mOnActionListener.onEntryAttributeNavigate(attr);
@@ -408,6 +414,13 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             });
             if (attr.getValue().startsWith("http://") || attr.getValue().startsWith("https://")) {
                 MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuNavigate);
+                mnuNavigate.setVisible(true);
+            }
+            Context ctx = (Context) mDb;
+            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
+            if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
+                MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuCopy2PC);
                 mnuNavigate.setVisible(true);
             }
             MenuPopupHelper menuHelper = new MenuPopupHelper(v.getContext(), (MenuBuilder) popup.getMenu(), v);
@@ -495,7 +508,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
             void onEntryAttributeNavigate(SecretEntryAttribute attr);
 
-            void onEntryAttributeCopy(SecretEntryAttribute attr);
+            void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote);
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

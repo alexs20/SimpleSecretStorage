@@ -16,6 +16,8 @@ import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -33,6 +35,7 @@ public class PcCommService extends IntentService {
     public static final int CMD_PING = 0;
     public static final int CMD_DATA = 1;
     public static final String KEY_DATA = "data";
+    public static final String KEY_TITLE = "title";
     public static final String KEY_CMD = "cmd";
     private static final String SERVICE_TAG = PcCommService.class.getSimpleName();
     private static final String ALL_HOSTS_MC_ADDRESS = "224.0.0.1";
@@ -60,11 +63,19 @@ public class PcCommService extends IntentService {
                 if(CMD_PING == intent.getIntExtra(KEY_CMD, CMD_PING)){
                     payload = new byte [] {CMD_PING};
                 } else {
+                    String msgTitle = intent.getStringExtra(KEY_TITLE);
                     String msgData = intent.getStringExtra(KEY_DATA);
-                    byte [] data = msgData.getBytes();
-                    payload = new byte [msgData.length() + 1];
-                    payload[0] = CMD_DATA;
-                    System.arraycopy(data, 0, payload, 1, data.length);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    DataOutputStream dos = new DataOutputStream(baos);
+                    dos.writeByte(CMD_DATA);
+                    byte [] msg = msgTitle.getBytes("UTF-8");
+                    dos.writeInt(msg.length);
+                    dos.write(msg);
+                    msg = msgData.getBytes("UTF-8");
+                    dos.writeInt(msg.length);
+                    dos.write(msg);
+                    dos.close();
+                    payload = baos.toByteArray();
                 }
                 byte[] cipherTextBuff = aesCipher.doFinal(payload);
                 socket = new DatagramSocket(port);
