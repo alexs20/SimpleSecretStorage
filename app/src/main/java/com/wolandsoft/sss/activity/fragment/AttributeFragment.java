@@ -105,7 +105,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    String plain = TheApp.getKeyStoreManager().decrupt(mAttr.getValue());
+                    String plain = TheApp.getCipher().decipherText(mAttr.getValue());
                     mTxtValue.setText(plain);
                 }
             } else {
@@ -171,7 +171,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
                 lastView.setSelection(lastView.getText().length());
                 lastView.setFocusableInTouchMode(true);
                 lastView.requestFocus();
-                if(!mChkProtected.isChecked()) {
+                if (!mChkProtected.isChecked()) {
                     InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                     mgr.showSoftInput(lastView, InputMethodManager.SHOW_IMPLICIT);
                 }
@@ -198,7 +198,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
-            protectedStr = TheApp.getKeyStoreManager().encrypt(protectedStr);
+            protectedStr = TheApp.getCipher().cipherText(protectedStr);
         }
         SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
         getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back

@@ -19,9 +19,8 @@ import android.app.Application;
 import android.support.v7.preference.PreferenceManager;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.security.RSAKSCipher;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 /**
@@ -31,16 +30,11 @@ import com.wolandsoft.sss.util.LogEx;
  */
 public class TheApp extends Application {
 
-    private static RSAKSCipher mRSAKSCipher;
-    private static KeyStoreManager mKSManager;
+    private static TextCipher mTextCipher;
     private static SQLiteStorage mSQLtStorage;
 
-    public static KeyStoreManager getKeyStoreManager() {
-        return mKSManager;
-    }
-
-    public static RSAKSCipher getRSAKSCipher() {
-        return mRSAKSCipher;
+    public static TextCipher getCipher() {
+        return mTextCipher;
     }
 
     public static SQLiteStorage getSQLiteStorage() {
@@ -53,8 +47,7 @@ public class TheApp extends Application {
         LogEx.d("TheApp.onCreate()");
         PreferenceManager.setDefaultValues(this, R.xml.fragment_settings, true);
         //security keystore initialization
-        mRSAKSCipher = new RSAKSCipher(getApplicationContext());
-        mKSManager = new KeyStoreManager(getApplicationContext());
+        mTextCipher = new TextCipher(getApplicationContext());
         //db initialization
         mSQLtStorage = new SQLiteStorage(getApplicationContext());
 

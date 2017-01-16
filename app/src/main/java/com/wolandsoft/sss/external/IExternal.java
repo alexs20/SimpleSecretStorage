@@ -15,8 +15,8 @@
  */
 package com.wolandsoft.sss.external;
 
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.util.KeyStoreManager;
 
 import java.net.URI;
 
@@ -28,9 +28,9 @@ import java.net.URI;
 
 public interface IExternal {
 
-    void doExport(SQLiteStorage fromStorage, KeyStoreManager keystore, URI destination, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
+    void doExport(SQLiteStorage fromStorage, TextCipher cipher, URI destination, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
-    void doImport(SQLiteStorage toStorage, KeyStoreManager keystore, ConflictResolution conflictRes, URI source, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
+    void doImport(SQLiteStorage toStorage, TextCipher cipher, ConflictResolution conflictRes, URI source, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
     /**
      * External identifier.

@@ -46,12 +46,8 @@ import com.wolandsoft.sss.util.LogEx;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.util.Arrays;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
@@ -136,7 +132,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 //canceled
             } else {
                 Context ctx = getContext();
-                if(ctx != null) {
+                if (ctx != null) {
                     try {
                         String encodedB64 = result.getContents();
                         byte[] packet = Base64.decode(encodedB64, Base64.DEFAULT);
@@ -155,7 +151,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                             size = dis.readInt();
                             byte[] key = new byte[size];
                             dis.readFully(key);
-                            byte [] chipheredKey = TheApp.getRSAKSCipher().cipher(key);
+                            byte[] chipheredKey = TheApp.getCipher().cipher(key);
                             String keyB64 = Base64.encodeToString(chipheredKey, Base64.DEFAULT);
                             SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
                             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
@@ -215,7 +211,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 ksPref.edit()
                         .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, TheApp.getKeyStoreManager().encrypt(pin))
+                        .putString(R.string.pref_pin_key, TheApp.getCipher().cipherText(pin))
                         .apply();
                 ServiceManager.manageService(getContext(), ScreenMonitorService.class, true);
                 SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));

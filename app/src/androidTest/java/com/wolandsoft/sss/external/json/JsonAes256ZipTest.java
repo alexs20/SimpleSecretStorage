@@ -26,9 +26,9 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.util.KeyStoreManager;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -63,7 +63,7 @@ public class JsonAes256ZipTest {
     private static final int ENTRIES_COUNT = 1;
 
     private static SQLiteStorage storage;
-    private static KeyStoreManager keystore;
+    private static TextCipher keystore;
     private static IExternal external;
 
     @BeforeClass
@@ -71,14 +71,14 @@ public class JsonAes256ZipTest {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security keystore initialization
-        keystore = new KeyStoreManager(context);
+        keystore = new TextCipher(context);
         //db initialization
         storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i));
+            String password = keystore.cipherText(String.format(TEMPLATE_PASSWORD, i));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             storage.put(entry);
         }

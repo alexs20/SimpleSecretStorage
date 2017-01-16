@@ -52,10 +52,10 @@ import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.service.PcCommService;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 import com.wolandsoft.sss.util.KeySharedPreferences;
-import com.wolandsoft.sss.util.KeyStoreManager;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.Collections;
@@ -117,7 +117,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
             public void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote) {
                 EntryFragment.this.onEntryAttributeCopy(attr, toRemote);
             }
-        }, entryId, TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager());
+        }, entryId, TheApp.getSQLiteStorage(), TheApp.getCipher());
 
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         mKsPref = new KeySharedPreferences(shPref, getContext());
@@ -263,7 +263,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         String text = attr.getValue();
         if (attr.isProtected()) {
             if (attr.getValue() != null && attr.getValue().length() > 0) {
-                text = TheApp.getKeyStoreManager().decrupt(attr.getValue());
+                text = TheApp.getCipher().decipherText(attr.getValue());
             }
         }
         if (text.length() > 0) {
@@ -312,16 +312,16 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private final OnRVAdapterActionListener mOnActionListener;
-        private KeyStoreManager mKs;
+        private TextCipher mTC;
         private SQLiteStorage mDb;
         private SecretEntry mEntry;
         private boolean mIsProtectedVisible = false;
 
         RVAdapter(OnRVAdapterActionListener listener, int itemId,
-                  SQLiteStorage db, KeyStoreManager ks) {
+                  SQLiteStorage db, TextCipher tc) {
             mOnActionListener = listener;
             mDb = db;
-            mKs = ks;
+            mTC = tc;
             mEntry = new SecretEntry(itemId, 0, 0);
         }
 
@@ -370,7 +370,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     if (mIsProtectedVisible) {
-                        String plain = mKs.decrupt(attr.getValue());
+                        String plain = mTC.decipherText(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } else {
                         holder.mTxtValue.setText(R.string.label_hidden_password);
@@ -459,7 +459,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         }
 
         void updateModel() {
-            if (mDb != null && mKs != null) {
+            if (mDb != null && mTC != null) {
                 mEntry = mDb.get(mEntry.getID());
                 notifyDataSetChanged();
             }

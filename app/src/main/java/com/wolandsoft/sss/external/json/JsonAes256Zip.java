@@ -28,8 +28,8 @@ import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.AExternal;
 import com.wolandsoft.sss.external.ExternalException;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.SQLiteStorage;
-import com.wolandsoft.sss.util.KeyStoreManager;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -75,7 +75,7 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doExport(SQLiteStorage storage, KeyStoreManager keystore,
+    public void doExport(SQLiteStorage storage, TextCipher cipher,
                          URI destination, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -114,7 +114,7 @@ public class JsonAes256Zip extends AExternal {
                     jsonAttr.put(KEY, attr.getKey());
                     if (attr.isProtected()) {
                         jsonAttr.put(PROTECTED, true);
-                        String plain = keystore.decrupt(attr.getValue());
+                        String plain = cipher.decipherText(attr.getValue());
                         jsonAttr.put(VALUE, plain);
                     } else {
                         jsonAttr.put(VALUE, attr.getValue());
@@ -137,7 +137,7 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doImport(SQLiteStorage toStorage, KeyStoreManager keystore,
+    public void doImport(SQLiteStorage toStorage, TextCipher cipher,
                          ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -178,7 +178,7 @@ public class JsonAes256Zip extends AExternal {
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                             String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
                             if (isProtected) {
-                                value = keystore.encrypt(value);
+                                value = cipher.cipherText(value);
                             }
                             SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);

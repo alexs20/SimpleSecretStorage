@@ -75,7 +75,7 @@ public class ExportImportService extends IntentService {
         IExternal iEngine = ExternalFactory.getInstance(this).getExternal(engine);
         File destination = new File(path);
         try {
-            iEngine.doExport(TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager(), destination.toURI(), password);
+            iEngine.doExport(TheApp.getSQLiteStorage(), TheApp.getCipher(), destination.toURI(), password);
         } catch (ExternalException e) {
             LogEx.e(e.getMessage(), e);
             return false;
@@ -92,7 +92,7 @@ public class ExportImportService extends IntentService {
         IExternal iEngine = ExternalFactory.getInstance(this).getExternal(engine);
         File destination = new File(path);
         try {
-            iEngine.doImport(TheApp.getSQLiteStorage(), TheApp.getKeyStoreManager(), conflictRes, destination.toURI(), password);
+            iEngine.doImport(TheApp.getSQLiteStorage(), TheApp.getCipher(), conflictRes, destination.toURI(), password);
         } catch (ExternalException e) {
             LogEx.e(e.getMessage(), e);
             return false;

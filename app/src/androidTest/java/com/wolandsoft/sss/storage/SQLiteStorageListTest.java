@@ -21,7 +21,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.util.KeyStoreManager;
+import com.wolandsoft.sss.security.TextCipher;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,15 +57,15 @@ public class SQLiteStorageListTest {
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        //security keystore initialization
-        KeyStoreManager keystore = new KeyStoreManager(context);
+        //security cipher initialization
+        TextCipher cipher = new TextCipher(context);
         //db initialization
         mStorage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_ABC_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_ABC), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_ABC), false));
-            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
+            String password = cipher.cipherText(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             mStorage.put(entry);
         }
@@ -73,7 +73,7 @@ public class SQLiteStorageListTest {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_XYZ), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_XYZ), false));
-            String password = keystore.encrypt(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
+            String password = cipher.cipherText(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             mStorage.put(entry);
         }

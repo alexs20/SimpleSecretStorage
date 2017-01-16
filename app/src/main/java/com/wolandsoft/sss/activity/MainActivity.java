@@ -16,7 +16,6 @@
 package com.wolandsoft.sss.activity;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -34,10 +33,7 @@ import android.support.v7.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
 import com.wolandsoft.sss.activity.fragment.ExportFragment;
@@ -253,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
         String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-        storedPin = TheApp.getKeyStoreManager().decrupt(storedPin);
+        storedPin = TheApp.getCipher().decipherText(storedPin);
         mIsLocked = !pin.equals(storedPin);
         if (!mIsLocked) {
             //resetting pin response delay to zero.

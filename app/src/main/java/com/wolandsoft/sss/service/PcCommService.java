@@ -14,7 +14,6 @@ import com.wolandsoft.sss.BuildConfig;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.common.TheApp;
 import com.wolandsoft.sss.security.AESIVCipher;
-import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.ByteArrayOutputStream;
@@ -22,10 +21,6 @@ import java.io.DataOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Copy to PC service
@@ -56,7 +51,7 @@ public class PcCommService extends IntentService {
                 int port = shPref.getInt(getString(R.string.pref_pc_receiver_port_key), 0);
                 String keyB64 = shPref.getString(getString(R.string.pref_pc_receiver_key_key), null);
                 byte[] encodedKey = Base64.decode(keyB64, Base64.DEFAULT);
-                byte[] aesKey = TheApp.getRSAKSCipher().decipher(encodedKey);
+                byte[] aesKey = TheApp.getCipher().decipher(encodedKey);
                 System.out.println(Base64.encodeToString(aesKey, Base64.DEFAULT));
                 AESIVCipher aesCipher = new AESIVCipher(aesKey);
                 byte [] payload;
