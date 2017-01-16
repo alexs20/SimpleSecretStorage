@@ -1,5 +1,5 @@
 /*
-    Copyright 2016, 2017 Alexander Shulgin
+    Copyright 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,12 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-package com.wolandsoft.sss.util;
-
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-
-import com.wolandsoft.sss.security.RSAKSCipher;
+package com.wolandsoft.sss.security;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -28,13 +23,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Alexander Shulgin
@@ -42,12 +37,11 @@ import static org.junit.Assert.assertNotEquals;
 @RunWith(Parameterized.class)
 //@RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class KeyStoreManagerTest {
-    private final static String TEST_ALIAS = "test_alias";
-    private static RSAKSCipher mCipher;
+public class AESCipherTest {
+    private static AESCipher mCipher;
     private final String pwd;
 
-    public KeyStoreManagerTest(String pwd) {
+    public AESCipherTest(String pwd) {
         this.pwd = pwd;
     }
 
@@ -61,20 +55,23 @@ public class KeyStoreManagerTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        Context context = InstrumentationRegistry.getTargetContext();
-        mCipher = new RSAKSCipher(context, TEST_ALIAS);
+        mCipher = new AESCipher(null);
     }
 
     @AfterClass
     public static void clean() throws Exception {
-        mCipher.deleteKey();
+
     }
 
     @Test
-    public void test_encrypt_decrupt() throws BadPaddingException, IllegalBlockSizeException {
-//        String encrypted = mCipher.cipher(pwd.getBytes());
-//        assertNotEquals(encrypted, pwd);
-//        String decrypted = mCipher.decipher(encrypted);
-//        assertEquals(decrypted, pwd);
+    public void test_encrypt_decrupt() throws UnsupportedEncodingException, GeneralSecurityException {
+        byte[] iv = mCipher.generateIV();
+        assertNotNull(iv);
+        assertTrue(iv.length > 0);
+        byte[] data = pwd.getBytes("UTF-8");
+        byte[] encrypted = mCipher.cipher(iv, data);
+        assertFalse(Arrays.equals(encrypted, data));
+        data = mCipher.decipher(iv, encrypted);
+        assertTrue(Arrays.equals(pwd.getBytes("UTF-8"), data));
     }
 }

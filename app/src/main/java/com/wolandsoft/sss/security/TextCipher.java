@@ -31,11 +31,17 @@ import java.security.GeneralSecurityException;
 
 public class TextCipher extends RSAKSCipher {
     private AESIVCipher mAesCipher;
+    private String mAesKeyKey;
 
     public TextCipher(Context base) {
+        this(base, base.getString(R.string.pref_aes_key_key));
+    }
+
+    public TextCipher(Context base, String aesKeyKey) {
         super(base);
+        mAesKeyKey = aesKeyKey;
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String aesKeyB64 = shPref.getString(getString(R.string.pref_aes_key_key), null);
+        String aesKeyB64 = shPref.getString(aesKeyKey, null);
         try {
             if (aesKeyB64 != null) {
                 byte[] aesKeyCiphered = Base64.decode(aesKeyB64, Base64.DEFAULT);
@@ -45,7 +51,7 @@ public class TextCipher extends RSAKSCipher {
                 mAesCipher = new AESIVCipher(null);
                 byte[] aesKeyCiphered = cipher(mAesCipher.getKey());
                 aesKeyB64 = Base64.encodeToString(aesKeyCiphered, Base64.DEFAULT);
-                shPref.edit().putString(getString(R.string.pref_aes_key_key), aesKeyB64).apply();
+                shPref.edit().putString(aesKeyKey, aesKeyB64).apply();
             }
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -70,5 +76,11 @@ public class TextCipher extends RSAKSCipher {
         } catch (GeneralSecurityException | UnsupportedEncodingException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void deleteKey() {
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
+        shPref.edit().putString(mAesKeyKey, null).apply();
     }
 }
