@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,5 +28,9 @@
             android:id="@+id/navSettings"
             android:icon="@mipmap/img24dp_settings"
             android:title="@string/label_settings" />
+        <item
+            android:id="@+id/navPc"
+            android:icon="@mipmap/img24dp_pc"
+            android:title="@string/label_get_pc_receiver" />
     </group>
 </menu>

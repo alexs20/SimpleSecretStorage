@@ -16,8 +16,12 @@
 package com.wolandsoft.sss.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -33,6 +37,7 @@ import android.support.v7.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.EntriesFragment;
@@ -116,6 +121,14 @@ public class MainActivity extends AppCompatActivity implements
         };
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.addDrawerListener(mDrawerToggle);
+
+        TextView txtFooter = (TextView) findViewById(R.id.txtFooter);
+        try {
+            PackageInfo appInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            txtFooter.setText(String.format(getString(R.string.label_version),
+                    appInfo.versionName, String.valueOf(appInfo.versionCode)));
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -201,6 +214,11 @@ public class MainActivity extends AppCompatActivity implements
                 transaction.replace(R.id.content_fragment, fragment, SettingsFragment.class.getName());
                 transaction.addToBackStack(SettingsFragment.class.getName());
                 transaction.commit();
+                break;
+            }
+            case R.id.navPc: {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.url_pc_receiver)));
+                startActivity(browserIntent);
                 break;
             }
         }
