@@ -1,4 +1,4 @@
-# Simple Secret Storage (SSS Solution) is a password management tool for Android.
+# Simple Secret Storage is a password management tool for Android.
 
 The main idea of this project is to create a very simple passwords storage with a flexible data structure where user can define and store passwords or even credit cards using its own fields. Implementation should follow the minimalistic approach keeping the code simple and trying to avoid unnecessary features.
 
