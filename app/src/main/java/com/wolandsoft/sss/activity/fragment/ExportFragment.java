@@ -22,14 +22,11 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
@@ -250,7 +247,7 @@ public class ExportFragment extends BaseFragment implements FileDialogFragment.O
 
         IntentFilter filter = new IntentFilter(ExportImportService.BROADCAST_EVENT_COMPLETED);
         getContext().registerReceiver(mBrReceiver, filter);
-        if(!askForPermissions) {
+        if (!askForPermissions) {
             if (ServiceManager.isServiceRunning(getContext(), ExportImportService.class)) {
                 mLayoutWait.setVisibility(View.VISIBLE);
                 mBtnApply.setEnabled(false);

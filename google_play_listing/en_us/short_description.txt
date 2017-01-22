@@ -1,1 +1,2 @@
+Simple Secret Storage, code name Siesto
 Open Source Passwords Manager

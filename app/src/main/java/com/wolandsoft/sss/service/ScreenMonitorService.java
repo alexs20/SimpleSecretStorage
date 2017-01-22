@@ -15,10 +15,8 @@
 */
 package com.wolandsoft.sss.service;
 
-import android.app.ActivityManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;

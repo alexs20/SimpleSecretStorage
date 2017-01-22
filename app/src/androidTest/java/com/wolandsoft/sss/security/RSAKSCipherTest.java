@@ -30,13 +30,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * @author Alexander Shulgin
@@ -74,8 +69,8 @@ public class RSAKSCipherTest {
 
     @Test
     public void test_encrypt_decrupt() throws UnsupportedEncodingException, GeneralSecurityException {
-        byte [] data = pwd.getBytes("UTF-8");
-        byte [] encrypted = mCipher.cipher(data);
+        byte[] data = pwd.getBytes("UTF-8");
+        byte[] encrypted = mCipher.cipher(data);
         assertFalse(Arrays.equals(encrypted, data));
         data = mCipher.decipher(encrypted);
         assertTrue(Arrays.equals(pwd.getBytes("UTF-8"), data));

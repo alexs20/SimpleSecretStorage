@@ -31,7 +31,7 @@ import java.security.GeneralSecurityException;
 
 public class TextCipher extends RSAKSCipher {
     private AESIVCipher mAesCipher;
-    private String mAesKeyKey;
+    private final String mAesKeyKey;
 
     public TextCipher(Context base) {
         this(base, base.getString(R.string.pref_aes_key_key));

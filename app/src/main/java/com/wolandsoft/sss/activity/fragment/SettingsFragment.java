@@ -159,7 +159,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                                     .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
                                     .putInt(R.string.pref_pc_receiver_port_key, port)
                                     .putString(R.string.pref_pc_receiver_key_key, keyB64)
-                                    .commit();
+                                    .apply();
                             Intent intent = new Intent(ctx, PcCommService.class);
                             intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_PING);
                             ctx.startService(intent);

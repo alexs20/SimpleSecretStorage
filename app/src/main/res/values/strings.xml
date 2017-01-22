@@ -14,8 +14,8 @@
     limitations under the License.
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Simple Secret Storage</string>
-    <string name="screen_monitor_service_name">Screen Monitor Service</string>
+    <string name="app_name" translatable="false">Siesto</string>
+    <string name="screen_monitor_service_name" translatable="false">Screen Monitor Service</string>
     <string name="export_import_service_name">Export/Import Service</string>
     <string name="copy_to_pc_service_name">Copy to PC Service</string>
 
@@ -32,8 +32,8 @@
 
     <string name="internal_exception_must_implement" translatable="false">%1$s must implement %2$s.</string>
 
-    <string name="title_secret_fields">Secret Fields</string>
-    <string name="title_secret_field">Secret Field</string>
+    <string name="title_secret_fields">Fields</string>
+    <string name="title_secret_field">Field</string>
     <string name="title_generate_password">Generate Password</string>
     <string name="title_master_pin" translatable="false">@string/label_master_pin</string>
     <string name="title_export" translatable="false">@string/label_export</string>
@@ -45,7 +45,7 @@
     <string name="label_encrypted">Encrypted</string>
     <string name="label_search">Search</string>
     <string name="label_loading_ellipsis" tools:keep="@string/label_loading_ellipsis">Loading&#8230;</string>
-    <string name="label_delete_entry">Delete Secret Entry</string>
+    <string name="label_delete_entry">Delete Record</string>
     <string name="label_delete_field">Delete Field</string>
     <string name="label_delete">Delete</string>
     <string name="label_copy">Copy</string>
@@ -97,7 +97,7 @@
         <item>@string/label_merge</item>
     </string-array>
 
-    <string name="url_pc_receiver" translatable="false">https://github.com/alexs20/ssspcreceiver/releases</string>
+    <string name="url_pc_receiver" translatable="false">https://github.com/alexs20/SSSPCReceiver/releases</string>
 
     <string name="message_no_destination_directory_selected">Destination directory not selected.</string>
     <string name="message_no_source_file_selected">Source file not selected.</string>
@@ -113,10 +113,10 @@
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
     <string name="message_protected_fields_visible_by_default">Protected fields are visible by default.</string>
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
-    <string name="message_entry_confirmation">You are going to delete the swiped Secret Entry. This action cannot be undone. Are you sure?</string>
+    <string name="message_entry_confirmation">You are going to delete the swiped Record. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
     <string name="message_auto_copy_protected_field">Copy first protected field into memory on open.</string>
-    <string name="message_copy_to_pc">Transmit copied data to paired PC Receiver.</string>
+    <string name="message_copy_to_pc">Transmit copied data to the paired PC Receiver.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>
 

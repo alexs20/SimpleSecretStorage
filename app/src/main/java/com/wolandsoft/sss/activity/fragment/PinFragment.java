@@ -49,7 +49,6 @@ public class PinFragment extends Fragment {
     private String mPin = "";
     private Handler mHandler;
     //ui elements
-    private RelativeLayout mLayoutRoot;
     private RelativeLayout mLayoutWait;
     private ImageView mImgPin1;
     private ImageView mImgPin2;
@@ -111,7 +110,6 @@ public class PinFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_pin, container, false);
-        mLayoutRoot = (RelativeLayout) view.findViewById(R.id.layoutRoot);
         mLayoutWait = (RelativeLayout) view.findViewById(R.id.layoutWait);
         mImgPin1 = (ImageView) view.findViewById(R.id.imgPin1);
         mImgPin2 = (ImageView) view.findViewById(R.id.imgPin2);

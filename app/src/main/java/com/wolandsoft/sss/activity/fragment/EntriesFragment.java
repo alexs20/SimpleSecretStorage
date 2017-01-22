@@ -255,7 +255,7 @@ public class EntriesFragment extends Fragment implements SearchView.OnQueryTextL
         private static final long DELAY_SEARCH_UPDATE = 1000;
         private final OnRVAdapterActionListener mOnActionListener;
         private final Handler mHandler;
-        private SQLiteStorage mSqLtStorage;
+        private final SQLiteStorage mSqLtStorage;
         private List<Integer> mItemIds = null;
         private String mSearchCriteria;
         private Runnable mSearchUpdate;

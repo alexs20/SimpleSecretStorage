@@ -312,8 +312,8 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
 
     static class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
         private final OnRVAdapterActionListener mOnActionListener;
-        private TextCipher mTC;
-        private SQLiteStorage mDb;
+        private final TextCipher mTC;
+        private final SQLiteStorage mDb;
         private SecretEntry mEntry;
         private boolean mIsProtectedVisible = false;
 
@@ -416,7 +416,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuNavigate);
                 mnuNavigate.setVisible(true);
             }
-            Context ctx = (Context) mDb;
+            Context ctx = mDb;
             SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
             if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {

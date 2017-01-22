@@ -27,6 +27,7 @@ import android.support.v7.preference.PreferenceManager;
 
 import com.wolandsoft.sss.R;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,9 +50,7 @@ public class BaseFragment extends Fragment {
         }
         if (askDirect) {
             requestPermissions(permissions, 0);
-            for (String permission : permissions) {
-                askedPermissions.add(permission);
-            }
+            Collections.addAll(askedPermissions, permissions);
             shPref.edit().putStringSet(getString(R.string.pref_permission_asked_type_key), askedPermissions).apply();
         } else {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
