@@ -41,4 +41,12 @@
         android:summary="@string/message_copy_to_pc"
         android:title="@string/label_pc_receiver_paired" />
 
+    <Preference
+        android:title="@string/label_privacy_policy"
+        android:summary="@string/message_privacy_policy">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/url_privacy_policy" />
+    </Preference>
+
 </android.support.v7.preference.PreferenceScreen>

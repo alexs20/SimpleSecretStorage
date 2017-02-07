@@ -120,4 +120,9 @@
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>
 
+    <string name="label_privacy_policy">Privacy Policy</string>
+    <string name="message_privacy_policy">Sensitive permissions usage</string>
+    <string name="url_privacy_policy">https://github.com/alexs20/SimpleSecretStorage/blob/master/privacy_policy.md</string>
+
+
 </resources>
