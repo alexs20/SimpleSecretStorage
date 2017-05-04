@@ -291,6 +291,8 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
         if (!mIsLocked) {
             super.onBackPressed();
+        } else {
+            finish();
         }
     }
 }

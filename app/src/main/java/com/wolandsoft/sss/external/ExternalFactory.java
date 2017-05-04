@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 
 import com.wolandsoft.sss.external.json.JsonAes256Zip;
+import com.wolandsoft.sss.external.xml.XmlAes256Zip;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,9 @@ public final class ExternalFactory extends ContextWrapper {
     private ExternalFactory(Context base) {
         super(base);
         externals = new HashMap<>();
-        //TODO multi-externals initialization logic here
         IExternal external = new JsonAes256Zip(this);
+        externals.put(external.getID(), external);
+        external = new XmlAes256Zip(this);
         externals.put(external.getID(), external);
     }
 
