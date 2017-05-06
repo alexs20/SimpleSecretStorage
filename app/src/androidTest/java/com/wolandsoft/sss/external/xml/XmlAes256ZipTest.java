@@ -26,7 +26,6 @@ import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.external.xml.XmlAes256Zip;
 import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.SQLiteStorage;
@@ -58,10 +57,10 @@ public class XmlAes256ZipTest {
     private static final String KEY_NAME = "Name";
     private static final String KEY_URL = "URL";
     private static final String KEY_PASSWORD = "Password";
-    private static final String TEMPLATE_NAME = "thename%1$s";
-    private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
+    private static final String TEMPLATE_NAME = "test%1$s";
+    private static final String TEMPLATE_URL = "http://www.test%1$s.com";
     private static final String TEMPLATE_PASSWORD = "\\1/2|3[4]\"'56789%1$s";
-    private static final int ENTRIES_COUNT = 1;
+    private static final int ENTRIES_COUNT = 50;
 
     private static SQLiteStorage storage;
     private static TextCipher keystore;

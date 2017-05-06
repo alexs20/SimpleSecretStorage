@@ -60,7 +60,7 @@ public class JsonAes256ZipTest {
     private static final String TEMPLATE_NAME = "thename%1$s";
     private static final String TEMPLATE_URL = "http://www.example%1$s.com/test";
     private static final String TEMPLATE_PASSWORD = "\\1/2|3[4]\"'56789%1$s";
-    private static final int ENTRIES_COUNT = 1;
+    private static final int ENTRIES_COUNT = 50;
 
     private static SQLiteStorage storage;
     private static TextCipher keystore;

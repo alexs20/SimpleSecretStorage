@@ -75,12 +75,12 @@ public class XmlAes256Zip extends AExternal {
     private static final String RECORDS = "Records";
     private static final String RECORD = "Record";
     private static final String PROTECTED = "Protected";
-    private static final String KEY = "Entry";
+    private static final String KEY = "Name";
     private static final String VALUE = "Value";
     private static final String CREATED = "Created";
     private static final String UPDATED = "Updated";
     private static final String KEY_ID = "ID";
-    private static final String DATA = "Data";
+    private static final String DATA = "Field";
     private static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
 
     public XmlAes256Zip(Context base) {
