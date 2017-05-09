@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
         String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-        storedPin = TheApp.getCipher().decipherText(storedPin);
+        storedPin = TheApp.getCipher().decipher(storedPin);
         mIsLocked = !pin.equals(storedPin);
         if (!mIsLocked) {
             //resetting pin response delay to zero.

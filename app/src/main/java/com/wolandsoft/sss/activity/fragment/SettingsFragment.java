@@ -211,7 +211,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 ksPref.edit()
                         .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, TheApp.getCipher().cipherText(pin))
+                        .putString(R.string.pref_pin_key, TheApp.getCipher().cipher(pin))
                         .apply();
                 ServiceManager.manageService(getContext(), ScreenMonitorService.class, true);
                 SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));

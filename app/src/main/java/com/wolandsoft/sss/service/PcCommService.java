@@ -13,7 +13,7 @@ import android.util.Base64;
 import com.wolandsoft.sss.BuildConfig;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.common.TheApp;
-import com.wolandsoft.sss.security.AESIVCipher;
+import com.wolandsoft.sss.security.AESCipher;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +53,7 @@ public class PcCommService extends IntentService {
                 byte[] encodedKey = Base64.decode(keyB64, Base64.DEFAULT);
                 byte[] aesKey = TheApp.getCipher().decipher(encodedKey);
                 System.out.println(Base64.encodeToString(aesKey, Base64.DEFAULT));
-                AESIVCipher aesCipher = new AESIVCipher(aesKey);
+                AESCipher aesCipher = new AESCipher(aesKey);
                 byte [] payload;
                 if(CMD_PING == intent.getIntExtra(KEY_CMD, CMD_PING)){
                     payload = new byte [] {CMD_PING};

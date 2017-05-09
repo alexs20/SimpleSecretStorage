@@ -105,7 +105,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             mTxtKey.setText(mAttr.getKey());
             if (mAttr.isProtected()) {
                 if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    String plain = TheApp.getCipher().decipherText(mAttr.getValue());
+                    String plain = TheApp.getCipher().decipher(mAttr.getValue());
                     mTxtValue.setText(plain);
                 }
             } else {
@@ -198,7 +198,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
         String protectedStr = mTxtValue.getText().toString();
         if (mChkProtected.isChecked()) {
-            protectedStr = TheApp.getCipher().cipherText(protectedStr);
+            protectedStr = TheApp.getCipher().cipher(protectedStr);
         }
         SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
         getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back

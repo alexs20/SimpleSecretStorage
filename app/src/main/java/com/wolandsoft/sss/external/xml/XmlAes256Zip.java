@@ -137,7 +137,7 @@ public class XmlAes256Zip extends AExternal {
                         serializer.endTag("", KEY);
                         serializer.startTag("", VALUE);
                         if (attr.isProtected()) {
-                            String plain = cipher.decipherText(attr.getValue());
+                            String plain = cipher.decipher(attr.getValue());
                             serializer.text(plain);
                         } else {
                             serializer.text(attr.getValue());
@@ -242,7 +242,7 @@ public class XmlAes256Zip extends AExternal {
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                             String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
                             if (isProtected) {
-                                value = cipher.cipherText(value);
+                                value = cipher.cipher(value);
                             }
                             SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);

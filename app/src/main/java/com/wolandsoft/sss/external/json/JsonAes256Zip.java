@@ -114,7 +114,7 @@ public class JsonAes256Zip extends AExternal {
                     jsonAttr.put(KEY, attr.getKey());
                     if (attr.isProtected()) {
                         jsonAttr.put(PROTECTED, true);
-                        String plain = cipher.decipherText(attr.getValue());
+                        String plain = cipher.decipher(attr.getValue());
                         jsonAttr.put(VALUE, plain);
                     } else {
                         jsonAttr.put(VALUE, attr.getValue());
@@ -178,7 +178,7 @@ public class JsonAes256Zip extends AExternal {
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                             String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
                             if (isProtected) {
-                                value = cipher.cipherText(value);
+                                value = cipher.cipher(value);
                             }
                             SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);

@@ -58,14 +58,14 @@ public class SQLiteStorageListTest {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security cipher initialization
-        TextCipher cipher = new TextCipher(context);
+        TextCipher cipher = new TextCipher();
         //db initialization
         mStorage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_ABC_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_ABC), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_ABC), false));
-            String password = cipher.cipherText(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
+            String password = cipher.cipher(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             mStorage.put(entry);
         }
@@ -73,7 +73,7 @@ public class SQLiteStorageListTest {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_XYZ), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_XYZ), false));
-            String password = cipher.cipherText(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
+            String password = cipher.cipher(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             mStorage.put(entry);
         }

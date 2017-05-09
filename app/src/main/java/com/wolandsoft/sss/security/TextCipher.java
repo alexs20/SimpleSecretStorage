@@ -15,72 +15,52 @@
 */
 package com.wolandsoft.sss.security;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.support.v7.preference.PreferenceManager;
 import android.util.Base64;
 
-import com.wolandsoft.sss.R;
-
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 /**
- * @author Alexander Shulgin /alexs20@gmail.com/
+ * Base64 wrapped AES cipher
+ *
+ * @author Alexander Shulgin
  */
 
-public class TextCipher extends RSAKSCipher {
-    private AESIVCipher mAesCipher;
-    private final String mAesKeyKey;
+public class TextCipher extends AESCipher {
 
-    public TextCipher(Context base) {
-        this(base, base.getString(R.string.pref_aes_key_key));
+    /**
+     * Initialize.
+     */
+    public TextCipher() {
+        super();
     }
 
-    public TextCipher(Context base, String aesKeyKey) {
-        super(base);
-        mAesKeyKey = aesKeyKey;
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String aesKeyB64 = shPref.getString(aesKeyKey, null);
+    /**
+     * Initialize.
+     *
+     * @param keyAlias a key alias.
+     */
+    public TextCipher(String keyAlias) {
+        super(keyAlias);
+    }
+
+    public String cipher(String text) {
         try {
-            if (aesKeyB64 != null) {
-                byte[] aesKeyCiphered = Base64.decode(aesKeyB64, Base64.DEFAULT);
-                byte[] aesKey = decipher(aesKeyCiphered);
-                mAesCipher = new AESIVCipher(aesKey);
-            } else {
-                mAesCipher = new AESIVCipher(null);
-                byte[] aesKeyCiphered = cipher(mAesCipher.getKey());
-                aesKeyB64 = Base64.encodeToString(aesKeyCiphered, Base64.DEFAULT);
-                shPref.edit().putString(aesKeyKey, aesKeyB64).apply();
-            }
+            byte[] textBytes = text.getBytes(StandardCharsets.UTF_8);
+            byte[] textCiphered = cipher(textBytes);
+            return Base64.encodeToString(textCiphered, Base64.DEFAULT);
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public String cipherText(String text) {
-        try {
-            byte[] textBytes = text.getBytes("UTF-8");
-            byte[] textCiphered = mAesCipher.cipher(textBytes);
-            return Base64.encodeToString(textCiphered, Base64.DEFAULT);
-        } catch (GeneralSecurityException | UnsupportedEncodingException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public String decipherText(String secret) {
+    public String decipher(String secret) {
         try {
             byte[] textCiphered = Base64.decode(secret, Base64.DEFAULT);
-            byte[] textBytes = mAesCipher.decipher(textCiphered);
-            return new String(textBytes, "UTF-8");
-        } catch (GeneralSecurityException | UnsupportedEncodingException e) {
+            byte[] textBytes = decipher(textCiphered);
+            return new String(textBytes, StandardCharsets.UTF_8);
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-    }
-
-    @Override
-    public void deleteKey() {
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
-        shPref.edit().putString(mAesKeyKey, null).apply();
     }
 }

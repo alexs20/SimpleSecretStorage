@@ -263,7 +263,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
         String text = attr.getValue();
         if (attr.isProtected()) {
             if (attr.getValue() != null && attr.getValue().length() > 0) {
-                text = TheApp.getCipher().decipherText(attr.getValue());
+                text = TheApp.getCipher().decipher(attr.getValue());
             }
         }
         if (text.length() > 0) {
@@ -370,7 +370,7 @@ public class EntryFragment extends Fragment implements AttributeFragment.OnFragm
                 holder.mTxtValue.setText("");
                 if (attr.getValue() != null && attr.getValue().length() > 0) {
                     if (mIsProtectedVisible) {
-                        String plain = mTC.decipherText(attr.getValue());
+                        String plain = mTC.decipher(attr.getValue());
                         holder.mTxtValue.setText(plain);
                     } else {
                         holder.mTxtValue.setText(R.string.label_hidden_password);

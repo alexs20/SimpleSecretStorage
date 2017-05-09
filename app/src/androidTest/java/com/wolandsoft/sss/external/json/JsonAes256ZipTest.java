@@ -71,14 +71,14 @@ public class JsonAes256ZipTest {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
         //security keystore initialization
-        keystore = new TextCipher(context);
+        keystore = new TextCipher();
         //db initialization
         storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = keystore.cipherText(String.format(TEMPLATE_PASSWORD, i));
+            String password = keystore.cipher(String.format(TEMPLATE_PASSWORD, i));
             entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
             storage.put(entry);
         }

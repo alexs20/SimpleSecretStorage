@@ -15,13 +15,22 @@
 */
 package com.wolandsoft.sss.security;
 
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.support.annotation.VisibleForTesting;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
+import java.security.KeyStore;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -30,50 +39,130 @@ import javax.crypto.spec.SecretKeySpec;
  * @author Alexander Shulgin
  */
 public class AESCipher {
-    private static final String AES = "AES";
-    private static final String TRANSFORMATION = "AES/CBC/PKCS5PADDING";
-    private static final String ALGORITHM = "SHA1PRNG";
+    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+    private static final String KEY_ALIAS = "aes_key";
+    private static final String CIPHER_MODE = String.format("%s/%s/%s",
+            KeyProperties.KEY_ALGORITHM_AES,
+            KeyProperties.BLOCK_MODE_GCM,
+            KeyProperties.ENCRYPTION_PADDING_NONE);
+    private static final String IV_ALGORITHM = "SHA1PRNG";
+    private static final int KEY_SIZE = 256;
     private SecretKey mAesKey;
-    private boolean mIsGenerated;
+    private String mKeyAlias;
 
-    public AESCipher(byte[] aesKeyBytes) throws GeneralSecurityException {
-        if (aesKeyBytes != null) {
-            mAesKey = new SecretKeySpec(aesKeyBytes, AES);
-            mIsGenerated = false;
-        } else {
-            KeyGenerator keygen = KeyGenerator.getInstance(AES);
-            mAesKey = keygen.generateKey();
-            mIsGenerated = true;
+    /**
+     * Initialize.
+     */
+    public AESCipher() {
+        this(KEY_ALIAS);
+    }
+
+    /**
+     * Initialize.
+     *
+     * @param keyAlias a key alias.
+     */
+    public AESCipher(String keyAlias) {
+        mKeyAlias = keyAlias;
+        try {
+            KeyStore keystore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keystore.load(null);
+            if (!keystore.containsAlias(mKeyAlias)) {
+                KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
+                keyGenerator.init(new KeyGenParameterSpec.Builder(mKeyAlias,
+                        KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                        .setKeySize(KEY_SIZE)
+                        .build());
+                mAesKey = keyGenerator.generateKey();
+            } else {
+                mAesKey = (SecretKey) keystore.getKey(mKeyAlias, null);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public byte[] getKey() {
-        return mAesKey.getEncoded();
+    public AESCipher(byte[] aesKeyBytes) throws GeneralSecurityException {
+        if (aesKeyBytes != null) {
+            mAesKey = new SecretKeySpec(aesKeyBytes, KeyProperties.KEY_ALGORITHM_AES);
+        } else {
+            KeyGenerator keygen = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES);
+            mAesKey = keygen.generateKey();
+        }
     }
 
-    public boolean isGenerated() {
-        return mIsGenerated;
+    /**
+     * Cipher value using public key stored in keystore.
+     *
+     * @param payload value to encrypt.
+     * @return encrypted value
+     * @throws GeneralSecurityException
+     */
+    public byte[] cipher(byte[] payload) throws GeneralSecurityException {
+        Cipher cipher = Cipher.getInstance(CIPHER_MODE);
+        cipher.init(Cipher.ENCRYPT_MODE, mAesKey);
+        byte[] encrypted = cipher.doFinal(payload);
+        byte[] iv = cipher.getIV();
+        int tLen = (encrypted.length - payload.length) * 8;
+
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeInt(tLen);
+            dos.writeInt(iv.length);
+            dos.write(iv);
+            dos.writeInt(encrypted.length);
+            dos.write(encrypted);
+            dos.close();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new GeneralSecurityException(e.getMessage(), e);
+        }
     }
 
-    public byte[] generateIV() throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        SecureRandom randomSecureRandom = SecureRandom.getInstance(ALGORITHM);
-        byte[] iv = new byte[cipher.getBlockSize()];
-        randomSecureRandom.nextBytes(iv);
-        return iv;
+    /**
+     * Decipher value using private key stored in keystore.
+     *
+     * @param payload encrypted value
+     * @return decrypted vale
+     * @throws GeneralSecurityException
+     */
+    public byte[] decipher(byte[] payload) throws GeneralSecurityException {
+        int tLen;
+        byte[] iv;
+        byte[] encrypted;
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(payload);
+            DataInputStream dis = new DataInputStream(bais);
+            tLen = dis.readInt();
+            int size = dis.readInt();
+            iv = new byte[size];
+            dis.readFully(iv);
+            size = dis.readInt();
+            encrypted = new byte[size];
+            dis.read(encrypted);
+        } catch (IOException e) {
+            throw new GeneralSecurityException(e.getMessage(), e);
+        }
+        GCMParameterSpec ivSpec = new GCMParameterSpec(tLen, iv);
+        Cipher cipher = Cipher.getInstance(CIPHER_MODE);
+        cipher.init(Cipher.DECRYPT_MODE, mAesKey, ivSpec);
+        return cipher.doFinal(encrypted);
     }
 
-    public byte[] decipher(byte[] ivb, byte[] data) throws GeneralSecurityException {
-        IvParameterSpec iv = new IvParameterSpec(ivb);
-        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        cipher.init(Cipher.DECRYPT_MODE, mAesKey, iv);
-        return cipher.doFinal(data);
-    }
-
-    public byte[] cipher(byte[] ivb, byte[] data) throws GeneralSecurityException {
-        IvParameterSpec iv = new IvParameterSpec(ivb);
-        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        cipher.init(Cipher.ENCRYPT_MODE, mAesKey, iv);
-        return cipher.doFinal(data);
+    /**
+     * Delete generated key rfom keystore.<br/>
+     * Only for testing.
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    public void deleteKey() {
+        try {
+            KeyStore keystore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keystore.deleteEntry(mKeyAlias);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

@@ -47,7 +47,7 @@ public class TheApp extends Application {
         LogEx.d("TheApp.onCreate()");
         PreferenceManager.setDefaultValues(this, R.xml.fragment_settings, true);
         //security keystore initialization
-        mTextCipher = new TextCipher(getApplicationContext());
+        mTextCipher = new TextCipher();
         //db initialization
         mSQLtStorage = new SQLiteStorage(getApplicationContext());
 

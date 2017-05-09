@@ -59,8 +59,7 @@ public class TextCipherTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        Context context = InstrumentationRegistry.getTargetContext();
-        mCipher = new TextCipher(context, TEST_KEY);
+        mCipher = new TextCipher(TEST_KEY);
     }
 
     @AfterClass
@@ -70,10 +69,10 @@ public class TextCipherTest {
 
     @Test
     public void test_encrypt_decrupt() throws UnsupportedEncodingException, GeneralSecurityException {
-        String encrypted = mCipher.cipherText(pwd);
+        String encrypted = mCipher.cipher(pwd);
         System.out.println(encrypted);
         assertNotEquals(encrypted, pwd);
-        String open = mCipher.decipherText(encrypted);
+        String open = mCipher.decipher(encrypted);
         assertEquals(open, pwd);
     }
 

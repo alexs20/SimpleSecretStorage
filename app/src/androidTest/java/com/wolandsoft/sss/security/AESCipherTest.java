@@ -15,6 +15,9 @@
 */
 package com.wolandsoft.sss.security;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -24,10 +27,10 @@ import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
@@ -38,6 +41,7 @@ import static org.junit.Assert.assertFalse;
 //@RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AESCipherTest {
+    private final static String TEST_KEY = "test_aes_key";
     private static AESCipher mCipher;
     private final String pwd;
 
@@ -55,23 +59,20 @@ public class AESCipherTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        mCipher = new AESCipher(null);
+        mCipher = new AESCipher(TEST_KEY);
     }
 
     @AfterClass
     public static void clean() throws Exception {
-
+        mCipher.deleteKey();
     }
 
     @Test
     public void test_encrypt_decrupt() throws UnsupportedEncodingException, GeneralSecurityException {
-        byte[] iv = mCipher.generateIV();
-        assertNotNull(iv);
-        assertTrue(iv.length > 0);
-        byte[] data = pwd.getBytes("UTF-8");
-        byte[] encrypted = mCipher.cipher(iv, data);
+        byte[] data = pwd.getBytes(StandardCharsets.UTF_8);
+        byte[] encrypted = mCipher.cipher(data);
         assertFalse(Arrays.equals(encrypted, data));
-        data = mCipher.decipher(iv, encrypted);
-        assertTrue(Arrays.equals(pwd.getBytes("UTF-8"), data));
+        data = mCipher.decipher(encrypted);
+        assertTrue(Arrays.equals(pwd.getBytes(StandardCharsets.UTF_8), data));
     }
 }
