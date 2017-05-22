@@ -25,6 +25,7 @@ import android.util.LruCache;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.io.Closeable;
@@ -36,9 +37,12 @@ import java.util.List;
  *
  * @author Alexander Shulgin
  */
-public class SQLiteStorage extends ContextWrapper implements Closeable {
+public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable {
     private final DatabaseHelper mDBHelper;
     private final LruCache<Integer, SecretEntry> mCache;
+    private final TextCipher mCipher;
+    private final SQLiteDatabase mRoDb;
+    private final SQLiteDatabase mRwDb;
 
     /**
      * Initialize database and cache.<br/>
@@ -50,8 +54,11 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         super(base);
         LogEx.d("SQLiteStorage() ", this);
         mDBHelper = new DatabaseHelper(this);
+        mRoDb = mDBHelper.getReadableDatabase();
+        mRwDb = mDBHelper.getWritableDatabase();
         int cacheSize = getResources().getInteger(R.integer.pref_db_cache_size);
         mCache = new LruCache<>(cacheSize);
+        mCipher = new TextCipher();
     }
 
     /**
@@ -61,24 +68,16 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     @Override
     public void close() {
         LogEx.d("close() ", this);
-        if (mDBHelper != null) {
-            mDBHelper.close();
-        }
-        if (mCache != null) {
-            mCache.evictAll();
-        }
+        mRoDb.close();
+        mRwDb.close();
+        mDBHelper.close();
+        mCache.evictAll();
     }
 
-    /**
-     * Fet list of {@link SecretEntry} IDs that matches to the search criteria.
-     * If search criteria is {@code null} then ID's of all elements returned.
-     *
-     * @param criteria A search criteria or {@code null}.
-     * @return List of {@link SecretEntry} IDs.
-     */
-    public List<Integer> find(@Nullable String criteria) {
-        LogEx.d("find( ", criteria, " )");
-        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+    @Override
+    public List<Integer> findRecords(@Nullable String criteria) {
+        LogEx.d("findRecords( ", criteria, " )");
+        ArrayList<Integer> result = new ArrayList<>();
         String[] keywords = null;
         if (criteria != null) {
             keywords = criteria.split("\\s");
@@ -108,25 +107,18 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
         }
         sb.append(" WHERE R.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0");
         sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE);
-        Cursor cursor = db.rawQuery(sb.toString(), args.toArray(new String[0]));
-        ArrayList<Integer> result = new ArrayList<>();
-        result.ensureCapacity(cursor.getCount());
-        while (cursor.moveToNext()) {
-            result.add(cursor.getInt(0));
+        try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args.toArray(new String[0]))) {
+            result.ensureCapacity(cursor.getCount());
+            while (cursor.moveToNext()) {
+                result.add(cursor.getInt(0));
+            }
         }
-        cursor.close();
-        db.close();
         return result;
     }
 
-    /**
-     * Get {@link SecretEntry} by ID.
-     *
-     * @param id ID of {@link SecretEntry}.
-     * @return instance of {@link SecretEntry} or {@code null} if not found.
-     */
-    public SecretEntry get(int id) {
-        LogEx.d("get( ", id, " )");
+    @Override
+    public SecretEntry getRecord(int id) {
+        LogEx.d("getRecord( ", id, " )");
         SecretEntry entry = mCache.get(id);
         if (entry != null) {
             return entry;
@@ -139,77 +131,61 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
     }
 
     private SecretEntry getFromDb(int id) {
-        SQLiteDatabase db = mDBHelper.getReadableDatabase();
-        SecretEntry entry = readEntry(id, db);
-        db.close();
-        return entry;
+        return readEntry(id);
     }
 
-    /**
-     * Delte {@link SecretEntry} by ID.
-     *
-     * @param id ID of {@link SecretEntry}.
-     */
-    public void delete(int id) {
-        LogEx.d("delete( ", id, " )");
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+    @Override
+    public void deleteRecord(int id) {
+        LogEx.d("deleteRecord( ", id, " )");
+        StringBuilder sb = new StringBuilder();
+        mRwDb.beginTransaction();
         try {
-            StringBuilder sb = new StringBuilder();
-            db.beginTransaction();
-            //delete entry itself
+            //deleteRecord entry itself
             sb.append("DELETE FROM ").append(SecretEntryTable.TBL_NAME)
                     .append(" WHERE ").append(SecretEntryTable.FLD_ID).append("=?");
-            db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
-            //delete attributes
+            mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+            //deleteRecord attributes
             sb.setLength(0);
             sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME)
                     .append(" WHERE ").append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
-            db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
-            db.setTransactionSuccessful();
+            mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+            mRwDb.setTransactionSuccessful();
         } finally {
-            db.endTransaction();
+            mRwDb.endTransaction();
         }
-        db.close();
         mCache.remove(id);
     }
 
-    /**
-     * Store the {@link SecretEntry}.
-     *
-     * @param entry {@link SecretEntry} object to store.
-     * @return updated entry where {@link SecretEntry#getID()} and {@link SecretEntry#getCreated()}
-     * values are assigned for the new entries and {@link SecretEntry#getUpdated()} value updated for the others.
-     */
-    public SecretEntry put(SecretEntry entry) {
-        LogEx.d("put( ", entry, " )");
+    @Override
+    public SecretEntry putRecord(SecretEntry entry) {
+        LogEx.d("putRecord( ", entry, " )");
         SecretEntry result = null;
         int id = entry.getID();
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        StringBuilder sb = new StringBuilder();
+        long updated = System.currentTimeMillis();
+        mRwDb.beginTransaction();
         try {
-            StringBuilder sb = new StringBuilder();
-            long updated = System.currentTimeMillis();
-            db.beginTransaction();
             if (id > 0) { //presume that row already exist
-                SecretEntry oldEntry = readEntry(id, db);
+                SecretEntry oldEntry = readEntry(id);
                 if (oldEntry != null) {
                     //update entry
                     sb.append("UPDATE ").append(SecretEntryTable.TBL_NAME).append(" SET ")
                             .append(SecretEntryTable.FLD_UPDATED).append("=? WHERE ")
                             .append(SecretEntryTable.FLD_ID).append("=?");
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(updated), String.valueOf(id)});
+                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(updated), String.valueOf(id)});
                     result = new SecretEntry(id, oldEntry.getCreated(), updated);
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
-                    //delete old attributes
+                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+                    //deleteRecord old attributes
                     sb.setLength(0);
                     sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
                             .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
-                    db.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
                 } else { //no row, means inserting with id ... importing
                     sb.append("INSERT INTO ").append(SecretEntryTable.TBL_NAME).append(" (rowid,")
                             .append(SecretEntryTable.FLD_CREATED).append(",")
                             .append(SecretEntryTable.FLD_UPDATED).append(") VALUES (?,?,?)");
                     String[] args = {String.valueOf(id), String.valueOf(updated), String.valueOf(updated)};
-                    db.execSQL(sb.toString(), args);
+                    mRwDb.execSQL(sb.toString(), args);
                     result = new SecretEntry(id, updated, updated);
                 }
             } else {
@@ -217,11 +193,11 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                         .append(SecretEntryTable.FLD_CREATED).append(", ")
                         .append(SecretEntryTable.FLD_UPDATED).append(" ) VALUES ( ?, ?)");
                 String[] args = {String.valueOf(updated), String.valueOf(updated)};
-                db.execSQL(sb.toString(), args);
-                Cursor cursor = db.rawQuery("SELECT last_insert_rowid()", null);
-                cursor.moveToFirst();
-                result = new SecretEntry(cursor.getInt(0), updated, updated);
-                cursor.close();
+                mRwDb.execSQL(sb.toString(), args);
+                try (Cursor cursor = mRwDb.rawQuery("SELECT last_insert_rowid()", null)) {
+                    cursor.moveToFirst();
+                    result = new SecretEntry(cursor.getInt(0), updated, updated);
+                }
             }
             sb.setLength(0);
             sb.append("INSERT INTO ").append(SecretEntryAttributeTable.TBL_NAME).append(" ( ")
@@ -239,55 +215,55 @@ public class SQLiteStorage extends ContextWrapper implements Closeable {
                         String.valueOf(i),
                         attr.getKey(),
                         attr.isProtected() ? null : attr.getValue(),
-                        attr.isProtected() ? attr.getValue() : null};
-                db.execSQL(sql, args);
+                        attr.isProtected() ? mCipher.cipher(attr.getValue()) : null};
+                mRwDb.execSQL(sql, args);
                 result.add(attr);
             }
-            db.setTransactionSuccessful();
+            mRwDb.setTransactionSuccessful();
             mCache.put(result.getID(), result);
         } finally {
-            db.endTransaction();
+            mRwDb.endTransaction();
         }
-        db.close();
         return result;
     }
 
-    private SecretEntry readEntry(int id, SQLiteDatabase db) {
+    private SecretEntry readEntry(int id) {
         SecretEntry entry = null;
         @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM ").append(SecretEntryTable.TBL_NAME).append(" WHERE ")
                 .append(SecretEntryTable.FLD_ID).append("=?");
         String[] args = {String.valueOf(id)};
-        Cursor cursor = db.rawQuery(sb.toString(), args);
-        if (cursor.moveToFirst()) {
-            entry = new SecretEntry(id,
-                    cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_CREATED)),
-                    cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_UPDATED)));
-            entry = readEntryAttributes(entry, db);
+        try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args)) {
+            if (cursor.moveToFirst()) {
+                entry = new SecretEntry(id,
+                        cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_CREATED)),
+                        cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_UPDATED)));
+                entry = readEntryAttributes(entry);
+            }
         }
-        cursor.close();
         return entry;
     }
 
-    private SecretEntry readEntryAttributes(SecretEntry entry, SQLiteDatabase db) {
+    private SecretEntry readEntryAttributes(SecretEntry entry) {
         if (entry != null) {
             @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
             sb.append("SELECT * FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
                     .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=? ")
                     .append(" ORDER BY ").append(SecretEntryAttributeTable.FLD_ORDER_ID);
             String[] args = {String.valueOf(entry.getID())};
-            Cursor cursor = db.rawQuery(sb.toString(), args);
-            while (cursor.moveToNext()) {
-                String key = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_KEY));
-                String value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));
-                boolean isProtected = value == null;
-                if (isProtected) {
-                    value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_PROTECTED_VALUE));
+            try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args)) {
+                while (cursor.moveToNext()) {
+                    String key = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_KEY));
+                    String value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));
+                    boolean isProtected = value == null;
+                    if (isProtected) {
+                        value = mCipher.decipher(
+                                cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_PROTECTED_VALUE)));
+                    }
+                    SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
+                    entry.add(attr);
                 }
-                SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
-                entry.add(attr);
             }
-            cursor.close();
         }
         return entry;
     }

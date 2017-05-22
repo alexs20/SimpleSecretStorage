@@ -63,13 +63,13 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_00_get_null() {
-        SecretEntry se = mStorage.get(1);
+        SecretEntry se = mStorage.getRecord(1);
         assertNull(se);
     }
 
     @Test
     public void test_00_put() {
-        SecretEntry se = mStorage.put(mEntry);
+        SecretEntry se = mStorage.putRecord(mEntry);
         assertNotNull(se);
         assertTrue(se.getID() > 0);
         assertTrue(se.getCreated() > 0);
@@ -79,9 +79,9 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_01_put_and_get() {
-        SecretEntry out = mStorage.put(mEntry);
+        SecretEntry out = mStorage.putRecord(mEntry);
         assertNotNull(out);
-        SecretEntry entry = mStorage.get(out.getID());
+        SecretEntry entry = mStorage.getRecord(out.getID());
         assertNotNull(entry);
         assertEquals(out.getID(), entry.getID());
         assertEquals(out.getCreated(), entry.getCreated());
@@ -98,15 +98,15 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_02_put_update_and_get() {
-        SecretEntry out = mStorage.put(mEntry);
+        SecretEntry out = mStorage.putRecord(mEntry);
         assertNotNull(out);
         for (int i = 0; i < out.size(); i++) {
             SecretEntryAttribute inSeAttr = out.get(i);
             inSeAttr.setValue(inSeAttr.getValue() + "_changed");
         }
-        SecretEntry entry1 = mStorage.put(out);
+        SecretEntry entry1 = mStorage.putRecord(out);
         assertNotNull(entry1);
-        SecretEntry entry2 = mStorage.get(entry1.getID());
+        SecretEntry entry2 = mStorage.getRecord(entry1.getID());
         assertNotNull(entry1);
         assertEquals(entry1.getID(), entry2.getID());
         assertEquals(entry1.size(), entry2.size());
@@ -121,10 +121,10 @@ public class SQLiteStorageEntryTest {
 
     @Test
     public void test_03_delete() {
-        SecretEntry out = mStorage.put(mEntry);
+        SecretEntry out = mStorage.putRecord(mEntry);
         assertNotNull(out);
-        mStorage.delete(out.getID());
-        out = mStorage.get(out.getID());
+        mStorage.deleteRecord(out.getID());
+        out = mStorage.getRecord(out.getID());
         assertNull(out);
     }
 }

@@ -16,7 +16,6 @@
 <resources>
 
     <item name="pref_db_cache_size" translatable="false" type="integer">100</item>
-    <item name="pref_aes_key_key" translatable="false" type="string">aes_key</item>
 
     <item name="pref_pwdgen_lowercase_chars_key" translatable="false" type="string">pwdgen_lowercase_chars</item>
     <item name="pref_pwdgen_lowercase_chars_value" translatable="false" type="integer">3</item>
@@ -46,9 +45,6 @@
 
     <item name="pref_protected_field_default_visibility_key" translatable="false" type="string">protected_field_default_visibility</item>
     <item name="pref_protected_field_default_visibility_value" translatable="false" type="bool">false</item>
-
-    <item name="pref_auto_copy_protected_field_key" translatable="false" type="string">auto_copy_protected_field</item>
-    <item name="pref_auto_copy_protected_field_value" translatable="false" type="bool">false</item>
 
     <item name="pref_permission_asked_type_key" translatable="false" type="string">permission_asked_type</item>
 

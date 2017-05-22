@@ -17,7 +17,6 @@ package com.wolandsoft.sss.util;
 
 import android.util.Log;
 
-import com.wolandsoft.sss.AppConstants;
 import com.wolandsoft.sss.BuildConfig;
 
 /**
@@ -29,9 +28,9 @@ import com.wolandsoft.sss.BuildConfig;
 @SuppressWarnings("unused")
 public class LogEx {
     public static final boolean IS_DEBUG = BuildConfig.DEBUG;
+    public static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
     public static final boolean SHOW_SOURCE = BuildConfig.SHOW_SRC_IN_LOG;
-    public static final String TAG = AppConstants.APP_TAG;
-
+//MessageFormat
     /**
      * Print debug information.
      *
@@ -39,15 +38,15 @@ public class LogEx {
      */
     public static void d(Object... args) {
         if (IS_DEBUG) {
-            StringBuilder sb = getStringBuilderWithHeader();
+            SrcInfo si = getSrcInfoBuilder();
             for (Object arg : args) {
                 if (arg instanceof Throwable) {
-                    Log.d(TAG, sb.toString(), (Throwable) arg);
+                    Log.d(si.tag, si.sb.toString(), (Throwable) arg);
                     return;
                 }
-                sb.append(arg);
+                si.sb.append(arg);
             }
-            Log.d(TAG, sb.toString());
+            Log.d(si.tag, si.sb.toString());
         }
     }
 
@@ -57,15 +56,15 @@ public class LogEx {
      * @param args Sequence of elements to concatenate and print. The last element could be an exception.
      */
     public static void w(Object... args) {
-        StringBuilder sb = getStringBuilderWithHeader();
+        SrcInfo si = getSrcInfoBuilder();
         for (Object arg : args) {
             if (arg instanceof Throwable) {
-                Log.w(TAG, sb.toString(), (Throwable) arg);
+                Log.w(si.tag, si.sb.toString(), (Throwable) arg);
                 return;
             }
-            sb.append(arg);
+            si.sb.append(arg);
         }
-        Log.w(TAG, sb.toString());
+        Log.w(si.tag, si.sb.toString());
     }
 
     /**
@@ -74,15 +73,15 @@ public class LogEx {
      * @param args Sequence of elements to concatenate and print. The last element could be an exception.
      */
     public static void e(Object... args) {
-        StringBuilder sb = getStringBuilderWithHeader();
+        SrcInfo si = getSrcInfoBuilder();
         for (Object arg : args) {
             if (arg instanceof Throwable) {
-                Log.e(TAG, sb.toString(), (Throwable) arg);
+                Log.e(si.tag, si.sb.toString(), (Throwable) arg);
                 return;
             }
-            sb.append(arg);
+            si.sb.append(arg);
         }
-        Log.e(TAG, sb.toString());
+        Log.e(si.tag, si.sb.toString());
     }
 
     /**
@@ -91,15 +90,15 @@ public class LogEx {
      * @param args Sequence of elements to concatenate and print. The last element could be an exception.
      */
     public static void i(Object... args) {
-        StringBuilder sb = getStringBuilderWithHeader();
+        SrcInfo si = getSrcInfoBuilder();
         for (Object arg : args) {
             if (arg instanceof Throwable) {
-                Log.i(TAG, sb.toString(), (Throwable) arg);
+                Log.i(si.tag, si.sb.toString(), (Throwable) arg);
                 return;
             }
-            sb.append(arg);
+            si.sb.append(arg);
         }
-        Log.i(TAG, sb.toString());
+        Log.i(si.tag, si.sb.toString());
     }
 
     /**
@@ -109,39 +108,41 @@ public class LogEx {
      */
     public static void v(Object... args) {
         if (IS_DEBUG) {
-            StringBuilder sb = getStringBuilderWithHeader();
+            SrcInfo si = getSrcInfoBuilder();
             for (Object arg : args) {
                 if (arg instanceof Throwable) {
-                    Log.v(TAG, sb.toString(), (Throwable) arg);
+                    Log.v(si.tag, si.sb.toString(), (Throwable) arg);
                     return;
                 }
-                sb.append(arg);
+                si.sb.append(arg);
             }
-            Log.v(TAG, sb.toString());
+            Log.v(si.tag, si.sb.toString());
         }
     }
 
     /*
      * Build log header
      */
-    private static StringBuilder getStringBuilderWithHeader() {
-        StringBuilder sb = new StringBuilder();
+    private static SrcInfo getSrcInfoBuilder() {
+        SrcInfo ret = new SrcInfo();
+        ret.sb = new StringBuilder();
+        Throwable th = new Throwable();
+        StackTraceElement ste = th.getStackTrace()[2];
+        String clsName = ste.getClassName();
         if (SHOW_SOURCE) {
-            Throwable th = new Throwable();
-            StackTraceElement ste = th.getStackTrace()[2];
-            String clsName = ste.getClassName();
-            int dotIdx = clsName.indexOf(".");
-            if (dotIdx != -1) {
-                dotIdx = clsName.indexOf(".", ++dotIdx);
-                if (dotIdx != -1) {
-                    dotIdx = clsName.indexOf(".", ++dotIdx);
-                    if (dotIdx != -1) {
-                        sb.append(clsName.substring(++dotIdx));
-                    }
-                }
+            if (clsName.startsWith(PACKAGE_NAME)) {
+                ret.sb.append(clsName.substring(PACKAGE_NAME.length() + 1));
+            } else {
+                ret.sb.append(clsName);
             }
-            sb.append(".").append(ste.getMethodName()).append("(").append(ste.getFileName()).append(":").append(ste.getLineNumber()).append(")").append("\n");
+            ret.sb.append(".").append(ste.getMethodName()).append("(").append(ste.getFileName()).append(":").append(ste.getLineNumber()).append(")").append("\n");
         }
-        return sb;
+        ret.tag = clsName.substring(clsName.lastIndexOf(".") + 1);
+        return ret;
+    }
+
+    private static class SrcInfo {
+        StringBuilder sb;
+        String tag;
     }
 }

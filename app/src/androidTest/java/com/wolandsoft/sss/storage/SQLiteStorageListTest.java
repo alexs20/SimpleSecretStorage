@@ -57,25 +57,21 @@ public class SQLiteStorageListTest {
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        //security cipher initialization
-        TextCipher cipher = new TextCipher();
         //db initialization
         mStorage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_ABC_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_ABC), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_ABC), false));
-            String password = cipher.cipher(String.format(TEMPLATE_PASSWORD, i, VAR_ABC));
-            entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
-            mStorage.put(entry);
+            entry.add(new SecretEntryAttribute(KEY_PASSWORD, String.format(TEMPLATE_PASSWORD, i, VAR_ABC), true));
+            mStorage.putRecord(entry);
         }
         for (int i = 0; i < ENTRIES_XYZ_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i, VAR_XYZ), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i, VAR_XYZ), false));
-            String password = cipher.cipher(String.format(TEMPLATE_PASSWORD, i, VAR_XYZ));
-            entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
-            mStorage.put(entry);
+            entry.add(new SecretEntryAttribute(KEY_PASSWORD, String.format(TEMPLATE_PASSWORD, i, VAR_XYZ), true));
+            mStorage.putRecord(entry);
         }
     }
 
@@ -86,7 +82,7 @@ public class SQLiteStorageListTest {
 
     @Test
     public void test_00_get_id_all() {
-        List<Integer> seIds = mStorage.find(null);
+        List<Integer> seIds = mStorage.findRecords(null);
         assertNotNull(seIds);
         assertEquals(ENTRIES_ABC_COUNT + ENTRIES_XYZ_COUNT, seIds.size());
     }
@@ -94,11 +90,11 @@ public class SQLiteStorageListTest {
     @Test
     public void test_01_get_id_by_name() {
         String name = String.format(TEMPLATE_NAME, 0, VAR_ABC);
-        List<Integer> seIds = mStorage.find(name);
+        List<Integer> seIds = mStorage.findRecords(name);
         assertNotNull(seIds);
         assertEquals(1, seIds.size());
 
-        SecretEntry se = mStorage.get(seIds.get(0));
+        SecretEntry se = mStorage.getRecord(seIds.get(0));
         assertNotNull(se);
         assertEquals(3, se.size());
         for (int i = 0; i < se.size(); i++) {
@@ -112,11 +108,11 @@ public class SQLiteStorageListTest {
     @Test
     public void test_01_get_id_by_url() {
         String name = String.format(TEMPLATE_URL, 0, VAR_ABC);
-        List<Integer> seIds = mStorage.find(name);
+        List<Integer> seIds = mStorage.findRecords(name);
         assertNotNull(seIds);
         assertEquals(1, seIds.size());
 
-        SecretEntry se = mStorage.get(seIds.get(0));
+        SecretEntry se = mStorage.getRecord(seIds.get(0));
         assertNotNull(se);
         assertEquals(3, se.size());
         for (int i = 0; i < se.size(); i++) {
@@ -129,7 +125,7 @@ public class SQLiteStorageListTest {
 
     @Test
     public void test_02_get_id_by_name_many() {
-        List<Integer> seIds = mStorage.find(VAR_ABC);
+        List<Integer> seIds = mStorage.findRecords(VAR_ABC);
         assertNotNull(seIds);
         assertEquals(ENTRIES_ABC_COUNT, seIds.size());
     }

@@ -19,7 +19,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import static com.wolandsoft.sss.AppConstants.APP_SHORT_NAME;
+import com.wolandsoft.sss.BuildConfig;
 
 /**
  * DB helper with automatic database creation.
@@ -28,7 +28,7 @@ import static com.wolandsoft.sss.AppConstants.APP_SHORT_NAME;
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    public static final String DATABASE_NAME = APP_SHORT_NAME;
+    public static final String DATABASE_NAME = BuildConfig.APPLICATION_ID;
     private static final int DATABASE_VERSION = 1;
     private static final ATableDefinition[] TABLES = {
             new SecretEntryTable(),
@@ -56,5 +56,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 }
             }
         }
+    }
+
+    @Override
+    public SQLiteDatabase getWritableDatabase() {
+        return super.getWritableDatabase();
+    }
+
+    @Override
+    public SQLiteDatabase getReadableDatabase() {
+        return super.getReadableDatabase();
     }
 }

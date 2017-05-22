@@ -44,6 +44,15 @@ public class TextCipher extends AESCipher {
         super(keyAlias);
     }
 
+    /**
+     * Initialize.
+     *
+     * @param aesKeyBytes an aes key.
+     */
+    public TextCipher(byte[] aesKeyBytes) throws GeneralSecurityException {
+        super(aesKeyBytes);
+    }
+
     public String cipher(String text) {
         try {
             byte[] textBytes = text.getBytes(StandardCharsets.UTF_8);

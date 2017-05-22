@@ -18,6 +18,7 @@
     <string name="screen_monitor_service_name" translatable="false">Screen Monitor Service</string>
     <string name="export_import_service_name">Export/Import Service</string>
     <string name="copy_to_pc_service_name">Copy to PC Service</string>
+    <string name="core_service_name">Core Service</string>
 
     <!-- predefined entry fields -->
     <string name="enum_NAME">Name</string>
@@ -86,7 +87,6 @@
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Expose Protected</string>
-    <string name="label_auto_copy_protected_field">Auto-copy Protected</string>
     <string name="label_pc_receiver_paired">PC Receiver Paired</string>
     <string name="label_clear">Clear</string>
     <string name="label_navigate">Navigate</string>
@@ -103,8 +103,6 @@
     <string name="message_no_source_file_selected">Source file not selected.</string>
     <string name="message_password_not_the_same">Repeated password is not the same.</string>
     <string name="message_no_password">No password defined.</string>
-    <string name="message_can_not_delete_last_attribute">Last field cannot be deleted.</string>
-    <string name="message_can_not_delete_before_protected_attribute">Top field before protected can not be deleted.</string>
     <string name="message_import_process_completed">All data has been successfully imported.</string>
     <string name="message_export_process_completed">All data has been successfully exported.</string>
     <string name="message_import_process_failed">Error processing input file.</string>
@@ -115,7 +113,6 @@
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
     <string name="message_entry_confirmation">You are going to delete the swiped Record. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
-    <string name="message_auto_copy_protected_field">Copy first protected field into memory on open.</string>
     <string name="message_copy_to_pc">Transmit copied data to the paired PC Receiver.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>

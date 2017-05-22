@@ -27,9 +27,9 @@ import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.AExternal;
+import com.wolandsoft.sss.external.EConflictResolution;
 import com.wolandsoft.sss.external.ExternalException;
-import com.wolandsoft.sss.security.TextCipher;
-import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.storage.IStorage;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -75,7 +75,7 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doExport(SQLiteStorage storage, TextCipher cipher,
+    public void doExport(IStorage storage,
                          URI destination, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -101,9 +101,9 @@ public class JsonAes256Zip extends AExternal {
 
 
             List<Object> jsonEntries = new LinkedList<>();
-            List<Integer> entries = storage.find(null);
+            List<Integer> entries = storage.findRecords(null);
             for (int id : entries) {
-                SecretEntry entry = storage.get(id);
+                SecretEntry entry = storage.getRecord(id);
                 Map<String, Object> jsonEntry = new LinkedHashMap<>();
                 jsonEntry.put(KEY_ID, String.valueOf(entry.getID()));
                 jsonEntry.put(CREATED, format.format(new Date(entry.getCreated())));
@@ -114,11 +114,8 @@ public class JsonAes256Zip extends AExternal {
                     jsonAttr.put(KEY, attr.getKey());
                     if (attr.isProtected()) {
                         jsonAttr.put(PROTECTED, true);
-                        String plain = cipher.decipher(attr.getValue());
-                        jsonAttr.put(VALUE, plain);
-                    } else {
-                        jsonAttr.put(VALUE, attr.getValue());
                     }
+                    jsonAttr.put(VALUE, attr.getValue());
                     jsonAttrs.add(jsonAttr);
                 }
                 jsonEntry.put(DATA, jsonAttrs);
@@ -137,8 +134,8 @@ public class JsonAes256Zip extends AExternal {
     }
 
     @Override
-    public void doImport(SQLiteStorage toStorage, TextCipher cipher,
-                         ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
+    public void doImport(IStorage toStorage,
+                         EConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
             throw new ExternalException(getString(R.string.exception_no_storage_permission));
@@ -177,16 +174,13 @@ public class JsonAes256Zip extends AExternal {
                             String key = attrMap.containsKey(KEY) ? attrMap.get(KEY).toString() : "";
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                             String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
-                            if (isProtected) {
-                                value = cipher.cipher(value);
-                            }
                             SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);
                         }
                     }
-                    SecretEntry oldEntry = toStorage.get(id);
-                    if (oldEntry == null || ConflictResolution.overwrite == conflictRes) {
-                        toStorage.put(entry);
+                    SecretEntry oldEntry = toStorage.getRecord(id);
+                    if (oldEntry == null || EConflictResolution.overwrite == conflictRes) {
+                        toStorage.putRecord(entry);
                     } else {
                         long created = oldEntry.getCreated() > entry.getCreated() ? entry.getCreated() : oldEntry.getCreated();
                         long updated = oldEntry.getUpdated() < entry.getUpdated() ? entry.getUpdated() : oldEntry.getUpdated();
@@ -207,7 +201,7 @@ public class JsonAes256Zip extends AExternal {
                         for (SecretEntryAttribute attr : entry) {
                             mergedEntry.add(attr);
                         }
-                        toStorage.put(mergedEntry);
+                        toStorage.putRecord(mergedEntry);
                     }
                 }
             }

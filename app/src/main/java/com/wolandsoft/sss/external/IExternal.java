@@ -15,7 +15,7 @@
  */
 package com.wolandsoft.sss.external;
 
-import com.wolandsoft.sss.security.TextCipher;
+import com.wolandsoft.sss.storage.IStorage;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 
 import java.net.URI;
@@ -28,9 +28,9 @@ import java.net.URI;
 
 public interface IExternal {
 
-    void doExport(SQLiteStorage fromStorage, TextCipher cipher, URI destination, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
+    void doExport(IStorage fromStorage, URI destination, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
-    void doImport(SQLiteStorage toStorage, TextCipher cipher, ConflictResolution conflictRes, URI source, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
+    void doImport(IStorage toStorage, EConflictResolution conflictRes, URI source, String password, @SuppressWarnings("UnusedParameters") Object... extra) throws ExternalException;
 
     /**
      * External identifier.
@@ -38,9 +38,4 @@ public interface IExternal {
      * @return Unique identifier across all possible externals implementations.
      */
     String getID();
-
-    enum ConflictResolution {
-        overwrite, merge
-    }
-
 }

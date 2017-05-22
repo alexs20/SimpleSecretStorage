@@ -202,7 +202,7 @@ public class PwdGenFragment extends Fragment {
     /**
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
-    interface OnFragmentToFragmentInteract {
+    public interface OnFragmentToFragmentInteract {
         void onPasswordGenerate(String password);
     }
 }

@@ -40,14 +40,15 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.fragment.EntriesFragment;
-import com.wolandsoft.sss.activity.fragment.ExportFragment;
-import com.wolandsoft.sss.activity.fragment.ImportFragment;
+import com.wolandsoft.sss.activity.fragment.entries.EntriesFragment;
+import com.wolandsoft.sss.activity.fragment.external.ExportFragment;
+import com.wolandsoft.sss.activity.fragment.external.ImportFragment;
 import com.wolandsoft.sss.activity.fragment.PinFragment;
 import com.wolandsoft.sss.activity.fragment.SettingsFragment;
-import com.wolandsoft.sss.common.TheApp;
+import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
+import com.wolandsoft.sss.service.core.CoreServiceProxy;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -67,10 +68,15 @@ public class MainActivity extends AppCompatActivity implements
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private boolean mIsLocked = false;
+    private TextCipher mCipher;
+    private CoreServiceProxy mCore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PreferenceManager.setDefaultValues(this, R.xml.fragment_settings, true);
+
+        mCipher = new TextCipher();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
 
@@ -267,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences shPref = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, this);
         String storedPin = ksPref.getString(R.string.pref_pin_key, R.string.label_ellipsis);
-        storedPin = TheApp.getCipher().decipher(storedPin);
+        storedPin = mCipher.decipher(storedPin);
         mIsLocked = !pin.equals(storedPin);
         if (!mIsLocked) {
             //resetting pin response delay to zero.
@@ -295,4 +301,6 @@ public class MainActivity extends AppCompatActivity implements
             finish();
         }
     }
+
+
 }

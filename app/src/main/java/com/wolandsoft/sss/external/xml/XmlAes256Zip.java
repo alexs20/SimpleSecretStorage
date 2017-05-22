@@ -21,16 +21,13 @@ import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Xml;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.external.AExternal;
+import com.wolandsoft.sss.external.EConflictResolution;
 import com.wolandsoft.sss.external.ExternalException;
-import com.wolandsoft.sss.security.TextCipher;
-import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.storage.IStorage;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -55,13 +52,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static android.R.attr.id;
 
 /**
  * Export - import engine.<br/>
@@ -88,7 +81,7 @@ public class XmlAes256Zip extends AExternal {
     }
 
     @Override
-    public void doExport(SQLiteStorage storage, TextCipher cipher,
+    public void doExport(IStorage storage,
                          URI destination, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -114,45 +107,40 @@ public class XmlAes256Zip extends AExternal {
 
             XmlSerializer serializer = Xml.newSerializer();
             StringWriter writer = new StringWriter();
-                serializer.setOutput(writer);
-                serializer.startDocument("UTF-8", true);
-                serializer.startTag("", RECORDS);
-                List<Integer> entries = storage.find(null);
-                for (int id : entries) {
-                    serializer.startTag("", RECORD);
-                    SecretEntry entry = storage.get(id);
-                    serializer.startTag("", KEY_ID);
-                    serializer.text(String.valueOf(entry.getID()));
-                    serializer.endTag("", KEY_ID);
-                    serializer.startTag("", CREATED);
-                    serializer.text(format.format(new Date(entry.getCreated())));
-                    serializer.endTag("", CREATED);
-                    serializer.startTag("", UPDATED);
-                    serializer.text(format.format(new Date(entry.getUpdated())));
-                    serializer.endTag("", UPDATED);
-                    for (SecretEntryAttribute attr : entry) {
-                        serializer.startTag("", DATA);
-                        serializer.startTag("", KEY);
-                        serializer.text(attr.getKey());
-                        serializer.endTag("", KEY);
-                        serializer.startTag("", VALUE);
-                        if (attr.isProtected()) {
-                            String plain = cipher.decipher(attr.getValue());
-                            serializer.text(plain);
-                        } else {
-                            serializer.text(attr.getValue());
-                        }
-                        serializer.endTag("", VALUE);
-                        serializer.startTag("", PROTECTED);
-                        serializer.text(String.valueOf(attr.isProtected()));
-                        serializer.endTag("", PROTECTED);
-                        serializer.endTag("", DATA);
-                    }
-                    serializer.endTag("", RECORD);
+            serializer.setOutput(writer);
+            serializer.startDocument("UTF-8", true);
+            serializer.startTag("", RECORDS);
+            List<Integer> entries = storage.findRecords(null);
+            for (int id : entries) {
+                serializer.startTag("", RECORD);
+                SecretEntry entry = storage.getRecord(id);
+                serializer.startTag("", KEY_ID);
+                serializer.text(String.valueOf(entry.getID()));
+                serializer.endTag("", KEY_ID);
+                serializer.startTag("", CREATED);
+                serializer.text(format.format(new Date(entry.getCreated())));
+                serializer.endTag("", CREATED);
+                serializer.startTag("", UPDATED);
+                serializer.text(format.format(new Date(entry.getUpdated())));
+                serializer.endTag("", UPDATED);
+                for (SecretEntryAttribute attr : entry) {
+                    serializer.startTag("", DATA);
+                    serializer.startTag("", KEY);
+                    serializer.text(attr.getKey());
+                    serializer.endTag("", KEY);
+                    serializer.startTag("", VALUE);
+                    serializer.text(attr.getValue());
+                    serializer.endTag("", VALUE);
+                    serializer.startTag("", PROTECTED);
+                    serializer.text(String.valueOf(attr.isProtected()));
+                    serializer.endTag("", PROTECTED);
+                    serializer.endTag("", DATA);
                 }
-                serializer.endTag("", RECORDS);
-                serializer.endDocument();
-                String outStr =  writer.toString();
+                serializer.endTag("", RECORD);
+            }
+            serializer.endTag("", RECORDS);
+            serializer.endDocument();
+            String outStr = writer.toString();
 
             InputStream in = IOUtils.toInputStream(outStr);
             zip.addStream(in, parameters);
@@ -163,8 +151,8 @@ public class XmlAes256Zip extends AExternal {
     }
 
     @Override
-    public void doImport(SQLiteStorage toStorage, TextCipher cipher,
-                         ConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
+    public void doImport(IStorage toStorage,
+                         EConflictResolution conflictRes, URI source, String password, Object... extra) throws ExternalException {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
             throw new ExternalException(getString(R.string.exception_no_storage_permission));
@@ -196,32 +184,30 @@ public class XmlAes256Zip extends AExternal {
             XmlPullParser xpp = factory.newPullParser();
             xpp.setInput(new StringReader(dataString));
             int eventType = xpp.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT){
+            while (eventType != XmlPullParser.END_DOCUMENT) {
                 if (eventType == XmlPullParser.START_TAG) {
-                    if(RECORD.equals(xpp.getName())){
+                    if (RECORD.equals(xpp.getName())) {
                         mpEntry = new HashMap<>();
                         attrs = new ArrayList<>();
                         mpNow = mpEntry;
-                    } else if(DATA.equals(xpp.getName())) {
+                    } else if (DATA.equals(xpp.getName())) {
                         mpAttr = new HashMap<>();
                         mpNow = mpAttr;
                     } else {
                         key = xpp.getName();
                     }
-                }
-                else if (eventType == XmlPullParser.END_TAG) {
-                    if(RECORD.equals(xpp.getName())){
+                } else if (eventType == XmlPullParser.END_TAG) {
+                    if (RECORD.equals(xpp.getName())) {
                         mpNow = null;
                         mpEntry.put(DATA, attrs);
                         entriesList.add(mpEntry);
-                    } else if(DATA.equals(xpp.getName())) {
+                    } else if (DATA.equals(xpp.getName())) {
                         mpNow = mpEntry;
                         attrs.add(mpAttr);
                     } else {
                         key = null;
                     }
-                }
-                else if(eventType == XmlPullParser.TEXT) {
+                } else if (eventType == XmlPullParser.TEXT) {
                     mpNow.put(key, xpp.getText().trim());
                 }
                 eventType = xpp.next();
@@ -241,16 +227,13 @@ public class XmlAes256Zip extends AExternal {
                             key = attrMap.containsKey(KEY) ? attrMap.get(KEY).toString() : "";
                             boolean isProtected = attrMap.containsKey(PROTECTED) ? Boolean.valueOf(attrMap.get(PROTECTED).toString()) : false;
                             String value = attrMap.containsKey(VALUE) ? attrMap.get(VALUE).toString() : "";
-                            if (isProtected) {
-                                value = cipher.cipher(value);
-                            }
                             SecretEntryAttribute attr = new SecretEntryAttribute(key, value, isProtected);
                             entry.add(attr);
                         }
                     }
-                    SecretEntry oldEntry = toStorage.get(id);
-                    if (oldEntry == null || ConflictResolution.overwrite == conflictRes) {
-                        toStorage.put(entry);
+                    SecretEntry oldEntry = toStorage.getRecord(id);
+                    if (oldEntry == null || EConflictResolution.overwrite == conflictRes) {
+                        toStorage.putRecord(entry);
                     } else {
                         long created = oldEntry.getCreated() > entry.getCreated() ? entry.getCreated() : oldEntry.getCreated();
                         long updated = oldEntry.getUpdated() < entry.getUpdated() ? entry.getUpdated() : oldEntry.getUpdated();
@@ -271,7 +254,7 @@ public class XmlAes256Zip extends AExternal {
                         for (SecretEntryAttribute attr : entry) {
                             mergedEntry.add(attr);
                         }
-                        toStorage.put(mergedEntry);
+                        toStorage.putRecord(mergedEntry);
                     }
                 }
             }

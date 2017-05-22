@@ -13,8 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-package com.wolandsoft.sss.activity.fragment;
+package com.wolandsoft.sss.activity.fragment.external;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +38,12 @@ import java.util.Set;
  * @author Alexander Shulgin
  */
 public class BaseFragment extends Fragment {
+
+    public static final String[] EXTERNAL_STORAGE_PERMISSIONS = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
     public void requestPermission(String[] permissions) {
         Context ctx = getContext();
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);

@@ -85,12 +85,7 @@ public class AESCipher {
     }
 
     public AESCipher(byte[] aesKeyBytes) throws GeneralSecurityException {
-        if (aesKeyBytes != null) {
-            mAesKey = new SecretKeySpec(aesKeyBytes, KeyProperties.KEY_ALGORITHM_AES);
-        } else {
-            KeyGenerator keygen = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES);
-            mAesKey = keygen.generateKey();
-        }
+        mAesKey = new SecretKeySpec(aesKeyBytes, KeyProperties.KEY_ALGORITHM_AES);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
  */
-package com.wolandsoft.sss.activity.fragment;
+package com.wolandsoft.sss.activity.fragment.attribute;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -33,7 +33,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.common.TheApp;
+import com.wolandsoft.sss.activity.fragment.PwdGenFragment;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -58,6 +58,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
     private OnFragmentToFragmentInteract mListener;
 
     public static AttributeFragment newInstance(int attrPos, SecretEntryAttribute attr) {
+        LogEx.d("newInstance(", attrPos, ",", attr, ")");
         AttributeFragment fragment = new AttributeFragment();
         if (attr == null) {
             attr = new SecretEntryAttribute("", "", false);
@@ -71,8 +72,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
     @Override
     public void onAttach(Context context) {
-        super.onAttach(context);
         LogEx.d("onAttach()");
+        super.onAttach(context);
         Fragment parent = getTargetFragment();
         if (parent instanceof OnFragmentToFragmentInteract) {
             mListener = (OnFragmentToFragmentInteract) parent;
@@ -85,8 +86,8 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        LogEx.d("onCreate(", savedInstanceState, ")");
         super.onCreate(savedInstanceState);
-        LogEx.d("onCreate()");
         Bundle args = getArguments();
         mAttr = args.getParcelable(ARG_ATTR);
         mAttrPos = args.getInt(ARG_ATTR_POS);
@@ -94,7 +95,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        LogEx.d("onCreateView()");
+        LogEx.d("onCreateView(", inflater, ",", container, ",", savedInstanceState, ")");
         View view = inflater.inflate(R.layout.fragment_attr, container, false);
         mTxtKey = (TextInputEditText) view.findViewById(R.id.txtKey);
         mTxtValue = (TextInputEditText) view.findViewById(R.id.txtValue);
@@ -103,14 +104,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
         if (savedInstanceState == null) {
             mTxtKey.setText(mAttr.getKey());
-            if (mAttr.isProtected()) {
-                if (mAttr.getValue() != null && mAttr.getValue().length() > 0) {
-                    String plain = TheApp.getCipher().decipher(mAttr.getValue());
-                    mTxtValue.setText(plain);
-                }
-            } else {
-                mTxtValue.setText(mAttr.getValue());
-            }
+            mTxtValue.setText(mAttr.getValue());
             mChkProtected.setChecked(mAttr.isProtected());
         }
 
@@ -157,6 +151,7 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        LogEx.d("onViewCreated(", view, ",", savedInstanceState, ")");
         super.onViewCreated(view, savedInstanceState);
         final Handler handler = new Handler();
         handler.post(new Runnable() {
@@ -195,25 +190,21 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             InputMethodManager inputManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             inputManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
-
-        String protectedStr = mTxtValue.getText().toString();
-        if (mChkProtected.isChecked()) {
-            protectedStr = TheApp.getCipher().cipher(protectedStr);
-        }
-        SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), protectedStr, mChkProtected.isChecked());
+        SecretEntryAttribute attr = new SecretEntryAttribute(mTxtKey.getText().toString(), mTxtValue.getText().toString(), mChkProtected.isChecked());
         getFragmentManager().popBackStackImmediate(); //complete the pop in order to restore the parent fragment as we are going to call it back
         mListener.onAttributeUpdate(mAttrPos, attr);
     }
 
     @Override
     public void onPasswordGenerate(String password) {
+        LogEx.d("onPasswordGenerate(", password, ")");
         mTxtValue.setText(password);
     }
 
     /**
      * This interface should be implemented by parent fragment in order to receive callbacks from this fragment.
      */
-    interface OnFragmentToFragmentInteract {
+    public interface OnFragmentToFragmentInteract {
         void onAttributeUpdate(int pos, SecretEntryAttribute attr);
     }
 }

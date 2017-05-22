@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,22 +13,13 @@
     See the License for the specific language governing permissions and
     limitations under the License.
  */
-package com.wolandsoft.sss;
-
-import android.Manifest;
+package com.wolandsoft.sss.external;
 
 /**
- * Commonly used constants.
+ * Possible conflict resolution strategies.
  *
  * @author Alexander Shulgin
  */
-
-public final class AppConstants {
-    public static final String APP_TAG = "SSS";
-    public static final String APP_SHORT_NAME = "SimpleSecretStorage";
-
-    public static final String[] EXTERNAL_STORAGE_PERMISSIONS = new String[]{
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-    };
+public enum EConflictResolution {
+    overwrite, merge
 }

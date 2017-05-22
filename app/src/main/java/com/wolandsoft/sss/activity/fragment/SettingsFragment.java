@@ -37,10 +37,11 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
-import com.wolandsoft.sss.common.TheApp;
-import com.wolandsoft.sss.service.PcCommService;
+import com.wolandsoft.sss.security.TextCipher;
+import com.wolandsoft.sss.service.pccomm.PcCommService;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
+import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
@@ -54,10 +55,14 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     private String mPin = null;
     private SwitchPreferenceCompat mChkPinEnabled;
     private SwitchPreferenceCompat mChkReceiverEnabled;
+    private TextCipher mCipher;
+    private PcCommServiceProxy mPcComm;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        mCipher = new TextCipher();
+        mPcComm = new PcCommServiceProxy(context);
     }
 
     @Override
@@ -151,7 +156,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                             size = dis.readInt();
                             byte[] key = new byte[size];
                             dis.readFully(key);
-                            byte[] chipheredKey = TheApp.getCipher().cipher(key);
+                            byte[] chipheredKey = mCipher.cipher(key);
                             String keyB64 = Base64.encodeToString(chipheredKey, Base64.DEFAULT);
                             SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
                             KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
@@ -160,9 +165,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                                     .putInt(R.string.pref_pc_receiver_port_key, port)
                                     .putString(R.string.pref_pc_receiver_key_key, keyB64)
                                     .apply();
-                            Intent intent = new Intent(ctx, PcCommService.class);
-                            intent.putExtra(PcCommService.KEY_CMD, PcCommService.CMD_PING);
-                            ctx.startService(intent);
+                            mPcComm.ping();
                             return;
                         }
                     } catch (Exception e) {
@@ -211,7 +214,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 ksPref.edit()
                         .putBoolean(R.string.pref_pin_enabled_key, true)
-                        .putString(R.string.pref_pin_key, TheApp.getCipher().cipher(pin))
+                        .putString(R.string.pref_pin_key, mCipher.cipher(pin))
                         .apply();
                 ServiceManager.manageService(getContext(), ScreenMonitorService.class, true);
                 SwitchPreferenceCompat chk = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pin_enabled_key));

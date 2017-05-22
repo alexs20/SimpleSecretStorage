@@ -23,10 +23,10 @@ import android.support.test.runner.AndroidJUnit4;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
+import com.wolandsoft.sss.external.EConflictResolution;
 import com.wolandsoft.sss.external.ExternalException;
 import com.wolandsoft.sss.external.ExternalFactory;
 import com.wolandsoft.sss.external.IExternal;
-import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.storage.DatabaseHelper;
 import com.wolandsoft.sss.storage.SQLiteStorage;
 
@@ -52,7 +52,7 @@ import static junit.framework.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class XmlAes256ZipTest {
-    private static final String FILE_NAME = "export.zip";
+    private static final String FILE_NAME = "doImport.zip";
     private static final String FILE_PASSWORD = "4RRt6#$";
     private static final String KEY_NAME = "Name";
     private static final String KEY_URL = "URL";
@@ -63,24 +63,20 @@ public class XmlAes256ZipTest {
     private static final int ENTRIES_COUNT = 50;
 
     private static SQLiteStorage storage;
-    private static TextCipher keystore;
     private static IExternal external;
 
     @BeforeClass
     public static void setupDB() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
         context.deleteDatabase(DatabaseHelper.DATABASE_NAME);
-        //security keystore initialization
-        keystore = new TextCipher();
         //db initialization
         storage = new SQLiteStorage(context);
         for (int i = 0; i < ENTRIES_COUNT; i++) {
             SecretEntry entry = new SecretEntry();
             entry.add(new SecretEntryAttribute(KEY_NAME, String.format(TEMPLATE_NAME, i), false));
             entry.add(new SecretEntryAttribute(KEY_URL, String.format(TEMPLATE_URL, i), false));
-            String password = keystore.cipher(String.format(TEMPLATE_PASSWORD, i));
-            entry.add(new SecretEntryAttribute(KEY_PASSWORD, password, true));
-            storage.put(entry);
+            entry.add(new SecretEntryAttribute(KEY_PASSWORD, String.format(TEMPLATE_PASSWORD, i), true));
+            storage.putRecord(entry);
         }
         external = ExternalFactory.getInstance(context).getExternal(XmlAes256Zip.class.getSimpleName());
     }
@@ -100,37 +96,37 @@ public class XmlAes256ZipTest {
             }
         }
         assertFalse(location.exists());
-        external.doExport(storage, keystore, location.toURI(), FILE_PASSWORD);
+        external.doExport(storage, location.toURI(), FILE_PASSWORD);
         assertTrue(location.exists());
 
-        List<Integer> entries = storage.find(null);
+        List<Integer> entries = storage.findRecords(null);
         assertEquals(ENTRIES_COUNT, entries.size());
-        SecretEntry se = storage.get(entries.get(0));
+        SecretEntry se = storage.getRecord(entries.get(0));
         assertNotNull(se);
         SecretEntryAttribute attr = se.get(0);
         attr.setValue("CHANGED");
-        storage.put(se);
+        storage.putRecord(se);
 
-        external.doImport(storage, keystore, IExternal.ConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
-        entries = storage.find(null);
+        external.doImport(storage, EConflictResolution.overwrite, location.toURI(), FILE_PASSWORD);
+        entries = storage.findRecords(null);
         assertEquals(ENTRIES_COUNT, entries.size());
 
-        se = storage.get(entries.get(0));
+        se = storage.getRecord(entries.get(0));
         assertNotNull(se);
         attr = se.get(0);
         assertNotSame("CHANGED", attr.getValue());
 
-        se = storage.get(entries.get(0));
+        se = storage.getRecord(entries.get(0));
         assertNotNull(se);
         attr = se.get(0);
         attr.setValue("CHANGED");
-        storage.put(se);
+        storage.putRecord(se);
 
-        external.doImport(storage, keystore, IExternal.ConflictResolution.merge, location.toURI(), FILE_PASSWORD);
-        entries = storage.find(null);
+        external.doImport(storage, EConflictResolution.merge, location.toURI(), FILE_PASSWORD);
+        entries = storage.findRecords(null);
         assertEquals(ENTRIES_COUNT, entries.size());
 
-        se = storage.get(entries.get(0));
+        se = storage.getRecord(entries.get(0));
         assertNotNull(se);
         int count = 0;
         for (SecretEntryAttribute attrNext : se) {
