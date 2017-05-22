@@ -85,19 +85,15 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
         final SecretEntry entry = getItem(position);
         holder.mTxtTitle.setVisibility(View.INVISIBLE);
         holder.mTxtTitleSmall.setVisibility(View.GONE);
-        String capChar = "?";
-        String capTitle = capChar;
+        String capTitle = "?";
         int next = 0;
         while (next < entry.size() && entry.get(next).isProtected()) {
             next++;
         }
         if (next < entry.size()) {
-            holder.mTxtTitle.setText(entry.get(next).getValue());
+            capTitle = entry.get(next).getValue().trim();
+            holder.mTxtTitle.setText(capTitle);
             holder.mTxtTitle.setVisibility(View.VISIBLE);
-            capTitle = capTitle.trim();
-            if (capTitle.length() > 0) {
-                capChar = capTitle.substring(0, 1).toUpperCase();
-            }
             next++;
         }
         while (next < entry.size() && entry.get(next).isProtected()) {
@@ -116,8 +112,31 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
         //make a colored capital character
         ColorGenerator generator = ColorGenerator.DEFAULT;
         int color = generator.getColor(capTitle);
-        TextDrawable drawable = TextDrawable.builder().beginConfig().bold().endConfig().buildRound(capChar, color);
+        TextDrawable drawable = TextDrawable.builder()
+                .beginConfig()
+                .bold()
+                .endConfig()
+                .buildRound(getIconChars(capTitle), color);
         holder.mImgIcon.setImageDrawable(drawable);
+    }
+
+    private String getIconChars(String title) {
+        StringBuilder sb = new StringBuilder();
+        String[] parts = title.trim().split(" ");
+        String part = parts[0];
+        if (part.length() == 0) {
+            return "?";
+        }
+        String oneChar = part.substring(0, 1).toUpperCase();
+        sb.append(oneChar);
+        if (parts.length > 1) {
+            part = parts[parts.length - 1];
+            if (part.length() > 0) {
+                oneChar = part.substring(0, 1).toUpperCase();
+                sb.append(oneChar);
+            }
+        }
+        return sb.toString();
     }
 
     @Override
