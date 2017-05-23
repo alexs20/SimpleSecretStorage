@@ -66,7 +66,7 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
                     + " SELECT F1_ATTR.{order_id} FROM {secret_entry_attribute} AS F1_ATTR"
                     + " WHERE F1_ATTR.{entry_id} = ENTRY.{id}"
                     + " AND F1_ATTR.{value} IS NOT NULL"
-                    + " ORDER BY F1_ATTR.{value} LIMIT 1)"
+                    + " ORDER BY F1_ATTR.{order_id} LIMIT 1)"
                     + " AND ATTR.{entry_id} = ("
                     + " SELECT F2_ATTR.{entry_id} FROM {secret_entry_attribute} AS F2_ATTR"
                     + " WHERE F2_ATTR.{entry_id} = ENTRY.{id}"
