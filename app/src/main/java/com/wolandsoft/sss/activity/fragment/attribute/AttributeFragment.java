@@ -116,11 +116,6 @@ public class AttributeFragment extends Fragment implements PwdGenFragment.OnFrag
             }
         });
 
-        if (mAttrPos == 0) {
-            mChkProtected.setVisibility(View.GONE);
-            view.findViewById(R.id.lblProtected).setVisibility(View.GONE);
-        }
-
         mBtnGenerate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
