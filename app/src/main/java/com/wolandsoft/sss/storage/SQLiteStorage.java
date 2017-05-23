@@ -27,6 +27,7 @@ import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.util.LogEx;
+import com.wolandsoft.sss.util.SQLFormat;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -38,6 +39,101 @@ import java.util.List;
  * @author Alexander Shulgin
  */
 public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable {
+    private final static String SQL_GET_ID_INSERTED = "SELECT last_insert_rowid()";
+    private final static String SQL_GET_ALL = SQLFormat.format(
+            "SELECT DISTINCT ENTRY.{id} FROM {secret_entry} AS ENTRY"
+                    + " LEFT JOIN {secret_entry_attribute} AS ATTR ON ("
+                    + " ATTR.{entry_id} = ENTRY.{id}"
+                    + " AND ATTR.{order_id} = ("
+                    + " SELECT F1_ATTR.{order_id} FROM {secret_entry_attribute} AS F1_ATTR"
+                    + " WHERE F1_ATTR.{entry_id} = ENTRY.{id}"
+                    + " AND F1_ATTR.{value} IS NOT NULL"
+                    + " ORDER BY F1_ATTR.{order_id} LIMIT 1)"
+                    + " )"
+                    + "ORDER BY ATTR.{value};",
+            "secret_entry, id, secret_entry_attribute, entry_id, order_id, value",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_ID,
+            SecretEntryAttributeTable.TBL_NAME,
+            SecretEntryAttributeTable.FLD_ENTRY_ID,
+            SecretEntryAttributeTable.FLD_ORDER_ID,
+            SecretEntryAttributeTable.FLD_VALUE);
+    private final static String SQL_SEARCH = SQLFormat.format(
+            "SELECT DISTINCT ENTRY.{id} FROM {secret_entry} AS ENTRY"
+                    + " INNER JOIN {secret_entry_attribute} AS ATTR ON ("
+                    + " ATTR.{entry_id} = ENTRY.{id}"
+                    + " AND ATTR.{order_id} = ("
+                    + " SELECT F1_ATTR.{order_id} FROM {secret_entry_attribute} AS F1_ATTR"
+                    + " WHERE F1_ATTR.{entry_id} = ENTRY.{id}"
+                    + " AND F1_ATTR.{value} IS NOT NULL"
+                    + " ORDER BY F1_ATTR.{value} LIMIT 1)"
+                    + " AND ATTR.{entry_id} = ("
+                    + " SELECT F2_ATTR.{entry_id} FROM {secret_entry_attribute} AS F2_ATTR"
+                    + " WHERE F2_ATTR.{entry_id} = ENTRY.{id}"
+                    + " AND F2_ATTR.{value} IS NOT NULL"
+                    + " AND F2_ATTR.{value} LIKE ?)"
+                    + " )"
+                    + "ORDER BY ATTR.{value};",
+            "secret_entry, id, secret_entry_attribute, entry_id, order_id, value",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_ID,
+            SecretEntryAttributeTable.TBL_NAME,
+            SecretEntryAttributeTable.FLD_ENTRY_ID,
+            SecretEntryAttributeTable.FLD_ORDER_ID,
+            SecretEntryAttributeTable.FLD_VALUE);
+    private final static String SQL_ENTRY_DELETE = SQLFormat.format(
+            "DELETE FROM {secret_entry} WHERE {id} = ?;",
+            "secret_entry, id",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_ID);
+    private final static String SQL_ATTR_DELETE = SQLFormat.format(
+            "DELETE FROM {secret_entry_attribute} WHERE {entry_id} = ?;",
+            "secret_entry_attribute, entry_id",
+            SecretEntryAttributeTable.TBL_NAME,
+            SecretEntryAttributeTable.FLD_ENTRY_ID);
+    private final static String SQL_ENTRY_UPDATE = SQLFormat.format(
+            "UPDATE {secret_entry} SET {updated} = ?"
+                    + " WHERE {id} = ?",
+            "secret_entry, id, updated",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_ID,
+            SecretEntryTable.FLD_UPDATED);
+    private final static String SQL_ENTRY_INSERT_WID = SQLFormat.format(
+            "INSERT INTO {secret_entry} (rowid, {created}, {updated})"
+                    + " VALUES (?,?,?)",
+            "secret_entry, created, updated",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_CREATED,
+            SecretEntryTable.FLD_UPDATED);
+    private final static String SQL_ENTRY_INSERT_WOID = SQLFormat.format(
+            "INSERT INTO {secret_entry} ({created}, {updated})"
+                    + " VALUES (?,?)",
+            "secret_entry, created, updated",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_CREATED,
+            SecretEntryTable.FLD_UPDATED);
+    private final static String SQL_ATTR_INSERT_WOID = SQLFormat.format(
+            "INSERT INTO {secret_entry_attribute} ({entry_id}, {order_id}, {key}, {value}, {protected_value})"
+                    + " VALUES (?, ?, ?, ?, ?)",
+            "secret_entry_attribute, entry_id, order_id, key, value, protected_value",
+            SecretEntryAttributeTable.TBL_NAME,
+            SecretEntryAttributeTable.FLD_ENTRY_ID,
+            SecretEntryAttributeTable.FLD_ORDER_ID,
+            SecretEntryAttributeTable.FLD_KEY,
+            SecretEntryAttributeTable.FLD_VALUE,
+            SecretEntryAttributeTable.FLD_PROTECTED_VALUE);
+    private final static String SQL_ENTRY_SELECT = SQLFormat.format(
+            "SELECT * FROM {secret_entry} WHERE {id} = ?;",
+            "secret_entry, id",
+            SecretEntryTable.TBL_NAME,
+            SecretEntryTable.FLD_ID);
+    private final static String SQL_ATTR_SELECT = SQLFormat.format(
+            "SELECT * FROM {secret_entry_attribute} WHERE {entry_id} = ? ORDER BY {order_id}",
+            "secret_entry_attribute, entry_id, order_id",
+            SecretEntryAttributeTable.TBL_NAME,
+            SecretEntryAttributeTable.FLD_ENTRY_ID,
+            SecretEntryAttributeTable.FLD_ORDER_ID);
+
     private final DatabaseHelper mDBHelper;
     private final LruCache<Integer, SecretEntry> mCache;
     private final TextCipher mCipher;
@@ -78,36 +174,16 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
     public List<Integer> findRecords(@Nullable String criteria) {
         LogEx.d("findRecords( ", criteria, " )");
         ArrayList<Integer> result = new ArrayList<>();
-        String[] keywords = null;
-        if (criteria != null) {
-            keywords = criteria.split("\\s");
+        String sql;
+        String[] params;
+        if (criteria == null || criteria.trim().length() == 0) {
+            sql = SQL_GET_ALL;
+            params = new String[0];
+        } else {
+            sql = SQL_SEARCH;
+            params = new String[]{'%' + criteria.trim() + '%'};
         }
-        List<String> args = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(keywords != null && keywords.length > 0 ? "DISTINCT " : "")
-                .append("R.").append(SecretEntryAttributeTable.FLD_ENTRY_ID).append(" FROM ")
-                .append(SecretEntryAttributeTable.TBL_NAME).append(" AS R");
-        if (keywords != null && keywords.length > 0) {
-            sb.append(" INNER JOIN ").append(SecretEntryAttributeTable.TBL_NAME)
-                    .append(" AS F ON (R.").append(SecretEntryAttributeTable.FLD_ENTRY_ID)
-                    .append("=F.").append(SecretEntryAttributeTable.FLD_ENTRY_ID)
-                    .append(" AND  F.").append(SecretEntryAttributeTable.FLD_VALUE).append(" IS NOT NULL AND(");
-            boolean isNone = true;
-            for (String keyword : keywords) {
-                if (isNone) {
-                    isNone = false;
-                    sb.append(" F.");
-                } else {
-                    sb.append(" OR F.");
-                }
-                sb.append(SecretEntryAttributeTable.FLD_VALUE).append(" LIKE ?");
-                args.add("%" + keyword + "%");
-            }
-            sb.append("))");
-        }
-        sb.append(" WHERE R.").append(SecretEntryAttributeTable.FLD_ORDER_ID).append("=0");
-        sb.append(" ORDER BY R.").append(SecretEntryAttributeTable.FLD_VALUE);
-        try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args.toArray(new String[0]))) {
+        try (Cursor cursor = mRoDb.rawQuery(sql, params)) {
             result.ensureCapacity(cursor.getCount());
             while (cursor.moveToNext()) {
                 result.add(cursor.getInt(0));
@@ -137,18 +213,12 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
     @Override
     public void deleteRecord(int id) {
         LogEx.d("deleteRecord( ", id, " )");
-        StringBuilder sb = new StringBuilder();
         mRwDb.beginTransaction();
         try {
             //deleteRecord entry itself
-            sb.append("DELETE FROM ").append(SecretEntryTable.TBL_NAME)
-                    .append(" WHERE ").append(SecretEntryTable.FLD_ID).append("=?");
-            mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+            mRwDb.execSQL(SQL_ENTRY_DELETE, new String[]{String.valueOf(id)});
             //deleteRecord attributes
-            sb.setLength(0);
-            sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME)
-                    .append(" WHERE ").append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
-            mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+            mRwDb.execSQL(SQL_ATTR_DELETE, new String[]{String.valueOf(id)});
             mRwDb.setTransactionSuccessful();
         } finally {
             mRwDb.endTransaction();
@@ -161,7 +231,6 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
         LogEx.d("putRecord( ", entry, " )");
         SecretEntry result = null;
         int id = entry.getID();
-        StringBuilder sb = new StringBuilder();
         long updated = System.currentTimeMillis();
         mRwDb.beginTransaction();
         try {
@@ -169,45 +238,23 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
                 SecretEntry oldEntry = readEntry(id);
                 if (oldEntry != null) {
                     //update entry
-                    sb.append("UPDATE ").append(SecretEntryTable.TBL_NAME).append(" SET ")
-                            .append(SecretEntryTable.FLD_UPDATED).append("=? WHERE ")
-                            .append(SecretEntryTable.FLD_ID).append("=?");
-                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(updated), String.valueOf(id)});
+                    mRwDb.execSQL(SQL_ENTRY_UPDATE, new String[]{String.valueOf(updated), String.valueOf(id)});
                     result = new SecretEntry(id, oldEntry.getCreated(), updated);
-                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
                     //deleteRecord old attributes
-                    sb.setLength(0);
-                    sb.append("DELETE FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
-                            .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=?");
-                    mRwDb.execSQL(sb.toString(), new String[]{String.valueOf(id)});
+                    mRwDb.execSQL(SQL_ATTR_DELETE, new String[]{String.valueOf(id)});
                 } else { //no row, means inserting with id ... importing
-                    sb.append("INSERT INTO ").append(SecretEntryTable.TBL_NAME).append(" (rowid,")
-                            .append(SecretEntryTable.FLD_CREATED).append(",")
-                            .append(SecretEntryTable.FLD_UPDATED).append(") VALUES (?,?,?)");
                     String[] args = {String.valueOf(id), String.valueOf(updated), String.valueOf(updated)};
-                    mRwDb.execSQL(sb.toString(), args);
+                    mRwDb.execSQL(SQL_ENTRY_INSERT_WID, args);
                     result = new SecretEntry(id, updated, updated);
                 }
             } else {
-                sb.append("INSERT INTO ").append(SecretEntryTable.TBL_NAME).append(" ( ")
-                        .append(SecretEntryTable.FLD_CREATED).append(", ")
-                        .append(SecretEntryTable.FLD_UPDATED).append(" ) VALUES ( ?, ?)");
                 String[] args = {String.valueOf(updated), String.valueOf(updated)};
-                mRwDb.execSQL(sb.toString(), args);
-                try (Cursor cursor = mRwDb.rawQuery("SELECT last_insert_rowid()", null)) {
+                mRwDb.execSQL(SQL_ENTRY_INSERT_WOID, args);
+                try (Cursor cursor = mRwDb.rawQuery(SQL_GET_ID_INSERTED, null)) {
                     cursor.moveToFirst();
                     result = new SecretEntry(cursor.getInt(0), updated, updated);
                 }
             }
-            sb.setLength(0);
-            sb.append("INSERT INTO ").append(SecretEntryAttributeTable.TBL_NAME).append(" ( ")
-                    .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append(", ")
-                    .append(SecretEntryAttributeTable.FLD_ORDER_ID).append(", ")
-                    .append(SecretEntryAttributeTable.FLD_KEY).append(", ")
-                    .append(SecretEntryAttributeTable.FLD_VALUE).append(", ")
-                    .append(SecretEntryAttributeTable.FLD_PROTECTED_VALUE).append(" ) VALUES ( ?, ?, ?, ?, ?)");
-            String sql = sb.toString();
-
             for (int i = 0; i < entry.size(); i++) {
                 SecretEntryAttribute attr = entry.get(i);
                 String[] args = new String[]{
@@ -216,7 +263,7 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
                         attr.getKey(),
                         attr.isProtected() ? null : attr.getValue(),
                         attr.isProtected() ? mCipher.cipher(attr.getValue()) : null};
-                mRwDb.execSQL(sql, args);
+                mRwDb.execSQL(SQL_ATTR_INSERT_WOID, args);
                 result.add(attr);
             }
             mRwDb.setTransactionSuccessful();
@@ -229,11 +276,8 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
 
     private SecretEntry readEntry(int id) {
         SecretEntry entry = null;
-        @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
-        sb.append("SELECT * FROM ").append(SecretEntryTable.TBL_NAME).append(" WHERE ")
-                .append(SecretEntryTable.FLD_ID).append("=?");
         String[] args = {String.valueOf(id)};
-        try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args)) {
+        try (Cursor cursor = mRoDb.rawQuery(SQL_ENTRY_SELECT, args)) {
             if (cursor.moveToFirst()) {
                 entry = new SecretEntry(id,
                         cursor.getLong(cursor.getColumnIndex(SecretEntryTable.FLD_CREATED)),
@@ -246,12 +290,8 @@ public class SQLiteStorage extends ContextWrapper implements IStorage, Closeable
 
     private SecretEntry readEntryAttributes(SecretEntry entry) {
         if (entry != null) {
-            @SuppressWarnings("StringBufferReplaceableByString") StringBuilder sb = new StringBuilder();
-            sb.append("SELECT * FROM ").append(SecretEntryAttributeTable.TBL_NAME).append(" WHERE ")
-                    .append(SecretEntryAttributeTable.FLD_ENTRY_ID).append("=? ")
-                    .append(" ORDER BY ").append(SecretEntryAttributeTable.FLD_ORDER_ID);
             String[] args = {String.valueOf(entry.getID())};
-            try (Cursor cursor = mRoDb.rawQuery(sb.toString(), args)) {
+            try (Cursor cursor = mRoDb.rawQuery(SQL_ATTR_SELECT, args)) {
                 while (cursor.moveToNext()) {
                     String key = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_KEY));
                     String value = cursor.getString(cursor.getColumnIndex(SecretEntryAttributeTable.FLD_VALUE));

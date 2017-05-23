@@ -25,6 +25,7 @@ import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.service.proxy.NotReadyException;
 import com.wolandsoft.sss.storage.IStorage;
 import com.wolandsoft.sss.storage.SQLiteStorage;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.util.List;
 
@@ -39,43 +40,51 @@ public class CoreService extends Service implements IStorage {
 
     @Override
     public IBinder onBind(Intent intent) {
+        LogEx.d("onBind(", intent, ")");
         return mBinder;
     }
 
     @Override
     public void onCreate() {
+        LogEx.d("onCreate()");
         super.onCreate();
         mStorage = new SQLiteStorage(getApplicationContext());
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        LogEx.d("onStartCommand(", intent, flags, startId, ")");
         return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        LogEx.d("onDestroy()");
         mStorage.close();
         super.onDestroy();
     }
 
     @Override
     public List<Integer> findRecords(@Nullable String criteria) throws NotReadyException {
+        LogEx.d("findRecords(", criteria, ")");
         return mStorage.findRecords(criteria);
     }
 
     @Override
     public SecretEntry getRecord(int id) throws NotReadyException {
+        LogEx.d("getRecord(", id, ")");
         return mStorage.getRecord(id);
     }
 
     @Override
     public void deleteRecord(final int id) throws NotReadyException {
+        LogEx.d("deleteRecord(", id, ")");
         mStorage.deleteRecord(id);
     }
 
     @Override
     public SecretEntry putRecord(SecretEntry entry) throws NotReadyException {
+        LogEx.d("putRecord(", entry, ")");
         return mStorage.putRecord(entry);
     }
 

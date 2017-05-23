@@ -30,6 +30,7 @@ import com.wolandsoft.sss.service.proxy.ServiceProxy;
 import com.wolandsoft.sss.service.proxy.ServiceProxyListener;
 import com.wolandsoft.sss.storage.IStorage;
 import com.wolandsoft.sss.util.ListenerList;
+import com.wolandsoft.sss.util.LogEx;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,6 +47,7 @@ public class CoreServiceProxy extends ContextWrapper implements IStorage, Servic
     private Handler mHandler;
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
+            LogEx.d("onServiceConnected(", className, binder, ")");
             mService = ((CoreService.LocalBinder) binder).getService();
             Runnable rn = new Runnable() {
                 @Override
@@ -64,6 +66,7 @@ public class CoreServiceProxy extends ContextWrapper implements IStorage, Servic
 
     public CoreServiceProxy(Context context) {
         super(context);
+        LogEx.d("CoreServiceProxy(", context, ")");
         mHandler = new Handler();
         mListeners = new ListenerList<>();
         doBindService();
@@ -80,10 +83,12 @@ public class CoreServiceProxy extends ContextWrapper implements IStorage, Servic
     }
 
     void doBindService() {
+        LogEx.d("doBindService()");
         bindService(new Intent(this, CoreService.class), mConnection, Context.BIND_AUTO_CREATE);
     }
 
     void doUnbindService() {
+        LogEx.d("doUnbindService()");
         if (isServiceActive()) {
             unbindService(mConnection);
             mService = null;
@@ -92,6 +97,7 @@ public class CoreServiceProxy extends ContextWrapper implements IStorage, Servic
 
     @Override
     public void close() throws IOException {
+        LogEx.d("close()");
         doUnbindService();
     }
 
@@ -118,7 +124,8 @@ public class CoreServiceProxy extends ContextWrapper implements IStorage, Servic
     public void deleteRecord(int id) throws NotReadyException {
         if (isServiceActive())
             mService.deleteRecord(id);
-        throw new NotReadyException();
+        else
+            throw new NotReadyException();
     }
 
     @Override
