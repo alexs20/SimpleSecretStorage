@@ -17,6 +17,6 @@
     <dimen name="input_label_vertical_spacing">8dp</dimen>
     <dimen name="input_label_horizontal_spacing">4dp</dimen>
     <dimen name="input_label_font_size">16sp</dimen>
-
     <dimen name="fragment_padding">4sp</dimen>
+    <dimen name="horizontal_spacing">16sp</dimen>
 </resources>

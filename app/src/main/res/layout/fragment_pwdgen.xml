@@ -18,82 +18,123 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="@dimen/fragment_padding"
-        android:paddingEnd="@dimen/fragment_padding"
-        android:paddingStart="@dimen/fragment_padding"
-        android:paddingTop="@dimen/fragment_padding">
+        android:layout_height="match_parent">
 
-        <android.support.design.widget.TextInputLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:hintTextAppearance="@style/TextInputHint">
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/fragment_padding"
+            android:paddingEnd="@dimen/fragment_padding"
+            android:paddingStart="@dimen/fragment_padding"
+            android:paddingTop="@dimen/fragment_padding">
 
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/edtLcChars"
+            <TextView
+                android:id="@+id/txtPwdPreview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_number_of_lowercase_chars"
-                android:inputType="numberDecimal"
-                android:maxLines="1" />
-        </android.support.design.widget.TextInputLayout>
+                android:layout_marginTop="5sp"
+                android:paddingBottom="@dimen/horizontal_spacing"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/colorPrimary"
+                android:textIsSelectable="true" />
 
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:hintTextAppearance="@style/TextInputHint">
-
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/edtUpChars"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_number_of_uppercase_chars"
-                android:inputType="numberDecimal"
-                android:maxLines="1" />
-        </android.support.design.widget.TextInputLayout>
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/horizontal_spacing"
+                android:paddingEnd="@dimen/fragment_padding"
+                android:paddingStart="@dimen/fragment_padding"
+                android:paddingTop="@dimen/fragment_padding">
 
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:hintTextAppearance="@style/TextInputHint">
+                <TextView
+                    android:id="@+id/txtLcChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_number_of_lowercase_chars"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/edtNumChars"
+                <SeekBar
+                    android:id="@+id/seekLcChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_number_of_numeric_chars"
-                android:inputType="numberDecimal"
-                android:maxLines="1" />
-        </android.support.design.widget.TextInputLayout>
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/horizontal_spacing"
+                android:paddingEnd="@dimen/fragment_padding"
+                android:paddingStart="@dimen/fragment_padding"
+                android:paddingTop="@dimen/fragment_padding">
 
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:hintTextAppearance="@style/TextInputHint">
+                <TextView
+                    android:id="@+id/txtUpChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_number_of_uppercase_chars"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/edtSpChars"
+                <SeekBar
+                    android:id="@+id/seekUpChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/label_number_of_special_chars"
-                android:inputType="numberDecimal"
-                android:maxLines="1" />
-        </android.support.design.widget.TextInputLayout>
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/horizontal_spacing"
+                android:paddingEnd="@dimen/fragment_padding"
+                android:paddingStart="@dimen/fragment_padding"
+                android:paddingTop="@dimen/fragment_padding">
 
-        <TextView
-            android:id="@+id/txtPwdPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5sp"
-            android:textAlignment="center"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@color/colorPrimary"
-            android:textIsSelectable="true" />
+                <TextView
+                    android:id="@+id/txtNumChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_number_of_numeric_chars"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    </LinearLayout>
+                <SeekBar
+                    android:id="@+id/seekNumChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/horizontal_spacing"
+                android:paddingEnd="@dimen/fragment_padding"
+                android:paddingStart="@dimen/fragment_padding"
+                android:paddingTop="@dimen/fragment_padding">
+
+                <TextView
+                    android:id="@+id/txtSpChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_number_of_special_chars"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <SeekBar
+                    android:id="@+id/seekSpChars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="wrap_content"

@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Alexander Shulgin
+    Copyright 2016, 2017 Alexander Shulgin
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
  */
-package com.wolandsoft.sss.activity.fragment;
+package com.wolandsoft.sss.activity.fragment.pwdgen;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,15 +24,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.common.InputFilterMinMax;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 
 import java.util.Arrays;
@@ -44,10 +42,10 @@ import java.util.Random;
  * @author Alexander Shulgin
  */
 public class PwdGenFragment extends Fragment {
-    private EditText mEdtLcChars;
-    private EditText mEdtUpChars;
-    private EditText mEdtNumChars;
-    private EditText mEdtSpChars;
+    private SeekBar mSeekLcChars;
+    private SeekBar mSeekUpChars;
+    private SeekBar mSeekNumChars;
+    private SeekBar mSeekSpChars;
     private TextView mTxtPwdPreview;
     private KeySharedPreferences mPref;
     private Random mRandom;
@@ -79,40 +77,52 @@ public class PwdGenFragment extends Fragment {
         mPref = new KeySharedPreferences(shPref, getContext());
         View view = inflater.inflate(R.layout.fragment_pwdgen, container, false);
 
-        mEdtLcChars = (EditText) view.findViewById(R.id.edtLcChars);
+        TextView txtLcChars = (TextView) view.findViewById(R.id.txtLcChars);
+        mSeekLcChars = (SeekBar) view.findViewById(R.id.seekLcChars);
         int min = getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_min);
         int max = getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_max);
-        mEdtLcChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
+        mSeekLcChars.setMax(max - min);
+        mSeekLcChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
+                txtLcChars, R.string.label_number_of_lowercase_chars, min));
 
-        mEdtUpChars = (EditText) view.findViewById(R.id.edtUpChars);
+        TextView txtUpChars = (TextView) view.findViewById(R.id.txtUpChars);
+        mSeekUpChars = (SeekBar) view.findViewById(R.id.seekUpChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_max);
-        mEdtUpChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
+        mSeekUpChars.setMax(max - min);
+        mSeekUpChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
+                txtUpChars, R.string.label_number_of_uppercase_chars, min));
 
-        mEdtNumChars = (EditText) view.findViewById(R.id.edtNumChars);
+        TextView txtNumChars = (TextView) view.findViewById(R.id.txtNumChars);
+        mSeekNumChars = (SeekBar) view.findViewById(R.id.seekNumChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_max);
-        mEdtNumChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
+        mSeekNumChars.setMax(max - min);
+        mSeekNumChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
+                txtNumChars, R.string.label_number_of_numeric_chars, min));
 
-        mEdtSpChars = (EditText) view.findViewById(R.id.edtSpChars);
+        TextView txtSpChars = (TextView) view.findViewById(R.id.txtSpChars);
+        mSeekSpChars = (SeekBar) view.findViewById(R.id.seekSpChars);
         min = getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_min);
         max = getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_max);
-        mEdtSpChars.setFilters(new InputFilter[]{new InputFilterMinMax(min, max)});
+        mSeekSpChars.setMax(max - min);
+        mSeekSpChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
+                txtSpChars, R.string.label_number_of_special_chars, min));
 
         mTxtPwdPreview = (TextView) view.findViewById(R.id.txtPwdPreview);
 
         if (savedInstanceState == null) {
             int lcChars = mPref.getInt(R.string.pref_pwdgen_lowercase_chars_key, R.integer.pref_pwdgen_lowercase_chars_value);
-            mEdtLcChars.setText(String.valueOf(lcChars));
+            mSeekLcChars.setProgress(lcChars);
 
             int ucChars = mPref.getInt(R.string.pref_pwdgen_uppercase_chars_key, R.integer.pref_pwdgen_uppercase_chars_value);
-            mEdtUpChars.setText(String.valueOf(ucChars));
+            mSeekUpChars.setProgress(ucChars);
 
             int numChars = mPref.getInt(R.string.pref_pwdgen_numeric_chars_key, R.integer.pref_pwdgen_numeric_chars_value);
-            mEdtNumChars.setText(String.valueOf(numChars));
+            mSeekNumChars.setProgress(numChars);
 
             int spChars = mPref.getInt(R.string.pref_pwdgen_special_chars_key, R.integer.pref_pwdgen_special_chars_value);
-            mEdtSpChars.setText(String.valueOf(spChars));
+            mSeekSpChars.setProgress(spChars);
 
             onRefreshClicked();
         } else {
@@ -142,10 +152,10 @@ public class PwdGenFragment extends Fragment {
     }
 
     private void onRefreshClicked() {
-        int lcChars = Integer.parseInt(mEdtLcChars.getText().toString());
-        int ucChars = Integer.parseInt(mEdtUpChars.getText().toString());
-        int numChars = Integer.parseInt(mEdtNumChars.getText().toString());
-        int spChars = Integer.parseInt(mEdtSpChars.getText().toString());
+        int lcChars = mSeekLcChars.getProgress() + getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_min);
+        int ucChars = mSeekUpChars.getProgress() + getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_min);
+        int numChars = mSeekNumChars.getProgress() + getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_min);
+        int spChars = mSeekSpChars.getProgress() + getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_min);
 
         char[] pwd = new char[lcChars + ucChars + numChars + spChars];
         Arrays.fill(pwd, (char) 0);
@@ -183,10 +193,10 @@ public class PwdGenFragment extends Fragment {
 
     private void onApplyClicked() {
         KeySharedPreferences.KeyableEditor editor = mPref.edit();
-        editor.putInt(R.string.pref_pwdgen_lowercase_chars_key, Integer.parseInt(mEdtLcChars.getText().toString()));
-        editor.putInt(R.string.pref_pwdgen_uppercase_chars_key, Integer.parseInt(mEdtUpChars.getText().toString()));
-        editor.putInt(R.string.pref_pwdgen_numeric_chars_key, Integer.parseInt(mEdtNumChars.getText().toString()));
-        editor.putInt(R.string.pref_pwdgen_special_chars_key, Integer.parseInt(mEdtSpChars.getText().toString()));
+        editor.putInt(R.string.pref_pwdgen_lowercase_chars_key, mSeekLcChars.getProgress());
+        editor.putInt(R.string.pref_pwdgen_uppercase_chars_key, mSeekUpChars.getProgress());
+        editor.putInt(R.string.pref_pwdgen_numeric_chars_key, mSeekNumChars.getProgress());
+        editor.putInt(R.string.pref_pwdgen_special_chars_key, mSeekSpChars.getProgress());
         editor.apply();
 
         getFragmentManager().popBackStackImmediate();//complete the pop in order to restore the parent fragment as we are going to call it back

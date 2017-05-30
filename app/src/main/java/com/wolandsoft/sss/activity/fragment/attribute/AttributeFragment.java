@@ -33,7 +33,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.activity.fragment.PwdGenFragment;
+import com.wolandsoft.sss.activity.fragment.pwdgen.PwdGenFragment;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.util.LogEx;
 

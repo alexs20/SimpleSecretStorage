@@ -51,10 +51,10 @@
     <string name="label_delete">Delete</string>
     <string name="label_copy">Copy</string>
     <string name="label_copy_to_pc">Copy to PC</string>
-    <string name="label_number_of_lowercase_chars">Number of Lowercase Characters</string>
-    <string name="label_number_of_uppercase_chars">Number of Uppercase Characters</string>
-    <string name="label_number_of_numeric_chars">Number of Numeric Characters</string>
-    <string name="label_number_of_special_chars">Number of Special Characters</string>
+    <string name="label_number_of_lowercase_chars" formatted="true">%1$d Lowercase Characters</string>
+    <string name="label_number_of_uppercase_chars" formatted="true">%1$d Uppercase Characters</string>
+    <string name="label_number_of_numeric_chars" formatted="true">%1$d Numeric Characters</string>
+    <string name="label_number_of_special_chars" formatted="true">%1$d Special Characters</string>
     <string name="label_open_drawer">Open Drawer</string>
     <string name="label_close_drawer">Close Drawer</string>
     <string name="label_options">Options</string>
