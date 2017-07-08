@@ -37,8 +37,8 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.activity.fragment.pairs.PairedDevicesFragment;
 import com.wolandsoft.sss.security.TextCipher;
-import com.wolandsoft.sss.service.pccomm.PcCommService;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
 import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
@@ -87,6 +87,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
         if (savedInstanceState != null) {
             mPin = savedInstanceState.getString(KEY_PIN);
         }
+
+        //PC receivers click listener
+        Preference pref = this.findPreference(getString(R.string.pref_open_paired_devices_key));
+        pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener(){
+            @Override
+            public boolean onPreferenceClick(Preference preference){
+                openPairedDevicesList();
+                return true;
+            }
+        });
     }
 
     @Override
@@ -227,5 +237,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
                 fragment.show(transaction, AlertDialogFragment.class.getName());
             }
         }
+    }
+
+    private void openPairedDevicesList(){
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        Fragment fragment = PairedDevicesFragment.newInstance();
+        transaction.replace(R.id.content_fragment, fragment);
+        transaction.addToBackStack(PairedDevicesFragment.class.getName());
+        transaction.commit();
     }
 }

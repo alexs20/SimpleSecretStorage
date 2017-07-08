@@ -35,12 +35,17 @@
         android:summary="@string/message_copy_to_pc"
         android:title="@string/label_pc_receiver_paired" />
 
-    <Preference
+    <android.support.v7.preference.Preference
+        android:key="@string/pref_open_paired_devices_key"
+        android:summary="@string/message_pc_receivers"
+        android:title="@string/label_pc_receivers" />
+
+    <android.support.v7.preference.Preference
         android:title="@string/label_privacy_policy"
         android:summary="@string/message_privacy_policy">
         <intent
             android:action="android.intent.action.VIEW"
             android:data="@string/url_privacy_policy" />
-    </Preference>
+    </android.support.v7.preference.Preference>
 
 </android.support.v7.preference.PreferenceScreen>

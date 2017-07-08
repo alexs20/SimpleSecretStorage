@@ -35,6 +35,7 @@
 
     <string name="title_secret_fields">Fields</string>
     <string name="title_secret_field">Field</string>
+    <string name="title_paired_devices">Paired Devices</string>
     <string name="title_generate_password">Generate Password</string>
     <string name="title_master_pin" translatable="false">@string/label_master_pin</string>
     <string name="title_export" translatable="false">@string/label_export</string>
@@ -88,6 +89,7 @@
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Expose Protected</string>
     <string name="label_pc_receiver_paired">PC Receiver Paired</string>
+    <string name="label_pc_receivers">Paired Devices</string>
     <string name="label_clear">Clear</string>
     <string name="label_navigate">Navigate</string>
     <string name="label_copied">Copied</string>
@@ -114,6 +116,7 @@
     <string name="message_entry_confirmation">You are going to delete the swiped Record. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
     <string name="message_copy_to_pc">Transmit copied data to the paired PC Receiver.</string>
+    <string name="message_pc_receivers">List of paired devices to which you can copy fields data.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>
 
