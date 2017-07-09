@@ -19,11 +19,6 @@
         android:title="@string/label_copy"
         android:icon="@mipmap/img24dp_copy"/>
     <item
-        android:id="@+id/mnuCopy2PC"
-        android:title="@string/label_copy_to_pc"
-        android:visible="false"
-        android:icon="@mipmap/img24dp_pc"/>
-    <item
         android:id="@+id/mnuNavigate"
         android:title="@string/label_navigate"
         android:visible="false"

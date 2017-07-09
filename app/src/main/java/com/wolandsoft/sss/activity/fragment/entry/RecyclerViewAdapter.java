@@ -15,6 +15,7 @@
 */
 package com.wolandsoft.sss.activity.fragment.entry;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v7.preference.PreferenceManager;
@@ -32,15 +33,16 @@ import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.service.core.CoreServiceProxy;
+import com.wolandsoft.sss.service.pccomm.PairedDevice;
+import com.wolandsoft.sss.service.pccomm.PairedDevices;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Adapter for {@link RecyclerView} component.
- *
- * @author Alexander Shulgin
  */
 abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     private final CoreServiceProxy mCore;
@@ -96,38 +98,51 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
     }
 
     @SuppressWarnings("UnusedParameters")
+    @SuppressLint("StringFormatInvalid")
     private void openPopup(final View v, final int position, final SecretEntryAttribute attr) {
         LogEx.d("openPopup(", v, position, attr, ")");
         PopupMenu popup = new PopupMenu(v.getContext(), v);
         popup.getMenuInflater().inflate(R.menu.fragment_entry_card_popup, popup.getMenu());
+
+        //creating dynamic menu entries with mappings to unique view IDs
+        final HashMap<Integer, Integer> vidMap = new HashMap<>();
+        Context context = v.getContext();
+        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(context);
+        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, context);
+        String devicesJson = ksPref.getString(R.string.pref_paired_devices_key, (Integer)null);
+        final PairedDevices devices = PairedDevices.fromJson(devicesJson);
+        for(int i = 0; i < devices.size(); i++){
+            int vid = View.generateViewId();
+            vidMap.put(vid, i);
+            PairedDevice device = devices.get(i);
+            popup.getMenu().add(0, vid, i, device.mHost);
+            popup.getMenu().findItem(vid).setIcon(R.mipmap.img24dp_pc);
+        }
+
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.mnuCopy:
-                        onItemCopy(attr, false);
-                        break;
-                    case R.id.mnuCopy2PC:
-                        onItemCopy(attr, true);
+                        onItemCopy(attr, null);
                         break;
                     case R.id.mnuNavigate:
                         onItemNavigate(attr);
                         break;
+                    default:
+                        int idx = vidMap.get(menuItem.getItemId());
+                        PairedDevice device = devices.get(idx);
+                        onItemCopy(attr, device);
                 }
                 return false;
             }
         });
         if (attr.getValue().startsWith("http://") || attr.getValue().startsWith("https://")) {
             MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuNavigate);
+
             mnuNavigate.setVisible(true);
         }
-        Context context = v.getContext();
-        SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(context);
-        KeySharedPreferences ksPref = new KeySharedPreferences(shPref, context);
-        if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-            MenuItem mnuNavigate = popup.getMenu().findItem(R.id.mnuCopy2PC);
-            mnuNavigate.setVisible(true);
-        }
+
         MenuPopupHelper menuHelper = new MenuPopupHelper(context, (MenuBuilder) popup.getMenu(), v);
         menuHelper.setForceShowIcon(true);
         menuHelper.show();
@@ -228,5 +243,5 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
 
     abstract void onItemNavigate(SecretEntryAttribute attr);
 
-    abstract void onItemCopy(SecretEntryAttribute attr, boolean toRemote);
+    abstract void onItemCopy(SecretEntryAttribute attr, PairedDevice device);
 }

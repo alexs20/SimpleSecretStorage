@@ -46,6 +46,7 @@ import com.wolandsoft.sss.activity.fragment.attribute.AttributeFragment;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
 import com.wolandsoft.sss.service.core.CoreServiceProxy;
+import com.wolandsoft.sss.service.pccomm.PairedDevice;
 import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
@@ -109,8 +110,8 @@ public class EntryFragment extends Fragment implements
             }
 
             @Override
-            void onItemCopy(SecretEntryAttribute attr, boolean toRemote) {
-                onEntryAttributeCopy(attr, toRemote);
+            void onItemCopy(SecretEntryAttribute attr, PairedDevice device) {
+                onEntryAttributeCopy(attr, device);
             }
         };
 
@@ -219,22 +220,20 @@ public class EntryFragment extends Fragment implements
         startActivity(browserIntent);
     }
 
-    private void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote) {
-//        String text = attr.getValue();
-//        if (text.length() > 0) {
-//            if (toRemote) {
-//                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-//                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-//                if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-//                    mPcComm.sendData(attr.getKey(), text);
-//                }
-//            } else {
-//                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-//                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-//                clipboard.setPrimaryClip(clip);
-//            }
-//            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
-//        }
+    private void onEntryAttributeCopy(SecretEntryAttribute attr, PairedDevice device) {
+        String text = attr.getValue();
+        if (text.length() > 0) {
+            if (device != null) {
+                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+                mPcComm.sendData(device, attr.getKey(), text);
+            } else {
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+                clipboard.setPrimaryClip(clip);
+            }
+            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
