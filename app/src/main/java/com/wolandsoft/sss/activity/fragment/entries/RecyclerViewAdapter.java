@@ -58,16 +58,21 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
             if (mSearchUpdate != null) {
                 mHandler.removeCallbacks(mSearchUpdate);
             }
-            mSearchUpdate = new Runnable() {
-                @Override
-                public void run() {
-                    if (!criteria.equals(mSearchCriteria)) {
-                        mSearchCriteria = criteria;
-                        updateModel();
+            if(criteria.length() == 0){
+                mSearchCriteria = criteria;
+                updateModel();
+            } else {
+                mSearchUpdate = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!criteria.equals(mSearchCriteria)) {
+                            mSearchCriteria = criteria;
+                            updateModel();
+                        }
                     }
-                }
-            };
-            mHandler.postDelayed(mSearchUpdate, DELAY_SEARCH_UPDATE);
+                };
+                mHandler.postDelayed(mSearchUpdate, DELAY_SEARCH_UPDATE);
+            }
         }
     }
 
