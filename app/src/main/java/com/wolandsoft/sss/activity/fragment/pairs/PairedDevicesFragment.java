@@ -16,13 +16,16 @@
 package com.wolandsoft.sss.activity.fragment.pairs;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -37,6 +40,8 @@ import android.widget.Toast;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
+import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
+import com.wolandsoft.sss.activity.fragment.entry.EntryFragment;
 import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.service.pccomm.PairedDevice;
 import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
@@ -53,7 +58,10 @@ import java.util.zip.Checksum;
 /**
  * List of paired devices.
  */
-public class PairedDevicesFragment extends Fragment {
+public class PairedDevicesFragment extends Fragment
+    implements AlertDialogFragment.OnDialogToFragmentInteract{
+    private final static String ARG_POSITION = "position";
+    private static final int DELETE_PAIRED_DEVICE_CONFIRMATION_DIALOG = 1;
     private RecyclerViewAdapter mRecyclerViewAdapter;
     private View mView;
     private TextCipher mCipher;
@@ -136,7 +144,37 @@ public class PairedDevicesFragment extends Fragment {
 
 
     private void onDeviceDelete(int position) {
+        Bundle extras = new Bundle();
+        extras.putInt(ARG_POSITION, position);
 
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        DialogFragment fragment = AlertDialogFragment.newInstance(R.mipmap.img24dp_warning,
+                R.string.label_delete_paired_device, R.string.message_delete_paired_device_confirmation, true, extras);
+        fragment.setCancelable(true);
+        fragment.setTargetFragment(this, DELETE_PAIRED_DEVICE_CONFIRMATION_DIALOG);
+        transaction.addToBackStack(null);
+        fragment.show(transaction, DialogFragment.class.getName());
+    }
+
+    @Override
+    public void onDialogResult(int requestCode, int resultCode, Bundle args) {
+        switch (requestCode) {
+            case DELETE_PAIRED_DEVICE_CONFIRMATION_DIALOG:
+                int idx = args.getInt(ARG_POSITION);
+                if (resultCode == Activity.RESULT_OK) {
+                    PairedDevices devices = mRecyclerViewAdapter.getModel();
+                    devices.remove(idx);
+                    mRecyclerViewAdapter.notifyItemRemoved(idx);
+                    String json = devices.toJson();
+                    mKsPref.edit()
+                            .putString(R.string.pref_paired_devices_key, json)
+                            .apply();
+                } else if (resultCode == Activity.RESULT_CANCELED) {
+                    //restoring presence of deleted attribute
+                    mRecyclerViewAdapter.notifyItemChanged(idx);
+                }
+                break;
+        }
     }
 
     @Override

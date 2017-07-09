@@ -49,6 +49,7 @@
     <string name="label_loading_ellipsis" tools:keep="@string/label_loading_ellipsis">Loading&#8230;</string>
     <string name="label_delete_entry">Delete Record</string>
     <string name="label_delete_field">Delete Field</string>
+    <string name="label_delete_paired_device">Delete Paired Device</string>
     <string name="label_delete">Delete</string>
     <string name="label_copy">Copy</string>
     <string name="label_copy_to_pc">Copy to PC</string>
@@ -111,12 +112,13 @@
     <string name="message_export_process_failed">Error processing output file.</string>
     <string name="message_master_pin_validation">Activate master pin validation on application start.</string>
     <string name="message_repeated_pin_no_the_same">Repeated pin is not the same.</string>
-    <string name="message_protected_fields_visible_by_default">Protected fields are visible by default.</string>
+    <string name="message_protected_fields_visible_by_default">Protected fields are visible by the default.</string>
     <string name="message_permissions_required">This functionality requires additional permissions to be granted.</string>
     <string name="message_entry_confirmation">You are going to delete the swiped Record. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
+    <string name="message_delete_paired_device_confirmation">You are going to delete the Paired Device. This action cannot be undone. Are you sure?</string>
     <string name="message_copy_to_pc">Transmit copied data to the paired PC Receiver.</string>
-    <string name="message_pc_receivers">List of paired devices to which you can copy fields data.</string>
+    <string name="message_pc_receivers">List of devices you can copy data to.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>
 
