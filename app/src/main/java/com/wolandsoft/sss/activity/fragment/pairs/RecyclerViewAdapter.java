@@ -15,28 +15,16 @@
 */
 package com.wolandsoft.sss.activity.fragment.pairs;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.support.v7.preference.PreferenceManager;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.view.menu.MenuPopupHelper;
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.wolandsoft.sss.R;
-import com.wolandsoft.sss.entity.SecretEntry;
-import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.service.core.CoreServiceProxy;
-import com.wolandsoft.sss.util.KeySharedPreferences;
+import com.wolandsoft.sss.service.pccomm.PairedDevice;
 import com.wolandsoft.sss.util.LogEx;
-import com.wolandsoft.sss.util.PairedDevices;
-
-import java.util.Collections;
+import com.wolandsoft.sss.service.pccomm.PairedDevices;
 
 /**s
  * Adapter for {@link RecyclerView} component.
@@ -58,8 +46,8 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
         final RecyclerViewHolder viewHolder = holder;
-        final PairedDevices.PairedDevice device = mDevices.get(position);
-        holder.mTxtTitle.setText(device.host);
+        final PairedDevice device = mDevices.get(position);
+        holder.mTxtTitle.setText(device.mHost);
     }
 
     @Override
@@ -73,9 +61,8 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
         notifyItemRemoved(idx);
     }
 
-    void updateModel() {
-        LogEx.d("updateModel()");
-
+    public PairedDevices getModel(){
+        return mDevices;
     }
 
     //ItemTouchHelper extension

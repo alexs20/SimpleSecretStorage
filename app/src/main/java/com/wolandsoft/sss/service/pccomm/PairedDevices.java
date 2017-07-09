@@ -13,19 +13,18 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-package com.wolandsoft.sss.util;
+package com.wolandsoft.sss.service.pccomm;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Collection of paired devices
  */
 
-public class PairedDevices extends ArrayList<PairedDevices.PairedDevice> {
+public class PairedDevices extends ArrayList<PairedDevice> {
 
     public String toJson() {
         Gson gson = new Gson();
@@ -37,12 +36,6 @@ public class PairedDevices extends ArrayList<PairedDevices.PairedDevice> {
         if(json == null ){
             return new PairedDevices();
         }
-        return gson.fromJson(json, new TypeToken<List<PairedDevice>>() {}.getType());
-    }
-
-    public static class PairedDevice {
-        public String host;
-        public int port;
-        public byte[] key;
+        return gson.fromJson(json, PairedDevices.class);
     }
 }

@@ -220,21 +220,21 @@ public class EntryFragment extends Fragment implements
     }
 
     private void onEntryAttributeCopy(SecretEntryAttribute attr, boolean toRemote) {
-        String text = attr.getValue();
-        if (text.length() > 0) {
-            if (toRemote) {
-                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
-                if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-                    mPcComm.sendData(attr.getKey(), text);
-                }
-            } else {
-                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
-                clipboard.setPrimaryClip(clip);
-            }
-            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
-        }
+//        String text = attr.getValue();
+//        if (text.length() > 0) {
+//            if (toRemote) {
+//                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+//                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
+//                if (ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
+//                    mPcComm.sendData(attr.getKey(), text);
+//                }
+//            } else {
+//                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+//                ClipData clip = ClipData.newPlainText(attr.getKey(), text);
+//                clipboard.setPrimaryClip(clip);
+//            }
+//            Toast.makeText(getContext(), attr.getKey() + " " + getString(R.string.label_copied), Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override

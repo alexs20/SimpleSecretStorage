@@ -29,12 +29,6 @@
         android:summary="@string/message_protected_fields_visible_by_default"
         android:title="@string/label_protected_field_visible" />
 
-    <android.support.v7.preference.SwitchPreferenceCompat
-        android:defaultValue="@bool/pref_pc_receiver_enabled_value"
-        android:key="@string/pref_pc_receiver_enabled_key"
-        android:summary="@string/message_copy_to_pc"
-        android:title="@string/label_pc_receiver_paired" />
-
     <android.support.v7.preference.Preference
         android:key="@string/pref_open_paired_devices_key"
         android:summary="@string/message_pc_receivers"

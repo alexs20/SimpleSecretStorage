@@ -54,7 +54,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     private static final String KEY_PIN = "pin";
     private String mPin = null;
     private SwitchPreferenceCompat mChkPinEnabled;
-    private SwitchPreferenceCompat mChkReceiverEnabled;
     private TextCipher mCipher;
     private PcCommServiceProxy mPcComm;
 
@@ -74,13 +73,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 return onPinSwitch((Boolean) newValue);
-            }
-        });
-        mChkReceiverEnabled = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_pc_receiver_enabled_key));
-        mChkReceiverEnabled.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return onPCPairSwitch((Boolean) newValue);
             }
         });
 
@@ -140,56 +132,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            if (result.getContents() == null) {
-                //canceled
-            } else {
-                Context ctx = getContext();
-                if (ctx != null) {
-                    try {
-                        String encodedB64 = result.getContents();
-                        byte[] packet = Base64.decode(encodedB64, Base64.DEFAULT);
-                        ByteArrayInputStream bais = new ByteArrayInputStream(packet);
-                        DataInputStream dis = new DataInputStream(bais);
-                        int size = dis.readInt();
-                        byte[] payload = new byte[size];
-                        dis.readFully(payload, 0, size);
-                        long crc = dis.readLong();
-                        Checksum checksum = new CRC32();
-                        checksum.update(payload, 0, payload.length);
-                        if (checksum.getValue() == crc) {
-                            bais = new ByteArrayInputStream(payload);
-                            dis = new DataInputStream(bais);
-                            int port = dis.readInt();
-                            size = dis.readInt();
-                            byte[] key = new byte[size];
-                            dis.readFully(key);
-                            byte[] chipheredKey = mCipher.cipher(key);
-                            String keyB64 = Base64.encodeToString(chipheredKey, Base64.DEFAULT);
-                            SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ctx);
-                            KeySharedPreferences ksPref = new KeySharedPreferences(shPref, ctx);
-                            ksPref.edit()
-                                    .putBoolean(R.string.pref_pc_receiver_enabled_key, true)
-                                    .putInt(R.string.pref_pc_receiver_port_key, port)
-                                    .putString(R.string.pref_pc_receiver_key_key, keyB64)
-                                    .apply();
-                            mPcComm.ping();
-                            return;
-                        }
-                    } catch (Exception e) {
-                        LogEx.w(e.getMessage(), e);
-                    }
-                    Toast.makeText(getContext(), getString(R.string.message_invalid_qr_code), Toast.LENGTH_LONG).show();
-                }
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -197,10 +139,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements PinFra
 
         if (mChkPinEnabled.isChecked() != ksPref.getBoolean(R.string.pref_pin_enabled_key, R.bool.pref_pin_enabled_value)) {
             mChkPinEnabled.setChecked(!mChkPinEnabled.isChecked());
-        }
-
-        if (mChkReceiverEnabled.isChecked() != ksPref.getBoolean(R.string.pref_pc_receiver_enabled_key, R.bool.pref_pc_receiver_enabled_value)) {
-            mChkReceiverEnabled.setChecked(!mChkReceiverEnabled.isChecked());
         }
     }
 
