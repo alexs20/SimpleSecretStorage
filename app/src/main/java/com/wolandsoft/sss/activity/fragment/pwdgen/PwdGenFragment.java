@@ -83,7 +83,7 @@ public class PwdGenFragment extends Fragment {
         int max = getResources().getInteger(R.integer.pref_pwdgen_lowercase_chars_value_max);
         mSeekLcChars.setMax(max - min);
         mSeekLcChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
-                txtLcChars, R.string.label_number_of_lowercase_chars, min));
+                txtLcChars, R.plurals.label_number_of_lowercase_chars, min));
 
         TextView txtUpChars = (TextView) view.findViewById(R.id.txtUpChars);
         mSeekUpChars = (SeekBar) view.findViewById(R.id.seekUpChars);
@@ -91,7 +91,7 @@ public class PwdGenFragment extends Fragment {
         max = getResources().getInteger(R.integer.pref_pwdgen_uppercase_chars_value_max);
         mSeekUpChars.setMax(max - min);
         mSeekUpChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
-                txtUpChars, R.string.label_number_of_uppercase_chars, min));
+                txtUpChars, R.plurals.label_number_of_uppercase_chars, min));
 
         TextView txtNumChars = (TextView) view.findViewById(R.id.txtNumChars);
         mSeekNumChars = (SeekBar) view.findViewById(R.id.seekNumChars);
@@ -99,7 +99,7 @@ public class PwdGenFragment extends Fragment {
         max = getResources().getInteger(R.integer.pref_pwdgen_numeric_chars_value_max);
         mSeekNumChars.setMax(max - min);
         mSeekNumChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
-                txtNumChars, R.string.label_number_of_numeric_chars, min));
+                txtNumChars, R.plurals.label_number_of_numeric_chars, min));
 
         TextView txtSpChars = (TextView) view.findViewById(R.id.txtSpChars);
         mSeekSpChars = (SeekBar) view.findViewById(R.id.seekSpChars);
@@ -107,7 +107,7 @@ public class PwdGenFragment extends Fragment {
         max = getResources().getInteger(R.integer.pref_pwdgen_special_chars_value_max);
         mSeekSpChars.setMax(max - min);
         mSeekSpChars.setOnSeekBarChangeListener(new OnCharNumbersChangeListener(getContext(),
-                txtSpChars, R.string.label_number_of_special_chars, min));
+                txtSpChars, R.plurals.label_number_of_special_chars, min));
 
         mTxtPwdPreview = (TextView) view.findViewById(R.id.txtPwdPreview);
 

@@ -43,7 +43,7 @@ public class OnCharNumbersChangeListener extends ContextWrapper implements OnSee
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         Resources res = getResources();
-        String text = res.getString(mStrResId, mMinVal + progress);
+        String text = res.getQuantityString(mStrResId, mMinVal + progress, mMinVal + progress);
         mTxtView.setText(text);
     }
 

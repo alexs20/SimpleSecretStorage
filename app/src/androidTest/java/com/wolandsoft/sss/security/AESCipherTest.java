@@ -15,9 +15,6 @@
 */
 package com.wolandsoft.sss.security;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;

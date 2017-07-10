@@ -78,7 +78,7 @@ public class PcCommService extends IntentService {
                 }
             } catch (Exception e) {
                 LogEx.e(e.getMessage(), e);
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG);
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
     }

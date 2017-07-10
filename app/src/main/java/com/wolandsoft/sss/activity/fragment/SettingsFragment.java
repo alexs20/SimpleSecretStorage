@@ -29,39 +29,27 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.SwitchPreferenceCompat;
-import android.util.Base64;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
 import com.wolandsoft.sss.activity.fragment.pairs.PairedDevicesFragment;
 import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.service.ScreenMonitorService;
 import com.wolandsoft.sss.service.ServiceManager;
-import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
 import com.wolandsoft.sss.util.KeySharedPreferences;
-import com.wolandsoft.sss.util.LogEx;
-
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements PinFragment.OnFragmentToFragmentInteract {
     private static final String KEY_PIN = "pin";
     private String mPin = null;
     private SwitchPreferenceCompat mChkPinEnabled;
     private TextCipher mCipher;
-    private PcCommServiceProxy mPcComm;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mCipher = new TextCipher();
-        mPcComm = new PcCommServiceProxy(context);
     }
 
     @Override

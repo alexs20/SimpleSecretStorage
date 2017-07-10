@@ -41,13 +41,12 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.activity.fragment.dialog.AlertDialogFragment;
-import com.wolandsoft.sss.activity.fragment.entry.EntryFragment;
 import com.wolandsoft.sss.security.TextCipher;
 import com.wolandsoft.sss.service.pccomm.PairedDevice;
+import com.wolandsoft.sss.service.pccomm.PairedDevices;
 import com.wolandsoft.sss.service.pccomm.PcCommServiceProxy;
 import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
-import com.wolandsoft.sss.service.pccomm.PairedDevices;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -63,15 +62,13 @@ public class PairedDevicesFragment extends Fragment
     private final static String ARG_POSITION = "position";
     private static final int DELETE_PAIRED_DEVICE_CONFIRMATION_DIALOG = 1;
     private RecyclerViewAdapter mRecyclerViewAdapter;
-    private View mView;
     private TextCipher mCipher;
     private PcCommServiceProxy mPcComm;
     private KeySharedPreferences mKsPref;
 
     public static PairedDevicesFragment newInstance() {
         LogEx.d("newInstance()");
-        PairedDevicesFragment fragment = new PairedDevicesFragment();
-        return fragment;
+        return new PairedDevicesFragment();
     }
 
     @Override
@@ -104,14 +101,14 @@ public class PairedDevicesFragment extends Fragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.fragment_settings_pairs, container, false);
+        View view = inflater.inflate(R.layout.fragment_settings_pairs, container, false);
 
-        RecyclerView rView = (RecyclerView) mView.findViewById(R.id.rvList);
+        RecyclerView rView = (RecyclerView) view.findViewById(R.id.rvList);
         rView.setHasFixedSize(true);
         rView.setLayoutManager(new LinearLayoutManager(getContext()));
         rView.setAdapter(mRecyclerViewAdapter);
 
-        FloatingActionButton btnAdd = (FloatingActionButton) mView.findViewById(R.id.btnAdd);
+        FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(R.id.btnAdd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,7 +120,7 @@ public class PairedDevicesFragment extends Fragment
         if (actionBar != null)
             actionBar.setTitle(R.string.title_paired_devices);
 
-        return mView;
+        return view;
     }
 
     @Override

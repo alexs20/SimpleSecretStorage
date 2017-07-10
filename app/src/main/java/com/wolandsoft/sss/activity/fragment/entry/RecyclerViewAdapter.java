@@ -24,6 +24,7 @@ import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,7 +40,6 @@ import com.wolandsoft.sss.util.KeySharedPreferences;
 import com.wolandsoft.sss.util.LogEx;
 
 import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * Adapter for {@link RecyclerView} component.
@@ -101,12 +101,13 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
     @SuppressLint("StringFormatInvalid")
     private void openPopup(final View v, final int position, final SecretEntryAttribute attr) {
         LogEx.d("openPopup(", v, position, attr, ")");
-        PopupMenu popup = new PopupMenu(v.getContext(), v);
+        Context context = v.getContext();
+        PopupMenu popup = new PopupMenu(context, v);
         popup.getMenuInflater().inflate(R.menu.fragment_entry_card_popup, popup.getMenu());
 
         //creating dynamic menu entries with mappings to unique view IDs
-        final HashMap<Integer, Integer> vidMap = new HashMap<>();
-        Context context = v.getContext();
+        String copyTo = context.getResources().getString(R.string.label_copy_to_pc);
+        final SparseArray<Integer> vidMap = new SparseArray<>();
         SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(context);
         KeySharedPreferences ksPref = new KeySharedPreferences(shPref, context);
         String devicesJson = ksPref.getString(R.string.pref_paired_devices_key, (Integer)null);
@@ -115,7 +116,7 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
             int vid = View.generateViewId();
             vidMap.put(vid, i);
             PairedDevice device = devices.get(i);
-            popup.getMenu().add(0, vid, i, device.mHost);
+            popup.getMenu().add(0, vid, i, String.format(copyTo, device.mHost));
             popup.getMenu().findItem(vid).setIcon(R.mipmap.img24dp_pc);
         }
 

@@ -52,11 +52,23 @@
     <string name="label_delete_paired_device">Delete Paired Device</string>
     <string name="label_delete">Delete</string>
     <string name="label_copy">Copy</string>
-    <string name="label_copy_to_pc">Copy to PC</string>
-    <string name="label_number_of_lowercase_chars" formatted="true">%1$d Lowercase Characters</string>
-    <string name="label_number_of_uppercase_chars" formatted="true">%1$d Uppercase Characters</string>
-    <string name="label_number_of_numeric_chars" formatted="true">%1$d Numeric Characters</string>
-    <string name="label_number_of_special_chars" formatted="true">%1$d Special Characters</string>
+    <string name="label_copy_to_pc">Copy to %1$s</string>
+    <plurals name="label_number_of_lowercase_chars">
+        <item quantity="one">%1$d Lowercase Character</item>
+        <item quantity="other">%1$d Lowercase Characters</item>
+    </plurals>
+    <plurals name="label_number_of_uppercase_chars">
+        <item quantity="one">%1$d Uppercase Character</item>
+        <item quantity="other">%1$d Uppercase Characters</item>
+    </plurals>
+    <plurals name="label_number_of_numeric_chars">
+        <item quantity="one">%1$d Numeric Character</item>
+        <item quantity="other">%1$d Numeric Characters</item>
+    </plurals>
+    <plurals name="label_number_of_special_chars">
+        <item quantity="one">%1$d Special Character</item>
+        <item quantity="other">%1$d Special Characters</item>
+    </plurals>
     <string name="label_open_drawer">Open Drawer</string>
     <string name="label_close_drawer">Close Drawer</string>
     <string name="label_options">Options</string>
@@ -89,7 +101,6 @@
     <string name="label_repeat_new_pin">Repeat New Pin</string>
     <string name="label_request_permissions">Request Permissions</string>
     <string name="label_protected_field_visible">Expose Protected</string>
-    <string name="label_pc_receiver_paired">PC Receiver Paired</string>
     <string name="label_pc_receivers">Paired Devices</string>
     <string name="label_clear">Clear</string>
     <string name="label_navigate">Navigate</string>
@@ -117,7 +128,6 @@
     <string name="message_entry_confirmation">You are going to delete the swiped Record. This action cannot be undone. Are you sure?</string>
     <string name="message_attribute_confirmation">You are going to delete the swiped Field. This action cannot be undone. Are you sure?</string>
     <string name="message_delete_paired_device_confirmation">You are going to delete the Paired Device. This action cannot be undone. Are you sure?</string>
-    <string name="message_copy_to_pc">Transmit copied data to the paired PC Receiver.</string>
     <string name="message_pc_receivers">List of devices you can copy data to.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>

@@ -16,7 +16,6 @@
 package com.wolandsoft.sss.service.pccomm;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 

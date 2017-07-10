@@ -45,9 +45,8 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
-        final RecyclerViewHolder viewHolder = holder;
         final PairedDevice device = mDevices.get(position);
-        holder.mTxtTitle.setText(device.mHost);
+        holder.mTxtTitle.setText(device.mHost + ":" + device.mPort);
     }
 
     @Override

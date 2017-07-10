@@ -30,6 +30,7 @@ public class ListenerList<X> extends LinkedList<X> {
         List<T> result = new LinkedList<>();
         for (X next : this) {
             if (clazz.isInstance(next)) {
+                //noinspection unchecked
                 result.add((T) next);
             }
         }

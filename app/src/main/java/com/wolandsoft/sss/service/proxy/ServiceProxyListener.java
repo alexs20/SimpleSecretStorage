@@ -15,8 +15,6 @@
 */
 package com.wolandsoft.sss.service.proxy;
 
-import java.io.Serializable;
-
 /**
  * Service proxy listeners marker.
  *

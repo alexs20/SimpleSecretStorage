@@ -19,7 +19,6 @@ import android.support.annotation.Nullable;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 
-import java.io.Closeable;
 import java.util.List;
 
 /**

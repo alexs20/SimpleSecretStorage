@@ -55,7 +55,6 @@
                     android:id="@+id/txtLcChars"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_number_of_lowercase_chars"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <SeekBar
@@ -77,7 +76,6 @@
                     android:id="@+id/txtUpChars"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_number_of_uppercase_chars"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <SeekBar
@@ -100,7 +98,6 @@
                     android:id="@+id/txtNumChars"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_number_of_numeric_chars"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <SeekBar
@@ -123,7 +120,6 @@
                     android:id="@+id/txtSpChars"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_number_of_special_chars"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <SeekBar

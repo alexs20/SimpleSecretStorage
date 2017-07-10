@@ -224,8 +224,6 @@ public class EntryFragment extends Fragment implements
         String text = attr.getValue();
         if (text.length() > 0) {
             if (device != null) {
-                SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-                KeySharedPreferences ksPref = new KeySharedPreferences(shPref, getContext());
                 mPcComm.sendData(device, attr.getKey(), text);
             } else {
                 ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);

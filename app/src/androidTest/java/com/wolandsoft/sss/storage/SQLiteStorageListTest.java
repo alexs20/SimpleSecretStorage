@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.wolandsoft.sss.entity.SecretEntry;
 import com.wolandsoft.sss.entity.SecretEntryAttribute;
-import com.wolandsoft.sss.security.TextCipher;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
