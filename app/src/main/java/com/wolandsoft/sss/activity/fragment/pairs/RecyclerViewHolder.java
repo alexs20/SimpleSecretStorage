@@ -26,9 +26,11 @@ import com.wolandsoft.sss.R;
  */
 public class RecyclerViewHolder extends RecyclerView.ViewHolder {
     final TextView mTxtTitle;
+    final TextView mTxtTitleSmall;
 
     RecyclerViewHolder(View view) {
         super(view);
         mTxtTitle = (TextView) view.findViewById(R.id.txtTitle);
+        mTxtTitleSmall = (TextView) view.findViewById(R.id.txtTitleSmall);
     }
 }

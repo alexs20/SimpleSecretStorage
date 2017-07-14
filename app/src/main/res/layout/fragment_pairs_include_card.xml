@@ -37,6 +37,11 @@
             android:contentDescription="@string/label_logo"
             app:srcCompat="@mipmap/img24dp_pc" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
             <TextView
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
@@ -45,6 +50,16 @@
                 android:layout_marginTop="5dp"
                 android:gravity="center_vertical"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/txtTitleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="1dp"
+                android:gravity="center_vertical"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
 
     </LinearLayout>
 </android.support.v7.widget.CardView>

@@ -49,7 +49,7 @@
 
     <item name="pref_permission_asked_type_key" translatable="false" type="string">permission_asked_type</item>
 
-    <item name="pref_paired_devices_key" translatable="false" type="string">paired_devices</item>
+    <item name="pref_paired_devices_key" translatable="false" type="string">stored_paired_devices</item>
     <item name="pref_open_paired_devices_key" translatable="false" type="string">open_paired_devices</item>
 
 </resources>

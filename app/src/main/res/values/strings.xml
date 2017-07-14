@@ -131,6 +131,7 @@
     <string name="message_pc_receivers">List of devices you can copy data to.</string>
     <string name="message_scan_receiver_code">Open PC Receiver\'s QR code and scan it.</string>
     <string name="message_invalid_qr_code">Invalid QR Code.</string>
+    <string name="message_invalid_receiver">Incompatible Receiver Version.</string>
 
     <string name="label_privacy_policy">Privacy Policy</string>
     <string name="message_privacy_policy">Sensitive permissions usage</string>

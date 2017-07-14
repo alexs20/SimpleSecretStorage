@@ -59,6 +59,7 @@ import java.util.zip.Checksum;
  */
 public class PairedDevicesFragment extends Fragment
     implements AlertDialogFragment.OnDialogToFragmentInteract{
+    private static final int PROTOCOL_VER = 1;
     private final static String ARG_POSITION = "position";
     private static final int DELETE_PAIRED_DEVICE_CONFIRMATION_DIALOG = 1;
     private RecyclerViewAdapter mRecyclerViewAdapter;
@@ -189,6 +190,11 @@ public class PairedDevicesFragment extends Fragment
                         byte[] packet = Base64.decode(encodedB64, Base64.DEFAULT);
                         ByteArrayInputStream bais = new ByteArrayInputStream(packet);
                         DataInputStream dis = new DataInputStream(bais);
+                        int ver = dis.readInt();
+                        if(ver != PROTOCOL_VER){
+                            Toast.makeText(getContext(), getString(R.string.message_invalid_receiver), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         long crc = dis.readLong();
                         int size = dis.readInt();
                         byte[] payload = new byte[size];
@@ -199,6 +205,9 @@ public class PairedDevicesFragment extends Fragment
                         if (checksum.getValue() == crc) {
                             bais = new ByteArrayInputStream(payload);
                             dis = new DataInputStream(bais);
+                            size = dis.readInt();
+                            device.mIp = new byte[size];
+                            dis.readFully(device.mIp, 0, size);
                             device.mPort = dis.readInt();
                             size = dis.readInt();
                             payload = new byte[size];

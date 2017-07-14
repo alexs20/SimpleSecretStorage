@@ -32,6 +32,7 @@ import com.wolandsoft.sss.util.LogEx;
 import org.json.JSONObject;
 
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -71,7 +72,7 @@ public class PcCommService extends IntentService {
                 }
                 byte[] cipherTextBuff = aesCipher.cipher(jsonObj.toString().getBytes(StandardCharsets.UTF_8));
                 try (Socket client = new Socket()) {
-                    client.connect(new InetSocketAddress(device.mHost, device.mPort), getResources().getInteger(R.integer.pref_paired_device_connect_timeout));
+                    client.connect(new InetSocketAddress(InetAddress.getByAddress(device.mIp), device.mPort), getResources().getInteger(R.integer.pref_paired_device_connect_timeout));
                     OutputStream outStream = client.getOutputStream();
                     outStream.write(cipherTextBuff);
                     outStream.flush();

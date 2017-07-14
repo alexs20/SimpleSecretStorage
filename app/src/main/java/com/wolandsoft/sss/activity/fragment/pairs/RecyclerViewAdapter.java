@@ -23,10 +23,14 @@ import android.view.ViewGroup;
 
 import com.wolandsoft.sss.R;
 import com.wolandsoft.sss.service.pccomm.PairedDevice;
-import com.wolandsoft.sss.util.LogEx;
 import com.wolandsoft.sss.service.pccomm.PairedDevices;
+import com.wolandsoft.sss.util.LogEx;
 
-/**s
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+/**
+ * s
  * Adapter for {@link RecyclerView} component.
  */
 abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
@@ -46,7 +50,13 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
         final PairedDevice device = mDevices.get(position);
-        holder.mTxtTitle.setText(device.mHost + ":" + device.mPort);
+        holder.mTxtTitle.setText(device.mHost);
+        String ip = "?";
+        try {
+            ip = InetAddress.getByAddress(device.mIp).getHostAddress();
+        } catch (UnknownHostException ignore) {
+        }
+        holder.mTxtTitleSmall.setText(ip + ":" + device.mPort);
     }
 
     @Override
@@ -60,7 +70,7 @@ abstract class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHold
         notifyItemRemoved(idx);
     }
 
-    public PairedDevices getModel(){
+    public PairedDevices getModel() {
         return mDevices;
     }
 

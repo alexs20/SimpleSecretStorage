@@ -32,6 +32,7 @@ public class PairedDevice implements Parcelable {
             return new PairedDevice[size];
         }
     };
+    public byte[] mIp;
     public String mHost;
     public int mPort;
     public byte[] mKey;
@@ -41,6 +42,8 @@ public class PairedDevice implements Parcelable {
     }
 
     private PairedDevice(Parcel in) {
+        mIp = new byte[in.readInt()];
+        in.readByteArray(mIp);
         mHost = in.readString();
         mPort = in.readInt();
         mKey = new byte[in.readInt()];
@@ -54,6 +57,8 @@ public class PairedDevice implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mIp.length);
+        dest.writeByteArray(mIp);
         dest.writeString(mHost);
         dest.writeInt(mPort);
         dest.writeInt(mKey.length);
